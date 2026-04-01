@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { t } from "../../i18n/translations";
+import type { Locale } from "../../i18n/locales";
 
 const scenario = [
   { name: "Glob('*.ts')", type: "read" as const, duration: 0.3, color: "#6c63ff" },
@@ -10,7 +12,11 @@ const scenario = [
   { name: "Bash('npm test')", type: "write" as const, duration: 1.0, color: "#ef4444" },
 ];
 
-export default function ToolOrchestrationDemo() {
+interface Props {
+  locale?: Locale;
+}
+
+export default function ToolOrchestrationDemo({ locale = "en" as Locale }: Props) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [step, setStep] = useState(-1);
 
@@ -30,18 +36,18 @@ export default function ToolOrchestrationDemo() {
   return (
     <div className="rounded-xl border border-bg-border bg-bg-card p-6">
       <div className="flex items-center justify-between mb-6">
-        <p className="text-sm font-medium text-text">工具调度模拟器</p>
+        <p className="text-sm font-medium text-text">{t(locale, "toolOrchestration.title")}</p>
         <button
           onClick={play}
           disabled={isPlaying}
           className="px-4 py-1.5 rounded-lg text-sm font-medium bg-accent-purple text-white disabled:opacity-50 hover:bg-accent-purple/80 transition-colors"
         >
-          {isPlaying ? "执行中..." : "▶ 运行"}
+          {isPlaying ? t(locale, "toolOrchestration.running") : t(locale, "toolOrchestration.run")}
         </button>
       </div>
 
       <div className="mb-6">
-        <p className="text-xs font-mono text-text-secondary mb-2">阶段 1 — 读操作（并行）</p>
+        <p className="text-xs font-mono text-text-secondary mb-2">{t(locale, "toolOrchestration.phase1")}</p>
         <div className="space-y-2">
           {readOps.map((op, i) => (
             <div key={i} className="flex items-center gap-3">
@@ -64,7 +70,7 @@ export default function ToolOrchestrationDemo() {
       </div>
 
       <div>
-        <p className="text-xs font-mono text-text-secondary mb-2">阶段 2 — 写操作（串行）</p>
+        <p className="text-xs font-mono text-text-secondary mb-2">{t(locale, "toolOrchestration.phase2")}</p>
         <div className="space-y-2">
           {writeOps.map((op, i) => (
             <div key={i} className="flex items-center gap-3">
@@ -92,7 +98,7 @@ export default function ToolOrchestrationDemo() {
           animate={{ opacity: 1 }}
           className="mt-4 text-sm text-accent-emerald text-center"
         >
-          读操作同时完成（0.4s），写操作依次执行（1.9s）— 总计 2.3s 而非串行的 2.8s
+          {t(locale, "toolOrchestration.result")}
         </motion.div>
       )}
     </div>
