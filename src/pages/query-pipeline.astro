@@ -43,11 +43,11 @@ const systemPromptParts = [
 ];
 
 const toolLoopSteps = [
-  { num: "1", color: "#6c63ff", colorClass: "accent-purple", text: 'Claude 的响应中包含 <code class="text-accent-purple">tool_use</code> 块（"我想读取 src/main.tsx"）' },
-  { num: "2", color: "#f59e0b", colorClass: "accent-amber", text: "权限系统评估：这个操作安全吗？→ 通过后执行工具" },
-  { num: "3", color: "#10b981", colorClass: "accent-emerald", text: '工具执行结果作为 <code class="text-accent-emerald">tool_result</code> 消息追加到对话历史' },
-  { num: "4", color: "#22d3ee", colorClass: "accent-cyan", text: "带着新的对话历史再次调用 API — Claude 看到工具结果后决定下一步" },
-  { num: "5", color: "#6c63ff", colorClass: "accent-purple", text: '重复直到 Claude 返回 <code class="text-accent-purple">stop_reason: "end_turn"</code>（任务完成）' },
+  { num: "1", color: "#6c63ff", text: 'Claude 的响应中包含 tool_use 块（"我想读取 src/main.tsx"）' },
+  { num: "2", color: "#f59e0b", text: "权限系统评估：这个操作安全吗？→ 通过后执行工具" },
+  { num: "3", color: "#10b981", text: "工具执行结果作为 tool_result 消息追加到对话历史" },
+  { num: "4", color: "#22d3ee", text: "带着新的对话历史再次调用 API — Claude 看到工具结果后决定下一步" },
+  { num: "5", color: "#6c63ff", text: '重复直到 Claude 返回 stop_reason: "end_turn"（任务完成）' },
 ];
 ---
 
@@ -104,8 +104,11 @@ const toolLoopSteps = [
         <ol class="space-y-4 text-sm">
           {toolLoopSteps.map((step) => (
             <li class="flex gap-3">
-              <span class={`flex-shrink-0 w-6 h-6 rounded-full bg-${step.colorClass}/20 text-${step.colorClass} text-xs flex items-center justify-center font-mono`}>{step.num}</span>
-              <span set:html={step.text} />
+              <span
+                class="flex-shrink-0 w-6 h-6 rounded-full text-xs flex items-center justify-center font-mono"
+                style={`background-color: ${step.color}20; color: ${step.color}`}
+              >{step.num}</span>
+              <span>{step.text}</span>
             </li>
           ))}
         </ol>
