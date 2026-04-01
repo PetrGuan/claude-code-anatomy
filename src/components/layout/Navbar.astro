@@ -40,15 +40,42 @@ const alternateLinkLabel = locale === "en" ? "中文" : "EN";
         <span class="text-lg">∧</span>
         Claude Code Anatomy
       </a>
-      <div class="hidden lg:flex items-center gap-0.5">
-        {groups.map((group, gi) => (
-          <>
-            {gi > 0 && <span class="mx-1 text-bg-border">|</span>}
-            {navItems.filter(i => i.group === group).map((item) => (
+      <div class="hidden lg:flex items-center gap-1">
+        {navItems.filter(i => i.group === "core").map((item) => (
+          <a
+            href={getLocalePath(locale, item.path)}
+            class:list={[
+              "px-3 py-2 rounded-lg text-sm transition-colors whitespace-nowrap",
+              currentPath === item.path
+                ? "bg-accent-purple/10 text-accent-purple"
+                : "text-text-secondary hover:text-text hover:bg-bg-card",
+            ]}
+          >
+            {t(locale, item.key)}
+          </a>
+        ))}
+        {/* More dropdown for advanced + optional pages */}
+        <div class="relative" id="more-dropdown-wrapper">
+          <button
+            id="more-dropdown-btn"
+            class:list={[
+              "px-3 py-2 rounded-lg text-sm transition-colors whitespace-nowrap flex items-center gap-1",
+              navItems.filter(i => i.group !== "core").some(i => currentPath === i.path)
+                ? "bg-accent-purple/10 text-accent-purple"
+                : "text-text-secondary hover:text-text hover:bg-bg-card",
+            ]}
+          >
+            {locale === "zh" ? "更多" : "More"}
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div id="more-dropdown-menu" class="hidden absolute right-0 top-full mt-1 w-48 rounded-lg border border-bg-border bg-bg shadow-xl py-1 z-50">
+            {navItems.filter(i => i.group === "advanced").map((item) => (
               <a
                 href={getLocalePath(locale, item.path)}
                 class:list={[
-                  "px-2 py-1.5 rounded-lg text-xs transition-colors whitespace-nowrap",
+                  "block px-4 py-2 text-sm transition-colors",
                   currentPath === item.path
                     ? "bg-accent-purple/10 text-accent-purple"
                     : "text-text-secondary hover:text-text hover:bg-bg-card",
@@ -57,11 +84,25 @@ const alternateLinkLabel = locale === "en" ? "中文" : "EN";
                 {t(locale, item.key)}
               </a>
             ))}
-          </>
-        ))}
+            <div class="border-t border-bg-border my-1"></div>
+            {navItems.filter(i => i.group === "optional").map((item) => (
+              <a
+                href={getLocalePath(locale, item.path)}
+                class:list={[
+                  "block px-4 py-2 text-sm transition-colors",
+                  currentPath === item.path
+                    ? "bg-accent-purple/10 text-accent-purple"
+                    : "text-text-secondary hover:text-text hover:bg-bg-card",
+                ]}
+              >
+                {t(locale, item.key)}
+              </a>
+            ))}
+          </div>
+        </div>
         <a
           href={alternatePath}
-          class="ml-1 px-2 py-1.5 rounded-lg text-xs transition-colors text-text-secondary hover:text-text hover:bg-bg-card border border-bg-border whitespace-nowrap"
+          class="ml-1 px-3 py-2 rounded-lg text-sm transition-colors text-text-secondary hover:text-text hover:bg-bg-card border border-bg-border whitespace-nowrap"
         >
           {alternateLinkLabel}
         </a>
@@ -104,11 +145,26 @@ const alternateLinkLabel = locale === "en" ? "中文" : "EN";
 </nav>
 
 <script>
+  // Mobile menu toggle
   const btn = document.getElementById("mobile-menu-btn");
   const menu = document.getElementById("mobile-menu");
   btn?.addEventListener("click", () => {
     const expanded = btn.getAttribute("aria-expanded") === "true";
     btn.setAttribute("aria-expanded", String(!expanded));
     menu?.classList.toggle("hidden");
+  });
+
+  // Desktop "More" dropdown
+  const moreBtn = document.getElementById("more-dropdown-btn");
+  const moreMenu = document.getElementById("more-dropdown-menu");
+  moreBtn?.addEventListener("click", () => {
+    moreMenu?.classList.toggle("hidden");
+  });
+  // Close dropdown when clicking outside
+  document.addEventListener("click", (e) => {
+    const wrapper = document.getElementById("more-dropdown-wrapper");
+    if (wrapper && !wrapper.contains(e.target as Node)) {
+      moreMenu?.classList.add("hidden");
+    }
   });
 </script>
