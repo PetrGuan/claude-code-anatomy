@@ -587,6 +587,11 @@ const translations = {
     httpDesc: { en: "Newer protocol using standard HTTP with streaming support. Most flexible transport for cloud-hosted MCP servers.", zh: "使用标准 HTTP 并支持流式传输的新协议。最灵活的传输方式，适合云托管的 MCP 服务器。" },
     toolsTitle: { en: "MCP Tools in Claude Code", zh: "Claude Code 中的 MCP 工具" },
     toolsSubtitle: { en: "How MCP tools are exposed and used", zh: "MCP 工具如何暴露和使用" },
+    mcpToolDesc: { en: "Execute tools from connected MCP servers — the primary interface for Claude to call external functionality", zh: "执行连接的 MCP 服务器的工具 — Claude 调用外部功能的主要接口" },
+    listResourcesDesc: { en: "Discover what resources (files, data, configs) an MCP server makes available", zh: "发现 MCP 服务器提供的资源（文件、数据、配置）" },
+    readResourceDesc: { en: "Read content from a specific MCP resource by URI", zh: "通过 URI 读取特定 MCP 资源的内容" },
+    mcpAuthDesc: { en: "Handle OAuth authentication flows for MCP servers that require authorization", zh: "处理需要授权的 MCP 服务器的 OAuth 认证流程" },
+    toolsFooter: { en: "These tools are automatically registered when MCP servers connect. Claude uses them like any built-in tool — with the same permission checks and orchestration.", zh: "这些工具在 MCP 服务器连接时自动注册。Claude 像使用任何内置工具一样使用它们 — 具有相同的权限检查和调度机制。" },
   },
 } as const;
 
