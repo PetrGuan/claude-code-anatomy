@@ -9,7 +9,7 @@ import LayerTogglePermissionBash from "../components/common/LayerTogglePermissio
 import StatCard from "../components/common/StatCard.tsx";
 import FlowDiagram from "../components/viz/FlowDiagram.tsx";
 import PermissionSimulator from "../components/interactive/PermissionSimulator.tsx";
-import { snippets, snippetTitle } from "../data/codeSnippets";
+import { snippets, snippetTitle, snippetAnnotations } from "../data/codeSnippets";
 import CodeBlock from "../components/common/CodeBlock.astro";
 
 interface Props {
@@ -101,7 +101,7 @@ const ruleExamples = [
       <SectionHeading id="code" title={t(locale, "permissionSecurity.codeTitle")} subtitle={t(locale, "permissionSecurity.codeSubtitle")} />
       <CodeBlock code={snippets.permissionCheck.code} title={snippetTitle(snippets.permissionCheck, locale)} />
       <div class="mt-4 space-y-2">
-        {Object.entries(snippets.permissionCheck.annotations!).map(([line, note]) => (
+        {Object.entries(snippetAnnotations(snippets.permissionCheck, locale) ?? {}).map(([line, note]) => (
           <div class="flex items-start gap-3 text-sm">
             <span class="flex-shrink-0 text-xs font-mono text-accent-amber bg-accent-amber/10 px-2 py-0.5 rounded">L{line}</span>
             <span class="text-text-secondary">{note}</span>
