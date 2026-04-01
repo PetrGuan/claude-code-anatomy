@@ -33,7 +33,7 @@ const sortedTerms = [...glossaryTerms].sort((a, b) =>
                 href={getLocalePath(locale, term.relatedPage)}
                 class="text-xs text-text-secondary hover:text-accent-purple transition-colors whitespace-nowrap"
               >
-                {locale === "zh" ? "查看详情 →" : "See details →"}
+                {t(locale, "common.learnMore")}
               </a>
             )}
           </div>

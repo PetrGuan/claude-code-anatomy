@@ -12,7 +12,7 @@ const { id, title, subtitle } = Astro.props;
   <h2 class="text-2xl font-bold text-text">
     <a href={`#${id}`} class="hover:text-accent-purple transition-colors">
       {title}
-      <span class="opacity-0 group-hover:opacity-100 transition-opacity text-text-secondary ml-2 text-lg">#</span>
+      <span class="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity text-text-secondary ml-2 text-lg">#</span>
     </a>
   </h2>
   {subtitle && <p class="mt-2 text-text-secondary">{subtitle}</p>}

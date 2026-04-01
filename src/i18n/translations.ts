@@ -633,7 +633,6 @@ const translations = {
   glossary: {
     title: { en: "Glossary", zh: "术语表" },
     subtitle: { en: "Key technical terms explained for all readers", zh: "为所有读者解释的关键技术术语" },
-    searchPlaceholder: { en: "Filter terms...", zh: "筛选术语..." },
   },
 } as const;
 
