@@ -33,12 +33,36 @@ const pipelineEdges = [
   { from: "ansi", to: "screen" },
 ];
 
+const headers = locale === "zh"
+  ? ["方面", "浏览器 React", "Ink (终端)"]
+  : ["Aspect", "Browser React", "Ink (Terminal)"];
+
 const comparisonRows = [
-  { aspect: "Reconciler", browser: "react-dom", ink: "Custom ink reconciler" },
-  { aspect: "Layout", browser: "CSS / Browser engine", ink: "Yoga (Flexbox)" },
-  { aspect: "Output", browser: "HTML DOM", ink: "ANSI escape codes" },
-  { aspect: "Events", browser: "DOM events", ink: "stdin key / mouse parsing" },
-  { aspect: "Styling", browser: "CSS", ink: "ANSI colors + chalk" },
+  {
+    aspect: locale === "zh" ? "协调器" : "Reconciler",
+    browser: locale === "zh" ? "react-dom（映射到 HTML DOM）" : "react-dom (maps to HTML DOM)",
+    ink: locale === "zh" ? "自定义 Ink 协调器（映射到终端节点）" : "Custom Ink reconciler (maps to terminal nodes)",
+  },
+  {
+    aspect: locale === "zh" ? "布局引擎" : "Layout Engine",
+    browser: locale === "zh" ? "CSS + 浏览器布局引擎" : "CSS + Browser layout engine",
+    ink: locale === "zh" ? "Yoga（跨平台 Flexbox）" : "Yoga (cross-platform Flexbox)",
+  },
+  {
+    aspect: locale === "zh" ? "输出格式" : "Output",
+    browser: locale === "zh" ? "HTML 元素 + CSS 样式" : "HTML elements + CSS styles",
+    ink: locale === "zh" ? "ANSI 转义序列" : "ANSI escape sequences",
+  },
+  {
+    aspect: locale === "zh" ? "事件系统" : "Events",
+    browser: locale === "zh" ? "DOM 事件（click、keydown 等）" : "DOM events (click, keydown, etc.)",
+    ink: locale === "zh" ? "stdin 解析（按键、鼠标序列）" : "stdin parsing (key presses, mouse sequences)",
+  },
+  {
+    aspect: locale === "zh" ? "样式" : "Styling",
+    browser: locale === "zh" ? "CSS 类 + 内联样式" : "CSS classes + inline styles",
+    ink: locale === "zh" ? "ANSI 颜色码 + chalk 库" : "ANSI color codes + chalk library",
+  },
 ];
 
 const highlights = [
@@ -88,9 +112,9 @@ const highlights = [
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-bg-border bg-bg-card">
-              <th class="px-4 py-3 text-left font-semibold text-text-secondary">Aspect</th>
-              <th class="px-4 py-3 text-left font-semibold" style="color: #61dafb;">Browser React</th>
-              <th class="px-4 py-3 text-left font-semibold" style="color: #a78bfa;">Ink (Terminal)</th>
+              <th class="px-4 py-3 text-left font-semibold text-text-secondary">{headers[0]}</th>
+              <th class="px-4 py-3 text-left font-semibold" style="color: #61dafb;">{headers[1]}</th>
+              <th class="px-4 py-3 text-left font-semibold" style="color: #a78bfa;">{headers[2]}</th>
             </tr>
           </thead>
           <tbody>

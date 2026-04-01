@@ -59,36 +59,12 @@ const loadingEdges = [
 ];
 
 const hookTypes = [
-  {
-    name: "PreToolUse",
-    color: "#f59e0b",
-    desc: "Runs before tool execution, can modify input or deny",
-  },
-  {
-    name: "PostToolUse",
-    color: "#10b981",
-    desc: "Runs after tool execution, can modify output",
-  },
-  {
-    name: "UserPromptSubmit",
-    color: "#6c63ff",
-    desc: "Runs before processing user input",
-  },
-  {
-    name: "SessionStart",
-    color: "#22d3ee",
-    desc: "Runs when a new session begins",
-  },
-  {
-    name: "FileChanged",
-    color: "#a78bfa",
-    desc: "Triggered by file system monitoring",
-  },
-  {
-    name: "Notification",
-    color: "#e0e0e8",
-    desc: "System notification events",
-  },
+  { name: "PreToolUse", color: "#f59e0b", desc: locale === "zh" ? "在工具执行前运行，可修改输入或拒绝操作" : "Runs before tool execution, can modify input or deny" },
+  { name: "PostToolUse", color: "#10b981", desc: locale === "zh" ? "在工具执行后运行，可修改输出" : "Runs after tool execution, can modify output" },
+  { name: "UserPromptSubmit", color: "#6c63ff", desc: locale === "zh" ? "在处理用户输入前运行" : "Runs before processing user input" },
+  { name: "SessionStart", color: "#22d3ee", desc: locale === "zh" ? "新会话开始时运行" : "Runs when a new session begins" },
+  { name: "FileChanged", color: "#a78bfa", desc: locale === "zh" ? "文件系统监控触发" : "Triggered by file system monitoring" },
+  { name: "Notification", color: "#fb923c", desc: locale === "zh" ? "系统通知事件" : "System notification events" },
 ];
 ---
 
@@ -107,7 +83,7 @@ const hookTypes = [
     <div class="grid grid-cols-3 gap-4 mb-16">
       <StatCard client:visible value={23} label={t(locale, "pluginSkill.pluginFiles")} color="#6c63ff" />
       <StatCard client:visible value={19} label={t(locale, "pluginSkill.skillFiles")} color="#10b981" />
-      <StatCard client:visible value={12} label={t(locale, "pluginSkill.hookTypes")} color="#f59e0b" />
+      <StatCard client:visible value={11} label={t(locale, "pluginSkill.hookTypes")} color="#f59e0b" />
     </div>
 
     <SectionHeading id="what" title={t(locale, "pluginSkill.whatTitle")} />

@@ -73,7 +73,7 @@ const thresholdLabel = locale === "zh" ? "阈值" : "Threshold";
         title={t(locale, "messageCompaction.strategiesTitle")}
         subtitle={t(locale, "messageCompaction.strategiesSubtitle")}
       />
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid sm:grid-cols-2 gap-4">
         {strategies.map((strategy) => (
           <div class="rounded-xl border border-bg-border bg-bg-card p-6" style={`border-left: 3px solid ${strategy.color}`}>
             <h3 class="text-lg font-semibold mb-2" style={`color: ${strategy.color}`}>{strategy.title}</h3>
@@ -98,8 +98,8 @@ const thresholdLabel = locale === "zh" ? "阈值" : "Threshold";
               <div class="absolute bottom-0 left-0 right-0 bg-accent-red/20 border-t border-accent-red" style="height: 90%">
                 <span class="absolute top-2 left-2 text-xs text-accent-red">90%</span>
               </div>
-              <div class="absolute top-0 left-0 right-0 border-b-2 border-dashed border-accent-amber" style="height: 20%">
-                <span class="absolute bottom-1 right-2 text-xs text-accent-amber">{thresholdLabel}</span>
+              <div class="absolute left-0 right-0 border-b-2 border-dashed border-accent-amber" style="top: 20%">
+                <span class="absolute top-1 right-2 text-xs text-accent-amber">{thresholdLabel}</span>
               </div>
             </div>
           </div>
@@ -112,8 +112,8 @@ const thresholdLabel = locale === "zh" ? "阈值" : "Threshold";
               <div class="absolute bottom-0 left-0 right-0 bg-accent-emerald/20 border-t border-accent-emerald" style="height: 40%">
                 <span class="absolute top-2 left-2 text-xs text-accent-emerald">40%</span>
               </div>
-              <div class="absolute top-0 left-0 right-0 border-b-2 border-dashed border-accent-amber" style="height: 20%">
-                <span class="absolute bottom-1 right-2 text-xs text-accent-amber">{thresholdLabel}</span>
+              <div class="absolute left-0 right-0 border-b-2 border-dashed border-accent-amber" style="top: 20%">
+                <span class="absolute top-1 right-2 text-xs text-accent-amber">{thresholdLabel}</span>
               </div>
             </div>
           </div>
