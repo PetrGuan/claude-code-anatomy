@@ -22,6 +22,7 @@ export const toolCategories: ToolCategory[] = [
     tools: [
       { name: "Bash", description: "Execute shell commands and scripts", descriptionCn: "执行 Shell 命令和脚本", category: "shell" },
       { name: "PowerShell", description: "Execute PowerShell commands on Windows", descriptionCn: "在 Windows 上执行 PowerShell 命令", category: "shell" },
+      { name: "REPL", description: "Execute code in isolated REPL", descriptionCn: "在隔离的 REPL 环境中执行代码", category: "shell" },
     ],
   },
   {
@@ -70,6 +71,7 @@ export const toolCategories: ToolCategory[] = [
       { name: "TeamCreate", description: "Create a multi-agent swarm team", descriptionCn: "创建多 Agent 蜂群团队", category: "agent" },
       { name: "TeamDelete", description: "Disband a swarm team", descriptionCn: "解散蜂群团队", category: "agent" },
       { name: "Skill", description: "Execute custom skills and slash commands", descriptionCn: "执行自定义技能和斜杠命令", category: "agent" },
+      { name: "RemoteTrigger", description: "Manage scheduled remote triggers", descriptionCn: "管理定期远程触发器", category: "agent" },
     ],
   },
   {
@@ -84,6 +86,7 @@ export const toolCategories: ToolCategory[] = [
       { name: "TaskGet", description: "Get a specific task by ID", descriptionCn: "按 ID 获取特定任务", category: "task" },
       { name: "TaskOutput", description: "Get output from background tasks", descriptionCn: "获取后台任务的输出", category: "task" },
       { name: "TaskStop", description: "Kill a running background task", descriptionCn: "终止运行中的后台任务", category: "task" },
+      { name: "TodoWrite", description: "Manage session task checklist", descriptionCn: "管理会话任务清单", category: "task" },
     ],
   },
   {
@@ -110,6 +113,11 @@ export const toolCategories: ToolCategory[] = [
       { name: "LSP", description: "Language Server Protocol for code analysis", descriptionCn: "语言服务器协议用于代码分析", category: "config" },
       { name: "EnterPlanMode", description: "Enter plan mode for complex tasks", descriptionCn: "进入计划模式处理复杂任务", category: "config" },
       { name: "ExitPlanMode", description: "Complete plan mode", descriptionCn: "完成计划模式", category: "config" },
+      { name: "CronDelete", description: "Cancel a scheduled cron job", descriptionCn: "取消定期任务", category: "config" },
+      { name: "CronList", description: "List active cron jobs", descriptionCn: "列出活跃的定期任务", category: "config" },
+      { name: "Sleep", description: "Pause execution for a duration", descriptionCn: "暂停执行指定时间", category: "config" },
+      { name: "StructuredOutput", description: "Return structured JSON response", descriptionCn: "返回结构化 JSON 响应", category: "config" },
+      { name: "Brief", description: "Send messages with file attachments", descriptionCn: "发送带文件附件的消息", category: "config" },
     ],
   },
 ];

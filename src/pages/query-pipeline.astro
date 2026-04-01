@@ -7,6 +7,7 @@ import LayerToggleQueryStreaming from "../components/common/LayerToggleQueryStre
 import StatCard from "../components/common/StatCard.tsx";
 import FlowDiagram from "../components/viz/FlowDiagram.tsx";
 import { snippets } from "../data/codeSnippets";
+import CodeBlock from "../components/common/CodeBlock.astro";
 
 const sidebarItems = [
   { id: "what", label: "这是什么", level: 1 },
@@ -117,10 +118,7 @@ const toolLoopSteps = [
 
     <div class="mt-24">
       <SectionHeading id="code" title="核心代码" subtitle="简化后的查询循环实现" />
-      <div class="rounded-lg border border-bg-border bg-bg-card p-6 overflow-x-auto">
-        <p class="text-xs text-text-secondary mb-4 font-mono">{snippets.queryLoop.titleCn}</p>
-        <pre class="text-sm font-mono leading-relaxed"><code class="text-text">{snippets.queryLoop.code}</code></pre>
-      </div>
+      <CodeBlock code={snippets.queryLoop.code} title={snippets.queryLoop.titleCn} />
       <div class="mt-4 space-y-2">
         {Object.entries(snippets.queryLoop.annotations!).map(([line, note]) => (
           <div class="flex items-start gap-3 text-sm">

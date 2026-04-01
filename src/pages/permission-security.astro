@@ -8,6 +8,7 @@ import StatCard from "../components/common/StatCard.tsx";
 import FlowDiagram from "../components/viz/FlowDiagram.tsx";
 import PermissionSimulator from "../components/interactive/PermissionSimulator.tsx";
 import { snippets } from "../data/codeSnippets";
+import CodeBlock from "../components/common/CodeBlock.astro";
 
 const sidebarItems = [
   { id: "what", label: "这是什么", level: 1 },
@@ -90,10 +91,7 @@ const ruleExamples = [
 
     <div class="mt-24">
       <SectionHeading id="code" title="核心代码" subtitle="三层权限检查的简化实现" />
-      <div class="rounded-lg border border-bg-border bg-bg-card p-6 overflow-x-auto">
-        <p class="text-xs text-text-secondary mb-4 font-mono">{snippets.permissionCheck.titleCn}</p>
-        <pre class="text-sm font-mono leading-relaxed"><code class="text-text">{snippets.permissionCheck.code}</code></pre>
-      </div>
+      <CodeBlock code={snippets.permissionCheck.code} title={snippets.permissionCheck.titleCn} />
       <div class="mt-4 space-y-2">
         {Object.entries(snippets.permissionCheck.annotations!).map(([line, note]) => (
           <div class="flex items-start gap-3 text-sm">

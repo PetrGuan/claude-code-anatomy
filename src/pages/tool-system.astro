@@ -8,6 +8,7 @@ import FlowDiagram from "../components/viz/FlowDiagram.tsx";
 import ToolOrchestrationDemo from "../components/interactive/ToolOrchestrationDemo.tsx";
 import { toolCategories } from "../data/tools";
 import { snippets } from "../data/codeSnippets";
+import CodeBlock from "../components/common/CodeBlock.astro";
 
 const sidebarItems = [
   { id: "what", label: "这是什么", level: 1 },
@@ -92,10 +93,7 @@ const executionEdges = [
 
     <div class="mt-24">
       <SectionHeading id="code" title="核心代码" subtitle="工具调度的简化实现" />
-      <div class="rounded-lg border border-bg-border bg-bg-card p-6 overflow-x-auto">
-        <p class="text-xs text-text-secondary mb-4 font-mono">{snippets.toolOrchestration.titleCn}</p>
-        <pre class="text-sm font-mono leading-relaxed"><code class="text-text">{snippets.toolOrchestration.code}</code></pre>
-      </div>
+      <CodeBlock code={snippets.toolOrchestration.code} title={snippets.toolOrchestration.titleCn} />
       <div class="mt-4 space-y-2">
         {Object.entries(snippets.toolOrchestration.annotations!).map(([line, note]) => (
           <div class="flex items-start gap-3 text-sm">

@@ -1,0 +1,25 @@
+---
+import { codeToHtml } from "shiki";
+
+interface Props {
+  code: string;
+  lang?: string;
+  title?: string;
+}
+
+const { code, lang = "typescript", title } = Astro.props;
+
+const html = await codeToHtml(code, {
+  lang,
+  theme: "github-dark-default",
+});
+---
+
+<div class="rounded-lg border border-bg-border bg-bg-card overflow-hidden">
+  {title && (
+    <div class="px-4 py-2 border-b border-bg-border">
+      <p class="text-xs text-text-secondary font-mono">{title}</p>
+    </div>
+  )}
+  <div class="p-4 overflow-x-auto text-sm [&_pre]:!bg-transparent [&_pre]:!m-0 [&_code]:!text-sm [&_code]:!leading-relaxed" set:html={html} />
+</div>
