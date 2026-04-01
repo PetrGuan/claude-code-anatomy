@@ -1,8 +1,12 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { t } from "../../i18n/translations";
 import type { Locale } from "../../i18n/locales";
-import { getTraceSteps, type TraceStep } from "../../data/traceSteps";
+import { getTraceSteps, type TraceStep, type ClickableRef } from "../../data/traceSteps";
+
+interface HighlightedLine {
+  tokens: { content: string; color?: string }[];
+}
 
 interface Props {
   locale?: Locale;
@@ -12,6 +16,46 @@ export default function CodeTracer({ locale = "en" as Locale }: Props) {
   const steps = useMemo(() => getTraceSteps(locale), [locale]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [history, setHistory] = useState<number[]>([0]);
+
+  const [highlightedSteps, setHighlightedSteps] = useState<Map<string, HighlightedLine[]>>(new Map());
+
+  // Load Shiki and highlight all steps
+  useEffect(() => {
+    let cancelled = false;
+    async function loadShiki() {
+      try {
+        const { createHighlighter } = await import('shiki');
+        const highlighter = await createHighlighter({
+          themes: ['github-dark-default'],
+          langs: ['typescript'],
+        });
+
+        if (cancelled) return;
+
+        const highlighted = new Map<string, HighlightedLine[]>();
+        for (const step of steps) {
+          const result = highlighter.codeToTokens(step.code, {
+            lang: 'typescript',
+            theme: 'github-dark-default',
+          });
+          highlighted.set(step.id, result.tokens.map(line => ({
+            tokens: line.map(token => ({
+              content: token.content,
+              color: token.color,
+            })),
+          })));
+        }
+
+        if (!cancelled) {
+          setHighlightedSteps(highlighted);
+        }
+      } catch (e) {
+        console.warn('Shiki failed to load, using plain text fallback', e);
+      }
+    }
+    loadShiki();
+    return () => { cancelled = true; };
+  }, [steps]);
 
   const current = steps[currentIndex];
 
@@ -37,32 +81,17 @@ export default function CodeTracer({ locale = "en" as Locale }: Props) {
     });
   }, []);
 
-  // Render code with clickable refs and line highlighting
+  // Render code with syntax highlighting and clickable refs
   function renderCode(step: TraceStep) {
     const lines = step.code.split("\n");
+    const highlighted = highlightedSteps.get(step.id);
+
     return (
       <div className="font-mono text-xs sm:text-sm leading-relaxed overflow-x-auto">
         {lines.map((line, i) => {
           const lineNum = i + 1;
           const isHighlighted = step.highlightLines.includes(lineNum);
-
-          // Process clickable refs in this line
-          let segments: (string | { text: string; targetStep: string })[] = [line];
-          for (const ref of step.clickableRefs) {
-            const newSegments: typeof segments = [];
-            for (const seg of segments) {
-              if (typeof seg === "string" && seg.includes(ref.text)) {
-                const parts = seg.split(ref.text);
-                for (let j = 0; j < parts.length; j++) {
-                  if (j > 0) newSegments.push({ text: ref.text, targetStep: ref.targetStep });
-                  if (parts[j]) newSegments.push(parts[j]);
-                }
-              } else {
-                newSegments.push(seg);
-              }
-            }
-            segments = newSegments;
-          }
+          const lineTokens = highlighted?.[i]?.tokens;
 
           return (
             <div
@@ -73,24 +102,97 @@ export default function CodeTracer({ locale = "en" as Locale }: Props) {
                 {lineNum}
               </span>
               <span className="flex-1 pr-4">
-                {segments.map((seg, si) =>
-                  typeof seg === "string" ? (
-                    <span key={si}>{seg}</span>
-                  ) : (
-                    <button
-                      key={si}
-                      onClick={() => goToStep(seg.targetStep)}
-                      className="text-accent-purple underline decoration-dotted underline-offset-2 hover:decoration-solid cursor-pointer bg-transparent border-none p-0 font-mono text-inherit focus:outline-none focus:ring-2 focus:ring-accent-purple focus:ring-offset-1 focus:ring-offset-bg"
-                    >
-                      {seg.text}
-                    </button>
-                  )
-                )}
+                {lineTokens
+                  ? renderTokensWithRefs(lineTokens, step.clickableRefs)
+                  : renderPlainWithRefs(line, step.clickableRefs)
+                }
               </span>
             </div>
           );
         })}
       </div>
+    );
+  }
+
+  // Render Shiki-highlighted tokens, injecting clickable refs
+  function renderTokensWithRefs(
+    tokens: { content: string; color?: string }[],
+    refs: ClickableRef[]
+  ) {
+    const elements: React.ReactNode[] = [];
+    let keyIdx = 0;
+
+    for (const token of tokens) {
+      // Check if any ref matches within this token
+      let matched = false;
+      for (const ref of refs) {
+        if (token.content.includes(ref.text)) {
+          matched = true;
+          const parts = token.content.split(ref.text);
+          for (let j = 0; j < parts.length; j++) {
+            if (parts[j]) {
+              elements.push(
+                <span key={keyIdx++} style={{ color: token.color }}>{parts[j]}</span>
+              );
+            }
+            if (j < parts.length - 1) {
+              elements.push(
+                <button
+                  key={keyIdx++}
+                  onClick={() => goToStep(ref.targetStep)}
+                  className="underline decoration-dotted underline-offset-2 hover:decoration-solid cursor-pointer bg-transparent border-none p-0 font-mono text-inherit focus:outline-none focus:ring-2 focus:ring-accent-purple focus:ring-offset-1 focus:ring-offset-bg"
+                  style={{ color: '#6c63ff' }}
+                >
+                  {ref.text}
+                </button>
+              );
+            }
+          }
+          break;
+        }
+      }
+
+      if (!matched) {
+        elements.push(
+          <span key={keyIdx++} style={{ color: token.color }}>{token.content}</span>
+        );
+      }
+    }
+
+    return elements;
+  }
+
+  // Fallback: plain text with clickable refs (before Shiki loads)
+  function renderPlainWithRefs(line: string, refs: ClickableRef[]) {
+    let segments: (string | { text: string; targetStep: string })[] = [line];
+    for (const ref of refs) {
+      const newSegments: typeof segments = [];
+      for (const seg of segments) {
+        if (typeof seg === "string" && seg.includes(ref.text)) {
+          const parts = seg.split(ref.text);
+          for (let j = 0; j < parts.length; j++) {
+            if (j > 0) newSegments.push({ text: ref.text, targetStep: ref.targetStep });
+            if (parts[j]) newSegments.push(parts[j]);
+          }
+        } else {
+          newSegments.push(seg);
+        }
+      }
+      segments = newSegments;
+    }
+
+    return segments.map((seg, si) =>
+      typeof seg === "string" ? (
+        <span key={si} className="text-text">{seg}</span>
+      ) : (
+        <button
+          key={si}
+          onClick={() => goToStep(seg.targetStep)}
+          className="text-accent-purple underline decoration-dotted underline-offset-2 hover:decoration-solid cursor-pointer bg-transparent border-none p-0 font-mono text-inherit focus:outline-none focus:ring-2 focus:ring-accent-purple focus:ring-offset-1 focus:ring-offset-bg"
+        >
+          {seg.text}
+        </button>
+      )
     );
   }
 
