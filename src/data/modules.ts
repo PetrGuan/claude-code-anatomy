@@ -139,6 +139,7 @@ export const modules: Module[] = [
     lines: 12613,
     category: "integration",
     color: "#fb923c",
+    page: "/ide-bridge",
   },
   {
     id: "mcp",
@@ -151,6 +152,7 @@ export const modules: Module[] = [
     lines: 10000,
     category: "integration",
     color: "#fb923c",
+    page: "/mcp-integration",
   },
   {
     id: "compaction",
