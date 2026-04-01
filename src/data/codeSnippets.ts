@@ -1,3 +1,5 @@
+import type { Locale } from "../i18n/locales";
+
 export interface CodeSnippet {
   id: string;
   title: string;
@@ -146,3 +148,7 @@ for await (const update of submitMessage(prompt)) {
     },
   },
 };
+
+export function snippetTitle(snippet: CodeSnippet, locale: Locale): string {
+  return locale === "zh" ? snippet.titleCn : snippet.title;
+}

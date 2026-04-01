@@ -1,3 +1,5 @@
+import type { Locale } from "../i18n/locales";
+
 export interface Module {
   id: string;
   name: string;
@@ -197,3 +199,10 @@ export const modules: Module[] = [
     color: "#22d3ee",
   },
 ];
+
+export function moduleName(m: Module, locale: Locale): string {
+  return locale === "zh" ? m.nameCn : m.name;
+}
+export function moduleDesc(m: Module, locale: Locale): string {
+  return locale === "zh" ? m.descriptionCn : m.description;
+}

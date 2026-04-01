@@ -1,3 +1,5 @@
+import type { Locale } from "../i18n/locales";
+
 export interface GraphNode {
   id: string;
   label: string;
@@ -64,3 +66,10 @@ export const layerLabels: Record<string, { en: string; cn: string }> = {
   extension: { en: "Extension Layer", cn: "扩展层" },
   integration: { en: "Integration Layer", cn: "集成层" },
 };
+
+export function nodeLabel(node: GraphNode, locale: Locale): string {
+  return locale === "zh" ? node.labelCn : node.label;
+}
+export function layerLabel(layer: string, locale: Locale): string {
+  return locale === "zh" ? layerLabels[layer].cn : layerLabels[layer].en;
+}

@@ -1,3 +1,5 @@
+import type { Locale } from "../i18n/locales";
+
 export interface Tool {
   name: string;
   description: string;
@@ -121,3 +123,10 @@ export const toolCategories: ToolCategory[] = [
     ],
   },
 ];
+
+export function categoryName(c: ToolCategory, locale: Locale): string {
+  return locale === "zh" ? c.nameCn : c.name;
+}
+export function toolDesc(tool: Tool, locale: Locale): string {
+  return locale === "zh" ? tool.descriptionCn : tool.description;
+}
