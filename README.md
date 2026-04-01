@@ -1,5 +1,7 @@
 # Claude Code Anatomy
 
+[中文版](./README.zh-CN.md)
+
 An interactive, visual deep-dive into the architecture of [Claude Code](https://docs.anthropic.com/en/docs/claude-code) — Anthropic's AI coding assistant.
 
 **[Live Site →](https://petrguan.github.io/claude-code-anatomy/)**
