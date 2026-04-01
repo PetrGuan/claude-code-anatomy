@@ -1,16 +1,10 @@
 ---
-import '../styles/global.css';
+import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Claude Code Anatomy</title>
-	</head>
-	<body>
-		<h1 class="text-4xl font-bold text-accent-purple p-8">Claude Code Anatomy</h1>
-	</body>
-</html>
+<BaseLayout title="首页">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-24">
+    <h1 class="text-4xl font-bold text-accent-purple">Claude Code Anatomy</h1>
+    <p class="mt-4 text-text-secondary">深入浅出分析 Claude Code 源码架构</p>
+  </div>
+</BaseLayout>

@@ -1,0 +1,63 @@
+---
+const navItems = [
+  { href: "/", label: "首页", labelEn: "Home" },
+  { href: "/overview", label: "架构概览", labelEn: "Overview" },
+  { href: "/query-pipeline", label: "查询管线", labelEn: "Query Pipeline" },
+  { href: "/tool-system", label: "工具系统", labelEn: "Tool System" },
+  { href: "/permission-security", label: "权限安全", labelEn: "Permissions" },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<nav class="fixed top-0 left-0 right-0 z-50 border-b border-bg-border bg-bg/80 backdrop-blur-xl">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="flex h-16 items-center justify-between">
+      <a href="/" class="flex items-center gap-2 font-mono text-sm font-bold text-accent-purple">
+        <span class="text-lg">∧</span>
+        Claude Code Anatomy
+      </a>
+      <div class="hidden md:flex items-center gap-1">
+        {navItems.map((item) => (
+          <a
+            href={item.href}
+            class:list={[
+              "px-3 py-2 rounded-lg text-sm transition-colors",
+              currentPath === item.href
+                ? "bg-accent-purple/10 text-accent-purple"
+                : "text-text-secondary hover:text-text hover:bg-bg-card",
+            ]}
+          >
+            {item.label}
+          </a>
+        ))}
+      </div>
+      <button id="mobile-menu-btn" class="md:hidden p-2 text-text-secondary hover:text-text">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div id="mobile-menu" class="hidden md:hidden border-t border-bg-border bg-bg px-4 pb-4">
+    {navItems.map((item) => (
+      <a
+        href={item.href}
+        class:list={[
+          "block px-3 py-2 rounded-lg text-sm transition-colors",
+          currentPath === item.href
+            ? "bg-accent-purple/10 text-accent-purple"
+            : "text-text-secondary hover:text-text",
+        ]}
+      >
+        {item.label}
+      </a>
+    ))}
+  </div>
+</nav>
+
+<script>
+  const btn = document.getElementById("mobile-menu-btn");
+  const menu = document.getElementById("mobile-menu");
+  btn?.addEventListener("click", () => menu?.classList.toggle("hidden"));
+</script>
