@@ -1,0 +1,161 @@
+---
+import type { Locale } from "../i18n/locales";
+import { t } from "../i18n/translations";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Sidebar from "../components/layout/Sidebar.tsx";
+import SectionHeading from "../components/common/SectionHeading.astro";
+import LayerToggleMcpIntegration from "../components/common/LayerToggleMcpIntegration.tsx";
+import StatCard from "../components/common/StatCard.tsx";
+import FlowDiagram from "../components/viz/FlowDiagram.tsx";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const sidebarItems = [
+  { id: "what", label: t(locale, "mcpIntegration.whatTitle"), level: 1 },
+  { id: "architecture", label: t(locale, "mcpIntegration.architectureTitle"), level: 1 },
+  { id: "transport", label: t(locale, "mcpIntegration.transportTitle"), level: 1 },
+  { id: "tools", label: t(locale, "mcpIntegration.toolsTitle"), level: 1 },
+];
+
+const architectureNodes = [
+  { id: "config", label: t(locale, "mcpIntegration.nodeConfig"), description: t(locale, "mcpIntegration.nodeConfigDesc"), color: "#e0e0e8" },
+  { id: "connect", label: t(locale, "mcpIntegration.nodeConnect"), description: t(locale, "mcpIntegration.nodeConnectDesc"), color: "#6c63ff" },
+  { id: "discover", label: t(locale, "mcpIntegration.nodeDiscover"), description: t(locale, "mcpIntegration.nodeDiscoverDesc"), color: "#f59e0b" },
+  { id: "invoke", label: t(locale, "mcpIntegration.nodeInvoke"), description: t(locale, "mcpIntegration.nodeInvokeDesc"), color: "#10b981" },
+];
+
+const architectureEdges = [
+  { from: "config", to: "connect" },
+  { from: "connect", to: "discover" },
+  { from: "discover", to: "invoke" },
+];
+
+const transports = [
+  {
+    title: t(locale, "mcpIntegration.stdioTitle"),
+    desc: t(locale, "mcpIntegration.stdioDesc"),
+    color: "#10b981",
+    icon: "⟨ stdin | stdout ⟩",
+  },
+  {
+    title: t(locale, "mcpIntegration.sseTitle"),
+    desc: t(locale, "mcpIntegration.sseDesc"),
+    color: "#6c63ff",
+    icon: "POST → SSE ⟶",
+  },
+  {
+    title: t(locale, "mcpIntegration.httpTitle"),
+    desc: t(locale, "mcpIntegration.httpDesc"),
+    color: "#22d3ee",
+    icon: "HTTP/1.1 ≡≡≡",
+  },
+];
+
+const mcpTools = [
+  {
+    name: "MCPTool",
+    desc: locale === "zh"
+      ? "动态包装器，将每个发现的 MCP 服务器工具公开为 Claude Code 原生工具，带有完整的权限检查。"
+      : "Dynamic wrapper that exposes each discovered MCP server tool as a native Claude Code tool, with full permission checking.",
+    color: "#10b981",
+  },
+  {
+    name: "ListMcpResources",
+    desc: locale === "zh"
+      ? "列出 MCP 服务器公开的资源（文件、数据库条目、API 端点），可作为上下文附加到对话中。"
+      : "Lists resources (files, DB entries, API endpoints) exposed by an MCP server, which can be attached to the conversation as context.",
+    color: "#6c63ff",
+  },
+  {
+    name: "ReadMcpResource",
+    desc: locale === "zh"
+      ? "从 MCP 服务器读取特定资源内容，通过 URI 寻址。资源可以是文本、JSON 或二进制数据。"
+      : "Reads the content of a specific resource from an MCP server, addressed by URI. Resources can be text, JSON, or binary data.",
+    color: "#f59e0b",
+  },
+  {
+    name: "McpAuth",
+    desc: locale === "zh"
+      ? "处理 MCP 服务器的 OAuth 认证流程，为需要认证的远程服务器管理令牌获取和刷新。"
+      : "Handles OAuth authentication flows for MCP servers that require auth, managing token acquisition and refresh for remote servers.",
+    color: "#22d3ee",
+  },
+];
+---
+
+<BaseLayout title={t(locale, "mcpIntegration.title")} locale={locale}>
+  <Sidebar client:load items={sidebarItems} locale={locale} />
+
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-16">
+      <p class="text-sm font-mono text-accent-emerald">{t(locale, "mcpIntegration.tag")}</p>
+      <h1 class="text-4xl font-bold mt-2">{t(locale, "mcpIntegration.title")}</h1>
+      <p class="mt-4 text-xl text-text-secondary">
+        {t(locale, "mcpIntegration.subtitle")}
+      </p>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 mb-16">
+      <StatCard client:visible value={25} label={t(locale, "mcpIntegration.mcpFiles")} color="#10b981" />
+      <StatCard client:visible value={10000} label={t(locale, "mcpIntegration.mcpLines")} color="#6c63ff" />
+      <StatCard client:visible value={3} label={t(locale, "mcpIntegration.mcpTransports")} color="#22d3ee" />
+    </div>
+
+    <SectionHeading id="what" title={t(locale, "mcpIntegration.whatTitle")} />
+
+    <LayerToggleMcpIntegration client:visible locale={locale} />
+
+    <div class="mt-24">
+      <SectionHeading id="architecture" title={t(locale, "mcpIntegration.architectureTitle")} subtitle={t(locale, "mcpIntegration.architectureSubtitle")} />
+      <FlowDiagram client:visible nodes={architectureNodes} edges={architectureEdges} direction="horizontal" />
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="transport" title={t(locale, "mcpIntegration.transportTitle")} subtitle={t(locale, "mcpIntegration.transportSubtitle")} />
+      <div class="grid sm:grid-cols-3 gap-4">
+        {transports.map((transport) => (
+          <div class="rounded-lg border border-bg-border bg-bg-card p-5 flex flex-col gap-3">
+            <div
+              class="rounded px-3 py-2 font-mono text-xs text-center"
+              style={`background-color: ${transport.color}18; color: ${transport.color}; border: 1px solid ${transport.color}40`}
+            >
+              {transport.icon}
+            </div>
+            <div>
+              <h3 class="font-semibold text-sm" style={`color: ${transport.color}`}>{transport.title}</h3>
+              <p class="mt-1 text-xs text-text-secondary leading-relaxed">{transport.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="tools" title={t(locale, "mcpIntegration.toolsTitle")} subtitle={t(locale, "mcpIntegration.toolsSubtitle")} />
+      <div class="rounded-lg border border-bg-border bg-bg-card p-6">
+        <div class="space-y-4">
+          {mcpTools.map((tool) => (
+            <div class="flex items-start gap-3">
+              <span
+                class="flex-shrink-0 font-mono text-xs px-2 py-1 rounded"
+                style={`background-color: ${tool.color}18; color: ${tool.color}`}
+              >
+                {tool.name}
+              </span>
+              <p class="text-sm text-text-secondary">{tool.desc}</p>
+            </div>
+          ))}
+        </div>
+        <p class="mt-6 text-xs text-text-secondary border-t border-bg-border pt-4">
+          {locale === "zh"
+            ? "这些工具通过标准工具系统管道运行 — 带有权限检查、钩子和结果流回对话。请参阅工具系统页面了解完整的执行流程。"
+            : "These tools run through the standard tool system pipeline — with permission checks, hooks, and results flowing back into the conversation. See the Tool System page for the full execution flow."}
+        </p>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
