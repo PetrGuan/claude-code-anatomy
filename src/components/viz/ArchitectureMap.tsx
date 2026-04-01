@@ -15,13 +15,20 @@ export default function ArchitectureMap({ locale = "en" as Locale }: { locale?: 
     if (!svgRef.current || !containerRef.current) return;
 
     const width = containerRef.current.clientWidth;
-    const height = Math.min(500, width * 0.8);
+    const baseHeight = 500;
+    const height = Math.max(300, Math.min(baseHeight, width * 0.8));
+    const s = height / baseHeight;
     const svg = select(svgRef.current).attr("width", width).attr("height", height);
     svg.selectAll("*").remove();
 
     const g = svg.append("g");
 
-    const layerY: Record<string, number> = { core: 120, ui: 240, extension: 340, integration: 440 };
+    const layerY: Record<string, number> = {
+      core: 120 * s,
+      ui: 240 * s,
+      extension: 340 * s,
+      integration: 440 * s,
+    };
 
     const positionedNodes = nodes.map((node) => {
       const layerNodes = nodes.filter((n) => n.layer === node.layer);
@@ -36,18 +43,19 @@ export default function ArchitectureMap({ locale = "en" as Locale }: { locale?: 
       const layerNodes = positionedNodes.filter((n) => n.layer === layer);
       if (layerNodes.length === 0) continue;
 
-      const minX = Math.min(...layerNodes.map((n) => n.x!)) - 60;
-      const maxX = Math.max(...layerNodes.map((n) => n.x!)) + 60;
+      const padding = 60 * s;
+      const minX = Math.min(...layerNodes.map((n) => n.x!)) - padding;
+      const maxX = Math.max(...layerNodes.map((n) => n.x!)) + padding;
       const y = layerY[layer];
 
       g.append("rect")
-        .attr("x", minX).attr("y", y - 30)
-        .attr("width", maxX - minX).attr("height", 60)
+        .attr("x", minX).attr("y", y - 30 * s)
+        .attr("width", maxX - minX).attr("height", 60 * s)
         .attr("rx", 12).attr("fill", layerColors[layer]).attr("opacity", 0.05);
 
       g.append("text")
-        .attr("x", minX + 8).attr("y", y - 16)
-        .attr("fill", layerColors[layer]).attr("font-size", 10).attr("opacity", 0.6)
+        .attr("x", minX + 8).attr("y", y - 16 * s)
+        .attr("fill", layerColors[layer]).attr("font-size", Math.max(8, 10 * s)).attr("opacity", 0.6)
         .text(layerLabel(layer, locale));
     }
 
@@ -66,15 +74,15 @@ export default function ArchitectureMap({ locale = "en" as Locale }: { locale?: 
       .style("cursor", "pointer");
 
     nodeGroups.append("circle")
-      .attr("r", 20).attr("fill", (d) => layerColors[d.layer])
+      .attr("r", Math.max(14, 20 * s)).attr("fill", (d) => layerColors[d.layer])
       .attr("opacity", 0.15).attr("stroke", (d) => layerColors[d.layer]).attr("stroke-width", 1.5);
 
     nodeGroups.append("circle")
-      .attr("r", 5).attr("fill", (d) => layerColors[d.layer]);
+      .attr("r", Math.max(3, 5 * s)).attr("fill", (d) => layerColors[d.layer]);
 
     nodeGroups.append("text")
-      .attr("y", 34).attr("text-anchor", "middle")
-      .attr("fill", "#e0e0e8").attr("font-size", 11)
+      .attr("y", 34 * s).attr("text-anchor", "middle")
+      .attr("fill", "#e0e0e8").attr("font-size", Math.max(8, 11 * s))
       .text((d) => nodeLabel(d, locale));
 
     // Click navigation
@@ -94,11 +102,11 @@ export default function ArchitectureMap({ locale = "en" as Locale }: { locale?: 
       .on("mouseenter", function (event, d) {
         const rect = containerRef.current!.getBoundingClientRect();
         setTooltip({ x: event.clientX - rect.left, y: event.clientY - rect.top - 10, node: d });
-        select(this).select("circle").transition().duration(200).attr("r", 24);
+        select(this).select("circle").transition().duration(200).attr("r", Math.max(17, 24 * s));
       })
       .on("mouseleave", function () {
         setTooltip(null);
-        select(this).select("circle").transition().duration(200).attr("r", 20);
+        select(this).select("circle").transition().duration(200).attr("r", Math.max(14, 20 * s));
       });
   }, [locale]);
 

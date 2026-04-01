@@ -10,18 +10,20 @@ interface Props {
 const { locale = "en" } = Astro.props;
 
 const navItems = [
-  { path: "/", key: "nav.home" },
-  { path: "/overview", key: "nav.overview" },
-  { path: "/query-pipeline", key: "nav.queryPipeline" },
-  { path: "/tool-system", key: "nav.toolSystem" },
-  { path: "/permission-security", key: "nav.permissionSecurity" },
-  { path: "/terminal-ui", key: "nav.terminalUI" },
-  { path: "/plugin-skill", key: "nav.pluginSkill" },
-  { path: "/message-compaction", key: "nav.messageCompaction" },
-  { path: "/agent-system", key: "nav.agentSystem" },
-  { path: "/ide-bridge", key: "nav.ideBridge" },
-  { path: "/mcp-integration", key: "nav.mcpIntegration" },
+  { path: "/", key: "nav.home", group: "core" },
+  { path: "/overview", key: "nav.overview", group: "core" },
+  { path: "/query-pipeline", key: "nav.queryPipeline", group: "core" },
+  { path: "/tool-system", key: "nav.toolSystem", group: "core" },
+  { path: "/permission-security", key: "nav.permissionSecurity", group: "core" },
+  { path: "/terminal-ui", key: "nav.terminalUI", group: "advanced" },
+  { path: "/plugin-skill", key: "nav.pluginSkill", group: "advanced" },
+  { path: "/message-compaction", key: "nav.messageCompaction", group: "advanced" },
+  { path: "/agent-system", key: "nav.agentSystem", group: "advanced" },
+  { path: "/ide-bridge", key: "nav.ideBridge", group: "optional" },
+  { path: "/mcp-integration", key: "nav.mcpIntegration", group: "optional" },
 ];
+
+const groups = ["core", "advanced", "optional"] as const;
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const currentPath = Astro.url.pathname.replace(base, '') || '/';
@@ -66,52 +68,25 @@ const alternateLinkLabel = locale === "en" ? "中文" : "EN";
     </div>
   </div>
   <div id="mobile-menu" class="hidden lg:hidden border-t border-bg-border bg-bg px-4 pb-4 max-h-[70vh] overflow-y-auto">
-    <!-- Core pages -->
-    {navItems.slice(0, 5).map((item) => (
-      <a
-        href={getLocalePath(locale, item.path)}
-        class:list={[
-          "block px-3 py-2 rounded-lg text-sm transition-colors",
-          currentPath === item.path
-            ? "bg-accent-purple/10 text-accent-purple"
-            : "text-text-secondary hover:text-text",
-        ]}
-      >
-        {t(locale, item.key)}
-      </a>
+    {groups.map((group, gi) => (
+      <>
+        {gi > 0 && <div class="border-t border-bg-border my-2"></div>}
+        {navItems.filter(item => item.group === group).map((item) => (
+          <a
+            href={getLocalePath(locale, item.path)}
+            class:list={[
+              "block px-3 py-2 rounded-lg text-sm transition-colors",
+              currentPath === item.path
+                ? "bg-accent-purple/10 text-accent-purple"
+                : "text-text-secondary hover:text-text",
+            ]}
+          >
+            {t(locale, item.key)}
+          </a>
+        ))}
+      </>
     ))}
     <div class="border-t border-bg-border my-2"></div>
-    <!-- Advanced pages -->
-    {navItems.slice(5, 9).map((item) => (
-      <a
-        href={getLocalePath(locale, item.path)}
-        class:list={[
-          "block px-3 py-2 rounded-lg text-sm transition-colors",
-          currentPath === item.path
-            ? "bg-accent-purple/10 text-accent-purple"
-            : "text-text-secondary hover:text-text",
-        ]}
-      >
-        {t(locale, item.key)}
-      </a>
-    ))}
-    <div class="border-t border-bg-border my-2"></div>
-    <!-- Additional pages -->
-    {navItems.slice(9).map((item) => (
-      <a
-        href={getLocalePath(locale, item.path)}
-        class:list={[
-          "block px-3 py-2 rounded-lg text-sm transition-colors",
-          currentPath === item.path
-            ? "bg-accent-purple/10 text-accent-purple"
-            : "text-text-secondary hover:text-text",
-        ]}
-      >
-        {t(locale, item.key)}
-      </a>
-    ))}
-    <div class="border-t border-bg-border my-2"></div>
-    <!-- Language switcher -->
     <a
       href={alternatePath}
       class="block px-3 py-2 rounded-lg text-sm transition-colors text-text-secondary hover:text-text border border-bg-border mt-1"
