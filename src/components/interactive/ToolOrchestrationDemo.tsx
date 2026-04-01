@@ -51,7 +51,7 @@ export default function ToolOrchestrationDemo() {
                   className="h-full rounded"
                   style={{ backgroundColor: op.color }}
                   initial={{ width: 0, opacity: 0.6 }}
-                  animate={step >= 0 ? { width: `${op.duration * 200}%`, opacity: 0.6 } : {}}
+                  animate={step >= 0 ? { width: `${Math.min(op.duration * 200, 100)}%`, opacity: 0.6 } : {}}
                   transition={{ duration: op.duration, ease: "easeOut" }}
                 />
               </div>
@@ -74,7 +74,7 @@ export default function ToolOrchestrationDemo() {
                   className="h-full rounded"
                   style={{ backgroundColor: op.color }}
                   initial={{ width: 0, opacity: 0.6 }}
-                  animate={step >= i + 2 ? { width: `${op.duration * 150}%`, opacity: 0.6 } : {}}
+                  animate={step >= i + 2 ? { width: `${Math.min(op.duration * 150, 100)}%`, opacity: 0.6 } : {}}
                   transition={{ duration: op.duration, ease: "easeOut" }}
                 />
               </div>

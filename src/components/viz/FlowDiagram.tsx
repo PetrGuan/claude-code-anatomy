@@ -39,7 +39,11 @@ export default function FlowDiagram({ nodes, edges, direction = "horizontal" }: 
                   backgroundColor: activeNode === node.id ? `${node.color}15` : "transparent",
                 }}
                 whileHover={{ scale: 1.05 }}
+                role="button"
+                tabIndex={0}
                 onClick={() => setActiveNode(activeNode === node.id ? null : node.id)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveNode(activeNode === node.id ? null : node.id); } }}
+                aria-expanded={activeNode === node.id}
               >
                 <p className="text-sm font-medium" style={{ color: node.color }}>
                   {node.label}

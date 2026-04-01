@@ -18,8 +18,10 @@ export default function LayerToggle({
   return (
     <div>
       <div className="mb-4 flex items-center gap-1 rounded-lg bg-bg-card p-1 w-fit border border-bg-border">
+        <div role="group" aria-label="内容深度切换">
         <button
           onClick={() => setIsTechnical(false)}
+          aria-pressed={!isTechnical}
           className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
             !isTechnical
               ? "bg-accent-purple text-white"
@@ -30,6 +32,7 @@ export default function LayerToggle({
         </button>
         <button
           onClick={() => setIsTechnical(true)}
+          aria-pressed={isTechnical}
           className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
             isTechnical
               ? "bg-accent-purple text-white"
@@ -38,6 +41,7 @@ export default function LayerToggle({
         >
           {technicalLabel}
         </button>
+        </div>
       </div>
       <div>
         {isTechnical ? technical : plain}

@@ -34,8 +34,8 @@ export default function Sidebar({ items }: Props) {
   }, [items]);
 
   return (
-    <aside className="hidden xl:block fixed right-8 top-24 w-56">
-      <nav className="space-y-1">
+    <aside className="hidden lg:block fixed right-8 top-24 w-56">
+      <nav className="space-y-1" aria-label="页面导航">
         <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary mb-3">
           目录
         </p>

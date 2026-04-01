@@ -22,7 +22,11 @@ function TreeItem({ node, depth, defaultExpanded }: { node: TreeNode; depth: num
           hasChildren ? "cursor-pointer" : ""
         }`}
         style={{ paddingLeft: `${depth * 20 + 8}px` }}
+        role={hasChildren ? "button" : undefined}
+        tabIndex={hasChildren ? 0 : undefined}
         onClick={() => hasChildren && setIsOpen(!isOpen)}
+        onKeyDown={(e) => { if (hasChildren && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); setIsOpen(!isOpen); } }}
+        aria-expanded={hasChildren ? isOpen : undefined}
       >
         {hasChildren ? (
           <span className={`text-text-secondary text-xs transition-transform ${isOpen ? "rotate-90" : ""}`}>

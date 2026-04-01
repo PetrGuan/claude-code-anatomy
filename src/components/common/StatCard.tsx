@@ -33,8 +33,7 @@ export default function StatCard({ value, suffix = "", label, color = "#6c63ff" 
     <motion.div
       ref={ref}
       initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
       transition={{ duration: 0.4 }}
       className="rounded-xl border border-bg-border bg-bg-card p-6"
     >

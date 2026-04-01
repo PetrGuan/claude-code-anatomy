@@ -87,6 +87,7 @@ export default function PermissionSimulator() {
           <button
             key={i}
             onClick={() => runScenario(i)}
+            aria-label={`测试命令: ${s.command}`}
             className={`text-left p-3 rounded-lg border text-sm transition-colors ${
               selected === i
                 ? "border-accent-purple bg-accent-purple/10"
