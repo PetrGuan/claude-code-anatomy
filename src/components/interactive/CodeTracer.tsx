@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { t } from "../../i18n/translations";
 import type { Locale } from "../../i18n/locales";
@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default function CodeTracer({ locale = "en" as Locale }: Props) {
-  const steps = getTraceSteps(locale);
+  const steps = useMemo(() => getTraceSteps(locale), [locale]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [history, setHistory] = useState<number[]>([0]);
 
@@ -29,12 +29,13 @@ export default function CodeTracer({ locale = "en" as Locale }: Props) {
   }, []);
 
   const goBack = useCallback(() => {
-    if (history.length > 1) {
-      const newHistory = history.slice(0, -1);
-      setHistory(newHistory);
+    setHistory(prev => {
+      if (prev.length <= 1) return prev;
+      const newHistory = prev.slice(0, -1);
       setCurrentIndex(newHistory[newHistory.length - 1]);
-    }
-  }, [history]);
+      return newHistory;
+    });
+  }, []);
 
   // Render code with clickable refs and line highlighting
   function renderCode(step: TraceStep) {
@@ -79,7 +80,7 @@ export default function CodeTracer({ locale = "en" as Locale }: Props) {
                     <button
                       key={si}
                       onClick={() => goToStep(seg.targetStep)}
-                      className="text-accent-purple underline decoration-dotted underline-offset-2 hover:decoration-solid cursor-pointer bg-transparent border-none p-0 font-mono text-inherit"
+                      className="text-accent-purple underline decoration-dotted underline-offset-2 hover:decoration-solid cursor-pointer bg-transparent border-none p-0 font-mono text-inherit focus:outline-none focus:ring-2 focus:ring-accent-purple focus:ring-offset-1 focus:ring-offset-bg"
                     >
                       {seg.text}
                     </button>
@@ -128,7 +129,7 @@ export default function CodeTracer({ locale = "en" as Locale }: Props) {
               {i > 0 && <span className="text-text-secondary/40">{"\u2192"}</span>}
               <button
                 onClick={() => goToIndex(bc.index)}
-                className={`font-mono px-1.5 py-0.5 rounded transition-colors ${
+                className={`font-mono px-1.5 py-0.5 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-accent-purple focus:ring-offset-1 focus:ring-offset-bg ${
                   bc.index === currentIndex
                     ? "text-accent-purple bg-accent-purple/10"
                     : "text-text-secondary hover:text-text"
@@ -190,7 +191,7 @@ export default function CodeTracer({ locale = "en" as Locale }: Props) {
             else goBack();
           }}
           disabled={currentIndex === 0 && history.length <= 1}
-          className="px-3 py-1.5 rounded-lg text-sm text-text-secondary hover:text-text hover:bg-bg-card transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="px-3 py-1.5 rounded-lg text-sm text-text-secondary hover:text-text hover:bg-bg-card transition-colors disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-accent-purple focus:ring-offset-1 focus:ring-offset-bg"
         >
           {t(locale, "codeTracer.prev")}
         </button>
@@ -201,10 +202,10 @@ export default function CodeTracer({ locale = "en" as Locale }: Props) {
             <button
               key={i}
               onClick={() => goToIndex(i)}
-              className={`w-2 h-2 rounded-full transition-colors ${
+              className={`w-2 h-2 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent-purple ${
                 i === currentIndex ? "bg-accent-purple" : "bg-bg-border hover:bg-text-secondary"
               }`}
-              aria-label={`Step ${i + 1}`}
+              aria-label={t(locale, "codeTracer.stepOf").replace("{n}", String(i + 1)).replace("{total}", String(steps.length))}
             />
           ))}
         </div>
@@ -214,7 +215,7 @@ export default function CodeTracer({ locale = "en" as Locale }: Props) {
             if (currentIndex < steps.length - 1) goToIndex(currentIndex + 1);
           }}
           disabled={currentIndex === steps.length - 1}
-          className="px-3 py-1.5 rounded-lg text-sm text-text-secondary hover:text-text hover:bg-bg-card transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="px-3 py-1.5 rounded-lg text-sm text-text-secondary hover:text-text hover:bg-bg-card transition-colors disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-accent-purple focus:ring-offset-1 focus:ring-offset-bg"
         >
           {t(locale, "codeTracer.next")}
         </button>
