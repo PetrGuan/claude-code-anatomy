@@ -1,0 +1,181 @@
+---
+import type { Locale } from "../../i18n/locales";
+
+interface Props {
+  locale?: Locale;
+}
+
+const { locale = "en" } = Astro.props;
+const placeholder = locale === "zh" ? "搜索..." : "Search...";
+---
+
+<!-- Search trigger button -->
+<button
+  id="search-trigger"
+  class="p-2 text-text-secondary hover:text-text transition-colors"
+  aria-label={locale === "zh" ? "搜索" : "Search"}
+>
+  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+  </svg>
+</button>
+
+<!-- Search modal overlay -->
+<div id="search-modal" class="fixed inset-0 z-[100] hidden">
+  <!-- Backdrop -->
+  <div id="search-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+
+  <!-- Dialog -->
+  <div class="relative mx-auto mt-20 max-w-2xl px-4">
+    <div class="rounded-xl border border-bg-border bg-bg shadow-2xl overflow-hidden">
+      <div id="pagefind-container" class="pagefind-ui-container"></div>
+    </div>
+  </div>
+</div>
+
+<style is:global>
+  /* Pagefind UI dark theme overrides */
+  :root {
+    --pagefind-ui-scale: 0.9;
+    --pagefind-ui-primary: #6c63ff;
+    --pagefind-ui-text: #e0e0e8;
+    --pagefind-ui-background: #0a0a0f;
+    --pagefind-ui-border: #1e1e2e;
+    --pagefind-ui-tag: #14141f;
+    --pagefind-ui-border-width: 1px;
+    --pagefind-ui-border-radius: 8px;
+    --pagefind-ui-image-border-radius: 8px;
+    --pagefind-ui-image-box-ratio: 0;
+    --pagefind-ui-font: 'Inter', system-ui, sans-serif;
+  }
+
+  .pagefind-ui .pagefind-ui__search-input {
+    background: #14141f !important;
+    color: #e0e0e8 !important;
+    border-color: #1e1e2e !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+    padding: 12px 16px !important;
+    font-size: 16px !important;
+  }
+
+  .pagefind-ui .pagefind-ui__search-input::placeholder {
+    color: #8888a0 !important;
+  }
+
+  .pagefind-ui .pagefind-ui__search-input:focus {
+    border-color: #6c63ff !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.2) !important;
+  }
+
+  .pagefind-ui .pagefind-ui__result {
+    border-color: #1e1e2e !important;
+    padding: 12px 0 !important;
+  }
+
+  .pagefind-ui .pagefind-ui__result-link {
+    color: #6c63ff !important;
+    font-weight: 500 !important;
+  }
+
+  .pagefind-ui .pagefind-ui__result-link:hover {
+    text-decoration: underline !important;
+  }
+
+  .pagefind-ui .pagefind-ui__result-excerpt {
+    color: #8888a0 !important;
+  }
+
+  .pagefind-ui mark {
+    background: rgba(108, 99, 255, 0.3) !important;
+    color: #e0e0e8 !important;
+    border-radius: 2px !important;
+    padding: 0 2px !important;
+  }
+
+  .pagefind-ui .pagefind-ui__message {
+    color: #8888a0 !important;
+  }
+
+  .pagefind-ui .pagefind-ui__search-clear {
+    color: #8888a0 !important;
+    background: transparent !important;
+  }
+
+  .pagefind-ui .pagefind-ui__button {
+    background: #14141f !important;
+    color: #e0e0e8 !important;
+    border-color: #1e1e2e !important;
+  }
+
+  .pagefind-ui .pagefind-ui__button:hover {
+    border-color: #6c63ff !important;
+  }
+</style>
+
+<script define:vars={{ placeholder }}>
+  // Initialize Pagefind UI when search is opened
+  let pagefindLoaded = false;
+
+  function openSearch() {
+    document.getElementById('search-modal')?.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+
+    if (!pagefindLoaded) {
+      pagefindLoaded = true;
+      // Dynamically load Pagefind UI
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/claude-code-anatomy/pagefind/pagefind-ui.css';
+      document.head.appendChild(link);
+
+      const script = document.createElement('script');
+      script.src = '/claude-code-anatomy/pagefind/pagefind-ui.js';
+      script.onload = () => {
+        new window.PagefindUI({
+          element: '#pagefind-container',
+          showSubResults: true,
+          showImages: false,
+          placeholder: placeholder,
+          baseUrl: '/claude-code-anatomy/',
+        });
+        // Auto-focus the search input
+        setTimeout(() => {
+          document.querySelector('.pagefind-ui__search-input')?.focus();
+        }, 100);
+      };
+      document.head.appendChild(script);
+    } else {
+      // Focus existing input
+      setTimeout(() => {
+        document.querySelector('.pagefind-ui__search-input')?.focus();
+      }, 50);
+    }
+  }
+
+  function closeSearch() {
+    document.getElementById('search-modal')?.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  // Trigger button
+  document.getElementById('search-trigger')?.addEventListener('click', openSearch);
+
+  // Close on backdrop click
+  document.getElementById('search-backdrop')?.addEventListener('click', closeSearch);
+
+  // Close on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSearch();
+    // Cmd+K / Ctrl+K to open
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      const modal = document.getElementById('search-modal');
+      if (modal?.classList.contains('hidden')) {
+        openSearch();
+      } else {
+        closeSearch();
+      }
+    }
+  });
+</script>

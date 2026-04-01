@@ -2,6 +2,7 @@
 import type { Locale } from "../../i18n/locales";
 import { getLocalePath, getAlternatePath } from "../../i18n/locales";
 import { t } from "../../i18n/translations";
+import Search from "./Search.astro";
 
 interface Props {
   locale?: Locale;
@@ -60,6 +61,7 @@ const alternateLinkLabel = locale === "en" ? "中文" : "EN";
           {alternateLinkLabel}
         </a>
       </div>
+      <Search locale={locale} />
       <button id="mobile-menu-btn" class="lg:hidden p-2 text-text-secondary hover:text-text" aria-label="Toggle menu" aria-expanded="false">
         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
