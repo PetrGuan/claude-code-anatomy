@@ -77,6 +77,7 @@ export const modules: Module[] = [
     lines: 19842,
     category: "ui",
     color: "#a78bfa",
+    page: "/terminal-ui",
   },
   {
     id: "hooks",
@@ -125,6 +126,7 @@ export const modules: Module[] = [
     lines: 5000,
     category: "extension",
     color: "#f472b6",
+    page: "/plugin-skill",
   },
   {
     id: "bridge",
@@ -161,6 +163,7 @@ export const modules: Module[] = [
     lines: 4000,
     category: "core",
     color: "#22d3ee",
+    page: "/message-compaction",
   },
   {
     id: "agents",
@@ -173,6 +176,7 @@ export const modules: Module[] = [
     lines: 5000,
     category: "extension",
     color: "#f472b6",
+    page: "/agent-system",
   },
   {
     id: "state",
