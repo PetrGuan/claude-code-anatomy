@@ -1,0 +1,124 @@
+---
+import type { Locale } from "../i18n/locales";
+import { t } from "../i18n/translations";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Sidebar from "../components/layout/Sidebar.tsx";
+import SectionHeading from "../components/common/SectionHeading.astro";
+import LayerToggleCompaction from "../components/common/LayerToggleCompaction.tsx";
+import StatCard from "../components/common/StatCard.tsx";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const sidebarItems = [
+  { id: "what", label: t(locale, "messageCompaction.whatTitle"), level: 1 },
+  { id: "strategies", label: t(locale, "messageCompaction.strategiesTitle"), level: 1 },
+  { id: "water-level", label: t(locale, "messageCompaction.waterLevelTitle"), level: 1 },
+];
+
+const strategies = [
+  {
+    title: t(locale, "messageCompaction.autoTitle"),
+    desc: t(locale, "messageCompaction.autoDesc"),
+    color: "#22d3ee",
+  },
+  {
+    title: t(locale, "messageCompaction.reactiveTitle"),
+    desc: t(locale, "messageCompaction.reactiveDesc"),
+    color: "#6c63ff",
+  },
+  {
+    title: t(locale, "messageCompaction.snipTitle"),
+    desc: t(locale, "messageCompaction.snipDesc"),
+    color: "#f59e0b",
+  },
+  {
+    title: t(locale, "messageCompaction.microTitle"),
+    desc: t(locale, "messageCompaction.microDesc"),
+    color: "#10b981",
+  },
+];
+
+const beforeLabel = locale === "zh" ? "压缩前" : "Before compaction";
+const afterLabel = locale === "zh" ? "压缩后" : "After compaction";
+const thresholdLabel = locale === "zh" ? "阈值" : "Threshold";
+---
+
+<BaseLayout title={t(locale, "messageCompaction.title")} locale={locale}>
+  <Sidebar client:load items={sidebarItems} locale={locale} />
+
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-16">
+      <p class="text-sm font-mono text-accent-amber">{t(locale, "messageCompaction.tag")}</p>
+      <h1 class="text-4xl font-bold mt-2">{t(locale, "messageCompaction.title")}</h1>
+      <p class="mt-4 text-xl text-text-secondary">{t(locale, "messageCompaction.subtitle")}</p>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 mb-16">
+      <StatCard client:visible value={4} label={t(locale, "messageCompaction.strategies")} color="#22d3ee" />
+      <StatCard client:visible value={8} label={t(locale, "messageCompaction.compactFiles")} color="#6c63ff" />
+      <StatCard client:visible value={4000} suffix="+" label={t(locale, "messageCompaction.compactLines")} color="#10b981" />
+    </div>
+
+    <SectionHeading id="what" title={t(locale, "messageCompaction.whatTitle")} />
+
+    <LayerToggleCompaction client:visible locale={locale} />
+
+    <div class="mt-24">
+      <SectionHeading
+        id="strategies"
+        title={t(locale, "messageCompaction.strategiesTitle")}
+        subtitle={t(locale, "messageCompaction.strategiesSubtitle")}
+      />
+      <div class="grid grid-cols-2 gap-4">
+        {strategies.map((strategy) => (
+          <div class="rounded-xl border border-bg-border bg-bg-card p-6" style={`border-left: 3px solid ${strategy.color}`}>
+            <h3 class="text-lg font-semibold mb-2" style={`color: ${strategy.color}`}>{strategy.title}</h3>
+            <p class="text-sm text-text-secondary">{strategy.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading
+        id="water-level"
+        title={t(locale, "messageCompaction.waterLevelTitle")}
+        subtitle={t(locale, "messageCompaction.waterLevelSubtitle")}
+      />
+      <div class="rounded-xl border border-bg-border bg-bg-card p-6">
+        <div class="flex gap-8 items-end">
+          <!-- Before compaction -->
+          <div class="flex-1 text-center">
+            <p class="text-sm text-text-secondary mb-3">{beforeLabel}</p>
+            <div class="h-64 bg-bg rounded-lg border border-bg-border relative overflow-hidden">
+              <div class="absolute bottom-0 left-0 right-0 bg-accent-red/20 border-t border-accent-red" style="height: 90%">
+                <span class="absolute top-2 left-2 text-xs text-accent-red">90%</span>
+              </div>
+              <div class="absolute top-0 left-0 right-0 border-b-2 border-dashed border-accent-amber" style="height: 20%">
+                <span class="absolute bottom-1 right-2 text-xs text-accent-amber">{thresholdLabel}</span>
+              </div>
+            </div>
+          </div>
+          <!-- Arrow -->
+          <div class="text-2xl text-text-secondary pb-32">→</div>
+          <!-- After compaction -->
+          <div class="flex-1 text-center">
+            <p class="text-sm text-text-secondary mb-3">{afterLabel}</p>
+            <div class="h-64 bg-bg rounded-lg border border-bg-border relative overflow-hidden">
+              <div class="absolute bottom-0 left-0 right-0 bg-accent-emerald/20 border-t border-accent-emerald" style="height: 40%">
+                <span class="absolute top-2 left-2 text-xs text-accent-emerald">40%</span>
+              </div>
+              <div class="absolute top-0 left-0 right-0 border-b-2 border-dashed border-accent-amber" style="height: 20%">
+                <span class="absolute bottom-1 right-2 text-xs text-accent-amber">{thresholdLabel}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
