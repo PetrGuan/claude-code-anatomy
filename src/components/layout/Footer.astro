@@ -1,11 +1,22 @@
+---
+import type { Locale } from "../../i18n/locales";
+import { t } from "../../i18n/translations";
+
+interface Props {
+  locale?: Locale;
+}
+
+const { locale = "en" } = Astro.props;
+---
+
 <footer class="border-t border-bg-border mt-32 py-12">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-text-secondary">
       <p>
-        Claude Code Anatomy — 深入浅出分析 Claude Code 源码架构
+        {t(locale, "footer.description")}
       </p>
       <div class="flex items-center gap-4">
-        <span>基于 2026-03-31 泄露的源码</span>
+        <span>{t(locale, "footer.basedOn")}</span>
         <span>·</span>
         <span>1,902 files · 512K+ LOC</span>
       </div>

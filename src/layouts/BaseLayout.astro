@@ -2,17 +2,19 @@
 import Navbar from "../components/layout/Navbar.astro";
 import Footer from "../components/layout/Footer.astro";
 import "../styles/global.css";
+import type { Locale } from "../i18n/locales";
 
 interface Props {
   title: string;
   description?: string;
+  locale?: Locale;
 }
 
-const { title, description = "深入浅出分析 Claude Code 源码架构" } = Astro.props;
+const { title, description = "深入浅出分析 Claude Code 源码架构", locale = "en" } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="zh-CN">
+<html lang={locale === "zh" ? "zh-CN" : "en"}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -26,10 +28,10 @@ const { title, description = "深入浅出分析 Claude Code 源码架构" } = A
     <title>{title} | Claude Code Anatomy</title>
   </head>
   <body class="min-h-screen">
-    <Navbar />
+    <Navbar locale={locale} />
     <main class="pt-16">
       <slot />
     </main>
-    <Footer />
+    <Footer locale={locale} />
   </body>
 </html>

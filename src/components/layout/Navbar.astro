@@ -1,37 +1,56 @@
 ---
+import type { Locale } from "../../i18n/locales";
+import { getLocalePath, getAlternatePath } from "../../i18n/locales";
+import { t } from "../../i18n/translations";
+
+interface Props {
+  locale?: Locale;
+}
+
+const { locale = "en" } = Astro.props;
+
 const navItems = [
-  { href: "/", label: "首页", labelEn: "Home" },
-  { href: "/overview", label: "架构概览", labelEn: "Overview" },
-  { href: "/query-pipeline", label: "查询管线", labelEn: "Query Pipeline" },
-  { href: "/tool-system", label: "工具系统", labelEn: "Tool System" },
-  { href: "/permission-security", label: "权限安全", labelEn: "Permissions" },
+  { path: "/", key: "nav.home" },
+  { path: "/overview", key: "nav.overview" },
+  { path: "/query-pipeline", key: "nav.queryPipeline" },
+  { path: "/tool-system", key: "nav.toolSystem" },
+  { path: "/permission-security", key: "nav.permissionSecurity" },
 ];
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const currentPath = Astro.url.pathname.replace(base, '') || '/';
+
+const alternatePath = getAlternatePath(locale, Astro.url.pathname);
+const alternateLinkLabel = locale === "en" ? "中文" : "EN";
 ---
 
 <nav class="fixed top-0 left-0 right-0 z-50 border-b border-bg-border bg-bg/80 backdrop-blur-xl">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="flex h-16 items-center justify-between">
-      <a href={`${base}/`} class="flex items-center gap-2 font-mono text-sm font-bold text-accent-purple">
+      <a href={getLocalePath(locale, "/")} class="flex items-center gap-2 font-mono text-sm font-bold text-accent-purple">
         <span class="text-lg">∧</span>
         Claude Code Anatomy
       </a>
       <div class="hidden md:flex items-center gap-1">
         {navItems.map((item) => (
           <a
-            href={`${base}${item.href}`}
+            href={getLocalePath(locale, item.path)}
             class:list={[
               "px-3 py-2 rounded-lg text-sm transition-colors",
-              currentPath === item.href
+              currentPath === item.path
                 ? "bg-accent-purple/10 text-accent-purple"
                 : "text-text-secondary hover:text-text hover:bg-bg-card",
             ]}
           >
-            {item.label}
+            {t(locale, item.key)}
           </a>
         ))}
+        <a
+          href={alternatePath}
+          class="ml-2 px-3 py-2 rounded-lg text-sm transition-colors text-text-secondary hover:text-text hover:bg-bg-card border border-bg-border"
+        >
+          {alternateLinkLabel}
+        </a>
       </div>
       <button id="mobile-menu-btn" class="md:hidden p-2 text-text-secondary hover:text-text" aria-label="Toggle menu" aria-expanded="false">
         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -43,17 +62,23 @@ const currentPath = Astro.url.pathname.replace(base, '') || '/';
   <div id="mobile-menu" class="hidden md:hidden border-t border-bg-border bg-bg px-4 pb-4">
     {navItems.map((item) => (
       <a
-        href={`${base}${item.href}`}
+        href={getLocalePath(locale, item.path)}
         class:list={[
           "block px-3 py-2 rounded-lg text-sm transition-colors",
-          currentPath === item.href
+          currentPath === item.path
             ? "bg-accent-purple/10 text-accent-purple"
             : "text-text-secondary hover:text-text",
         ]}
       >
-        {item.label}
+        {t(locale, item.key)}
       </a>
     ))}
+    <a
+      href={alternatePath}
+      class="block px-3 py-2 rounded-lg text-sm transition-colors text-text-secondary hover:text-text border border-bg-border mt-1"
+    >
+      {alternateLinkLabel}
+    </a>
   </div>
 </nav>
 
