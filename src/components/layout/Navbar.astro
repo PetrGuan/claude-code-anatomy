@@ -58,6 +58,8 @@ const alternateLinkLabel = locale === "en" ? "中文" : "EN";
         <div class="relative" id="more-dropdown-wrapper">
           <button
             id="more-dropdown-btn"
+            aria-haspopup="true"
+            aria-expanded="false"
             class:list={[
               "px-3 py-2 rounded-lg text-sm transition-colors whitespace-nowrap flex items-center gap-1",
               navItems.filter(i => i.group !== "core").some(i => currentPath === i.path)
@@ -157,14 +159,21 @@ const alternateLinkLabel = locale === "en" ? "中文" : "EN";
   // Desktop "More" dropdown
   const moreBtn = document.getElementById("more-dropdown-btn");
   const moreMenu = document.getElementById("more-dropdown-menu");
-  moreBtn?.addEventListener("click", () => {
+  function toggleMore() {
+    const open = !moreMenu?.classList.contains("hidden");
     moreMenu?.classList.toggle("hidden");
-  });
-  // Close dropdown when clicking outside
+    moreBtn?.setAttribute("aria-expanded", String(!open));
+  }
+  function closeMore() {
+    moreMenu?.classList.add("hidden");
+    moreBtn?.setAttribute("aria-expanded", "false");
+  }
+  moreBtn?.addEventListener("click", toggleMore);
   document.addEventListener("click", (e) => {
     const wrapper = document.getElementById("more-dropdown-wrapper");
-    if (wrapper && !wrapper.contains(e.target as Node)) {
-      moreMenu?.classList.add("hidden");
-    }
+    if (wrapper && !wrapper.contains(e.target as Node)) closeMore();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !moreMenu?.classList.contains("hidden")) closeMore();
   });
 </script>
