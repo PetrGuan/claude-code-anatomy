@@ -46,6 +46,8 @@ export default function CodeTracer({ locale = "en" as Locale }: Props) {
           })));
         }
 
+        highlighter.dispose();
+
         if (!cancelled) {
           setHighlightedSteps(highlighted);
         }
@@ -140,8 +142,7 @@ export default function CodeTracer({ locale = "en" as Locale }: Props) {
                 <button
                   key={keyIdx++}
                   onClick={() => goToStep(ref.targetStep)}
-                  className="underline decoration-dotted underline-offset-2 hover:decoration-solid cursor-pointer bg-transparent border-none p-0 font-mono text-inherit focus:outline-none focus:ring-2 focus:ring-accent-purple focus:ring-offset-1 focus:ring-offset-bg"
-                  style={{ color: '#6c63ff' }}
+                  className="text-accent-purple underline decoration-dotted underline-offset-2 hover:decoration-solid cursor-pointer bg-transparent border-none p-0 font-mono focus:outline-none focus:ring-2 focus:ring-accent-purple focus:ring-offset-1 focus:ring-offset-bg"
                 >
                   {ref.text}
                 </button>
