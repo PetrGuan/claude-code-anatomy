@@ -1,0 +1,157 @@
+---
+import type { Locale } from "../i18n/locales";
+import { t } from "../i18n/translations";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Sidebar from "../components/layout/Sidebar.tsx";
+import SectionHeading from "../components/common/SectionHeading.astro";
+import LayerToggleAgentSystem from "../components/common/LayerToggleAgentSystem.tsx";
+import StatCard from "../components/common/StatCard.tsx";
+import FlowDiagram from "../components/viz/FlowDiagram.tsx";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const sidebarItems = [
+  { id: "what", label: t(locale, "agentSystem.whatTitle"), level: 1 },
+  { id: "spawning", label: t(locale, "agentSystem.spawningTitle"), level: 1 },
+  { id: "patterns", label: t(locale, "agentSystem.patternsTitle"), level: 1 },
+];
+
+const spawningNodes = [
+  { id: "main", label: t(locale, "agentSystem.nodeMain"), description: t(locale, "agentSystem.nodeMainDesc"), color: "#6c63ff" },
+  { id: "decide", label: t(locale, "agentSystem.nodeDecide"), description: t(locale, "agentSystem.nodeDecideDesc"), color: "#22d3ee" },
+  { id: "spawn", label: t(locale, "agentSystem.nodeSpawn"), description: t(locale, "agentSystem.nodeSpawnDesc"), color: "#f59e0b" },
+  { id: "work", label: t(locale, "agentSystem.nodeWork"), description: t(locale, "agentSystem.nodeWorkDesc"), color: "#10b981" },
+  { id: "collect", label: t(locale, "agentSystem.nodeCollect"), description: t(locale, "agentSystem.nodeCollectDesc"), color: "#a78bfa" },
+];
+
+const spawningEdges = [
+  { from: "main", to: "decide" },
+  { from: "decide", to: "spawn" },
+  { from: "spawn", to: "work" },
+  { from: "work", to: "collect" },
+];
+---
+
+<BaseLayout title={t(locale, "agentSystem.title")} locale={locale}>
+  <Sidebar client:load items={sidebarItems} locale={locale} />
+
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-16">
+      <p class="text-sm font-mono text-accent-emerald">{t(locale, "agentSystem.tag")}</p>
+      <h1 class="text-4xl font-bold mt-2">{t(locale, "agentSystem.title")}</h1>
+      <p class="mt-4 text-xl text-text-secondary">
+        {t(locale, "agentSystem.subtitle")}
+      </p>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 mb-16">
+      <StatCard client:visible value={5} label={t(locale, "agentSystem.agentTools")} color="#6c63ff" />
+      <StatCard client:visible value={20} label={t(locale, "agentSystem.agentFiles")} color="#22d3ee" />
+      <StatCard client:visible value={5000} suffix="+" label={t(locale, "agentSystem.agentLines")} color="#f59e0b" />
+    </div>
+
+    <SectionHeading id="what" title={t(locale, "agentSystem.whatTitle")} />
+
+    <LayerToggleAgentSystem client:visible locale={locale} />
+
+    <div class="mt-24">
+      <SectionHeading id="spawning" title={t(locale, "agentSystem.spawningTitle")} subtitle={t(locale, "agentSystem.spawningSubtitle")} />
+      <FlowDiagram client:visible nodes={spawningNodes} edges={spawningEdges} direction="vertical" />
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="patterns" title={t(locale, "agentSystem.patternsTitle")} subtitle={t(locale, "agentSystem.patternsSubtitle")} />
+
+      <div class="grid sm:grid-cols-3 gap-4">
+        <!-- Fan-Out / Fan-In -->
+        <div class="rounded-lg border border-bg-border bg-bg-card p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="w-3 h-3 rounded-full" style="background-color: #22d3ee"></span>
+            <h3 class="font-semibold text-sm">{t(locale, "agentSystem.pattern1Title")}</h3>
+          </div>
+          <!-- Fan-out visual: one node branching into three, then converging -->
+          <div class="flex flex-col items-center gap-1 py-3 mb-3">
+            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center" style="border-color: #22d3ee; background-color: #22d3ee20">
+              <span class="text-[10px] font-bold" style="color: #22d3ee">M</span>
+            </div>
+            <div class="flex gap-4 items-start">
+              <div class="flex flex-col items-center gap-1">
+                <span class="text-text-secondary text-[10px]">↙</span>
+                <div class="w-6 h-6 rounded-full border" style="border-color: #22d3ee; background-color: #22d3ee15"></div>
+              </div>
+              <div class="flex flex-col items-center gap-1">
+                <span class="text-text-secondary text-[10px]">↓</span>
+                <div class="w-6 h-6 rounded-full border" style="border-color: #22d3ee; background-color: #22d3ee15"></div>
+              </div>
+              <div class="flex flex-col items-center gap-1">
+                <span class="text-text-secondary text-[10px]">↘</span>
+                <div class="w-6 h-6 rounded-full border" style="border-color: #22d3ee; background-color: #22d3ee15"></div>
+              </div>
+            </div>
+            <span class="text-text-secondary text-[10px]">↓↓↓</span>
+            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center" style="border-color: #22d3ee; background-color: #22d3ee20">
+              <span class="text-[10px] font-bold" style="color: #22d3ee">M</span>
+            </div>
+          </div>
+          <p class="text-xs text-text-secondary">{t(locale, "agentSystem.pattern1Desc")}</p>
+        </div>
+
+        <!-- Pipeline -->
+        <div class="rounded-lg border border-bg-border bg-bg-card p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="w-3 h-3 rounded-full" style="background-color: #6c63ff"></span>
+            <h3 class="font-semibold text-sm">{t(locale, "agentSystem.pattern2Title")}</h3>
+          </div>
+          <!-- Pipeline visual: linear chain -->
+          <div class="flex flex-col items-center gap-1 py-3 mb-3">
+            {["A", "B", "C", "D"].map((label, i) => (
+              <div key={label} class="flex flex-col items-center gap-1">
+                <div class="w-10 h-7 rounded border-2 flex items-center justify-center" style="border-color: #6c63ff; background-color: #6c63ff15">
+                  <span class="text-[10px] font-bold" style="color: #6c63ff">{label}</span>
+                </div>
+                {i < 3 && <span class="text-text-secondary text-[10px]">↓</span>}
+              </div>
+            ))}
+          </div>
+          <p class="text-xs text-text-secondary">{t(locale, "agentSystem.pattern2Desc")}</p>
+        </div>
+
+        <!-- Swarm Teams -->
+        <div class="rounded-lg border border-bg-border bg-bg-card p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="w-3 h-3 rounded-full" style="background-color: #f59e0b"></span>
+            <h3 class="font-semibold text-sm">{t(locale, "agentSystem.pattern3Title")}</h3>
+          </div>
+          <!-- Swarm visual: central lead + surrounding members connected -->
+          <div class="flex flex-col items-center py-3 mb-3 relative">
+            <div class="relative flex items-center justify-center w-full h-20">
+              <!-- Lead agent in center -->
+              <div class="w-9 h-9 rounded-full border-2 flex items-center justify-center z-10 bg-bg-card" style="border-color: #f59e0b; background-color: #f59e0b25">
+                <span class="text-[10px] font-bold" style="color: #f59e0b">L</span>
+              </div>
+              <!-- Member agents around -->
+              <div class="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full border flex items-center justify-center" style="border-color: #f59e0b; background-color: #f59e0b15">
+                <span class="text-[9px]" style="color: #f59e0b">1</span>
+              </div>
+              <div class="absolute bottom-0 left-4 w-6 h-6 rounded-full border flex items-center justify-center" style="border-color: #f59e0b; background-color: #f59e0b15">
+                <span class="text-[9px]" style="color: #f59e0b">2</span>
+              </div>
+              <div class="absolute bottom-0 right-4 w-6 h-6 rounded-full border flex items-center justify-center" style="border-color: #f59e0b; background-color: #f59e0b15">
+                <span class="text-[9px]" style="color: #f59e0b">3</span>
+              </div>
+              <!-- Connecting lines as borders via SVG-like div trick -->
+              <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div class="w-px h-8 -mt-10" style="background-color: #f59e0b40; transform: translateY(-4px)"></div>
+              </div>
+            </div>
+          </div>
+          <p class="text-xs text-text-secondary">{t(locale, "agentSystem.pattern3Desc")}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
