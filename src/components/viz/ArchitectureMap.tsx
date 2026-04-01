@@ -2,10 +2,11 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { select } from "d3-selection";
 import { zoom } from "d3-zoom";
 import "d3-transition";
-import { nodes, edges, layerColors, layerLabels, type GraphNode } from "../../data/architecture";
+import { nodes, edges, layerColors, layerLabels, nodeLabel, layerLabel, type GraphNode } from "../../data/architecture";
 import { modules } from "../../data/modules";
+import type { Locale } from "../../i18n/locales";
 
-export default function ArchitectureMap() {
+export default function ArchitectureMap({ locale = "en" as Locale }: { locale?: Locale }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; node: GraphNode } | null>(null);
@@ -47,7 +48,7 @@ export default function ArchitectureMap() {
       g.append("text")
         .attr("x", minX + 8).attr("y", y - 16)
         .attr("fill", layerColors[layer]).attr("font-size", 10).attr("opacity", 0.6)
-        .text(layerLabels[layer].cn);
+        .text(layerLabel(layer, locale));
     }
 
     g.selectAll("line")
@@ -74,7 +75,7 @@ export default function ArchitectureMap() {
     nodeGroups.append("text")
       .attr("y", 34).attr("text-anchor", "middle")
       .attr("fill", "#e0e0e8").attr("font-size", 11)
-      .text((d) => d.labelCn);
+      .text((d) => nodeLabel(d, locale));
 
     // Click navigation
     nodeGroups
@@ -99,7 +100,7 @@ export default function ArchitectureMap() {
         setTooltip(null);
         select(this).select("circle").transition().duration(200).attr("r", 20);
       });
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     render();
@@ -116,8 +117,8 @@ export default function ArchitectureMap() {
           className="absolute z-10 rounded-lg border border-bg-border bg-bg p-3 text-sm shadow-xl pointer-events-none"
           style={{ left: tooltip.x, top: tooltip.y, transform: "translate(-50%, -100%)" }}
         >
-          <p className="font-medium text-text">{tooltip.node.labelCn}</p>
-          <p className="text-text-secondary text-xs">{tooltip.node.label}</p>
+          <p className="font-medium text-text">{nodeLabel(tooltip.node, locale)}</p>
+          <p className="text-text-secondary text-xs">{locale === "zh" ? tooltip.node.label : tooltip.node.labelCn}</p>
         </div>
       )}
     </div>

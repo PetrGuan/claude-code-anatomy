@@ -62,7 +62,7 @@ const { locale } = Astro.props;
           {t(locale, "home.archSubtitle")}
         </p>
       </div>
-      <ArchitectureMap client:visible />
+      <ArchitectureMap client:visible locale={locale} />
       <div class="mt-6 flex flex-wrap justify-center gap-6 text-sm">
         <span class="flex items-center gap-2">
           <span class="w-3 h-3 rounded-full bg-[#22d3ee]"></span>

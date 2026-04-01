@@ -2,13 +2,14 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { select } from "d3-selection";
 import { pack, hierarchy, type HierarchyCircularNode } from "d3-hierarchy";
 import "d3-transition";
-import { modules, type Module } from "../../data/modules";
+import { modules, moduleName, moduleDesc, type Module } from "../../data/modules";
+import type { Locale } from "../../i18n/locales";
 
 interface ModuleNode {
   children: Module[];
 }
 
-export default function BubbleChart() {
+export default function BubbleChart({ locale = "en" as Locale }: { locale?: Locale }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState<Module | null>(null);
@@ -54,7 +55,7 @@ export default function BubbleChart() {
       .attr("dy", "-0.2em")
       .attr("fill", "#e0e0e8")
       .attr("font-size", (d) => Math.min(d.r / 3, 13))
-      .text((d) => d.data.nameCn);
+      .text((d) => moduleName(d.data, locale));
 
     nodeGroups.filter((d) => d.r > 25)
       .append("text")
@@ -62,7 +63,7 @@ export default function BubbleChart() {
       .attr("dy", "1.2em")
       .attr("fill", "#8888a0")
       .attr("font-size", (d) => Math.min(d.r / 4, 10))
-      .text((d) => `${(d.data.lines / 1000).toFixed(0)}K 行`);
+      .text((d) => `${(d.data.lines / 1000).toFixed(0)}${locale === "zh" ? "K 行" : "K LOC"}`);
 
     nodeGroups
       .on("mouseenter", function (_, d) {
@@ -73,7 +74,7 @@ export default function BubbleChart() {
         setActive(null);
         select(this).select("circle").transition().duration(200).attr("opacity", 0.2);
       });
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     render();
@@ -88,9 +89,9 @@ export default function BubbleChart() {
       {active && (
         <div className="absolute bottom-4 left-4 right-4 rounded-lg bg-bg/90 border border-bg-border p-4 backdrop-blur">
           <p className="font-semibold" style={{ color: active.color }}>
-            {active.nameCn} ({active.name})
+            {moduleName(active, locale)} ({locale === "zh" ? active.name : active.nameCn})
           </p>
-          <p className="text-sm text-text-secondary mt-1">{active.descriptionCn}</p>
+          <p className="text-sm text-text-secondary mt-1">{moduleDesc(active, locale)}</p>
           <p className="text-xs text-text-secondary mt-2 font-mono">
             {active.files} 文件 · {active.lines.toLocaleString()} 行代码 · {active.path}
           </p>
