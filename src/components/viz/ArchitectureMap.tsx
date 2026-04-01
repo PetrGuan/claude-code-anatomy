@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { nodes, edges, layerColors, layerLabels, type GraphNode } from "../../data/architecture";
+import { modules } from "../../data/modules";
 
 export default function ArchitectureMap() {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -98,6 +99,13 @@ export default function ArchitectureMap() {
       .attr("fill", "#e0e0e8")
       .attr("font-size", 11)
       .text((d) => d.labelCn);
+
+    // Click navigation
+    nodeGroups
+      .on("click", (event, d) => {
+        const mod = modules.find((m) => m.id === d.id);
+        if (mod?.page) window.location.href = "/claude-code-anatomy" + mod.page;
+      });
 
     // Zoom
     const zoom = d3.zoom<SVGSVGElement, unknown>()

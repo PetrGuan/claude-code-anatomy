@@ -7,20 +7,21 @@ const navItems = [
   { href: "/permission-security", label: "权限安全", labelEn: "Permissions" },
 ];
 
-const currentPath = Astro.url.pathname;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const currentPath = Astro.url.pathname.replace(base, '') || '/';
 ---
 
 <nav class="fixed top-0 left-0 right-0 z-50 border-b border-bg-border bg-bg/80 backdrop-blur-xl">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="flex h-16 items-center justify-between">
-      <a href="/" class="flex items-center gap-2 font-mono text-sm font-bold text-accent-purple">
+      <a href={`${base}/`} class="flex items-center gap-2 font-mono text-sm font-bold text-accent-purple">
         <span class="text-lg">∧</span>
         Claude Code Anatomy
       </a>
       <div class="hidden md:flex items-center gap-1">
         {navItems.map((item) => (
           <a
-            href={item.href}
+            href={`${base}${item.href}`}
             class:list={[
               "px-3 py-2 rounded-lg text-sm transition-colors",
               currentPath === item.href
@@ -32,7 +33,7 @@ const currentPath = Astro.url.pathname;
           </a>
         ))}
       </div>
-      <button id="mobile-menu-btn" class="md:hidden p-2 text-text-secondary hover:text-text">
+      <button id="mobile-menu-btn" class="md:hidden p-2 text-text-secondary hover:text-text" aria-label="Toggle menu" aria-expanded="false">
         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
@@ -42,7 +43,7 @@ const currentPath = Astro.url.pathname;
   <div id="mobile-menu" class="hidden md:hidden border-t border-bg-border bg-bg px-4 pb-4">
     {navItems.map((item) => (
       <a
-        href={item.href}
+        href={`${base}${item.href}`}
         class:list={[
           "block px-3 py-2 rounded-lg text-sm transition-colors",
           currentPath === item.href
@@ -59,5 +60,9 @@ const currentPath = Astro.url.pathname;
 <script>
   const btn = document.getElementById("mobile-menu-btn");
   const menu = document.getElementById("mobile-menu");
-  btn?.addEventListener("click", () => menu?.classList.toggle("hidden"));
+  btn?.addEventListener("click", () => {
+    const expanded = btn.getAttribute("aria-expanded") === "true";
+    btn.setAttribute("aria-expanded", String(!expanded));
+    menu?.classList.toggle("hidden");
+  });
 </script>

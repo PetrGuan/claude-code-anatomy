@@ -51,7 +51,11 @@ const steps: TimelineStep[] = [
   },
 ];
 
-export default function TimelineScroll() {
+interface TimelineScrollProps {
+  basePath?: string;
+}
+
+export default function TimelineScroll({ basePath = "/claude-code-anatomy" }: TimelineScrollProps) {
   return (
     <div className="relative">
       {/* Vertical line */}
@@ -93,7 +97,7 @@ export default function TimelineScroll() {
             </p>
             {step.link && (
               <a
-                href={step.link}
+                href={`${basePath}${step.link}`}
                 className="inline-block mt-3 text-sm text-accent-purple hover:underline"
               >
                 深入了解 →
