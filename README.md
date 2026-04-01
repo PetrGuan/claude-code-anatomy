@@ -32,7 +32,7 @@ All pages available in English and [中文](https://petrguan.github.io/claude-co
 - **[Tailwind CSS](https://tailwindcss.com/)** — Dark theme with custom design tokens
 - **[D3.js](https://d3js.org/)** — Architecture map and bubble chart visualizations
 - **[Framer Motion](https://www.framer.com/motion/)** — Scroll-triggered animations
-- **[Shiki](https://shiki.matsu.io/)** — Syntax highlighting for code snippets
+- **[Shiki](https://shiki.style/)** — Syntax highlighting for code snippets
 
 ## Development
 

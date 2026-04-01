@@ -30,7 +30,6 @@ const translations = {
       en: "Claude Code Anatomy — An in-depth visual analysis of Claude Code's source architecture",
       zh: "Claude Code Anatomy — 深入浅出分析 Claude Code 源码架构",
     },
-    basedOn: { en: "Based on source code leaked 2026-03-31", zh: "基于 2026-03-31 泄露的源码" },
   },
   home: {
     titleAccent: { en: "Anatomy of", zh: "解剖" },
@@ -38,10 +37,6 @@ const translations = {
     subtitle: {
       en: "A visual, interactive deep-dive into Anthropic's AI coding assistant. 1,902 source files, 512,000 lines of code, one interactive visualization to understand it all.",
       zh: "深入浅出分析 Anthropic 的 AI 编程助手。1,902 个源文件，512,000 行代码，一个交互式可视化带你理解它的全部设计。",
-    },
-    sourceNote: {
-      en: "Based on TypeScript source code leaked via npm source map on 2026-03-31",
-      zh: "基于 2026-03-31 从 npm source map 泄露的 TypeScript 源码",
     },
     journeyTitle: { en: "Journey of a Conversation", zh: "一次对话的旅程" },
     journeySubtitle: {
