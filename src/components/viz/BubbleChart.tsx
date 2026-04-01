@@ -1,33 +1,41 @@
-import { useEffect, useRef, useState } from "react";
-import * as d3 from "d3";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { select } from "d3-selection";
+import { pack, hierarchy, type HierarchyCircularNode } from "d3-hierarchy";
+import "d3-transition";
 import { modules, type Module } from "../../data/modules";
+
+interface ModuleNode {
+  children: Module[];
+}
 
 export default function BubbleChart() {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState<Module | null>(null);
 
-  useEffect(() => {
+  const render = useCallback(() => {
     if (!svgRef.current || !containerRef.current) return;
 
     const width = containerRef.current.clientWidth;
     const height = 420;
-    const svg = d3.select(svgRef.current).attr("width", width).attr("height", height);
+    const svg = select(svgRef.current).attr("width", width).attr("height", height);
     svg.selectAll("*").remove();
 
-    const pack = d3.pack<Module>()
+    const packer = pack<Module>()
       .size([width - 40, height - 40])
       .padding(6);
 
-    const root = d3.hierarchy({ children: modules } as any)
-      .sum((d: any) => d.lines || 0);
+    const root = hierarchy<ModuleNode>({ children: modules })
+      .sum((d) => ("lines" in d ? (d as unknown as Module).lines : 0));
 
-    const packed = pack(root as any);
+    const packed = packer(root as ReturnType<typeof hierarchy<Module>>);
 
     const g = svg.append("g").attr("transform", "translate(20,20)");
 
+    const leaves = packed.leaves() as HierarchyCircularNode<Module>[];
+
     const nodeGroups = g.selectAll("g")
-      .data(packed.leaves())
+      .data(leaves)
       .enter()
       .append("g")
       .attr("transform", (d) => `translate(${d.x},${d.y})`)
@@ -35,9 +43,9 @@ export default function BubbleChart() {
 
     nodeGroups.append("circle")
       .attr("r", (d) => d.r)
-      .attr("fill", (d: any) => d.data.color)
+      .attr("fill", (d) => d.data.color)
       .attr("opacity", 0.2)
-      .attr("stroke", (d: any) => d.data.color)
+      .attr("stroke", (d) => d.data.color)
       .attr("stroke-width", 1.5);
 
     nodeGroups.filter((d) => d.r > 25)
@@ -46,7 +54,7 @@ export default function BubbleChart() {
       .attr("dy", "-0.2em")
       .attr("fill", "#e0e0e8")
       .attr("font-size", (d) => Math.min(d.r / 3, 13))
-      .text((d: any) => d.data.nameCn);
+      .text((d) => d.data.nameCn);
 
     nodeGroups.filter((d) => d.r > 25)
       .append("text")
@@ -54,18 +62,25 @@ export default function BubbleChart() {
       .attr("dy", "1.2em")
       .attr("fill", "#8888a0")
       .attr("font-size", (d) => Math.min(d.r / 4, 10))
-      .text((d: any) => `${(d.data.lines / 1000).toFixed(0)}K 行`);
+      .text((d) => `${(d.data.lines / 1000).toFixed(0)}K 行`);
 
     nodeGroups
-      .on("mouseenter", function (_, d: any) {
+      .on("mouseenter", function (_, d) {
         setActive(d.data);
-        d3.select(this).select("circle").transition().duration(200).attr("opacity", 0.4);
+        select(this).select("circle").transition().duration(200).attr("opacity", 0.4);
       })
       .on("mouseleave", function () {
         setActive(null);
-        d3.select(this).select("circle").transition().duration(200).attr("opacity", 0.2);
+        select(this).select("circle").transition().duration(200).attr("opacity", 0.2);
       });
   }, []);
+
+  useEffect(() => {
+    render();
+    const observer = new ResizeObserver(() => render());
+    if (containerRef.current) observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [render]);
 
   return (
     <div ref={containerRef} className="relative rounded-xl border border-bg-border bg-bg-card p-4">

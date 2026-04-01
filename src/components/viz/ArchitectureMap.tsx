@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import * as d3 from "d3";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { select } from "d3-selection";
+import { zoom } from "d3-zoom";
+import "d3-transition";
 import { nodes, edges, layerColors, layerLabels, type GraphNode } from "../../data/architecture";
 import { modules } from "../../data/modules";
 
@@ -8,17 +10,16 @@ export default function ArchitectureMap() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; node: GraphNode } | null>(null);
 
-  useEffect(() => {
+  const render = useCallback(() => {
     if (!svgRef.current || !containerRef.current) return;
 
     const width = containerRef.current.clientWidth;
     const height = 500;
-    const svg = d3.select(svgRef.current).attr("width", width).attr("height", height);
+    const svg = select(svgRef.current).attr("width", width).attr("height", height);
     svg.selectAll("*").remove();
 
     const g = svg.append("g");
 
-    // Layout: group nodes by layer in rows
     const layerY: Record<string, number> = { core: 120, ui: 240, extension: 340, integration: 440 };
 
     const positionedNodes = nodes.map((node) => {
@@ -30,7 +31,6 @@ export default function ArchitectureMap() {
 
     const nodeMap = new Map(positionedNodes.map((n) => [n.id, n]));
 
-    // Draw layer backgrounds
     for (const layer of Object.keys(layerY)) {
       const layerNodes = positionedNodes.filter((n) => n.layer === layer);
       if (layerNodes.length === 0) continue;
@@ -40,64 +40,40 @@ export default function ArchitectureMap() {
       const y = layerY[layer];
 
       g.append("rect")
-        .attr("x", minX)
-        .attr("y", y - 30)
-        .attr("width", maxX - minX)
-        .attr("height", 60)
-        .attr("rx", 12)
-        .attr("fill", layerColors[layer])
-        .attr("opacity", 0.05);
+        .attr("x", minX).attr("y", y - 30)
+        .attr("width", maxX - minX).attr("height", 60)
+        .attr("rx", 12).attr("fill", layerColors[layer]).attr("opacity", 0.05);
 
       g.append("text")
-        .attr("x", minX + 8)
-        .attr("y", y - 16)
-        .attr("fill", layerColors[layer])
-        .attr("font-size", 10)
-        .attr("opacity", 0.6)
+        .attr("x", minX + 8).attr("y", y - 16)
+        .attr("fill", layerColors[layer]).attr("font-size", 10).attr("opacity", 0.6)
         .text(layerLabels[layer].cn);
     }
 
-    // Draw edges
     g.selectAll("line")
-      .data(edges)
-      .enter()
-      .append("line")
+      .data(edges).enter().append("line")
       .attr("x1", (d) => nodeMap.get(d.source)?.x ?? 0)
       .attr("y1", (d) => nodeMap.get(d.source)?.y ?? 0)
       .attr("x2", (d) => nodeMap.get(d.target)?.x ?? 0)
       .attr("y2", (d) => nodeMap.get(d.target)?.y ?? 0)
-      .attr("stroke", "#1e1e2e")
-      .attr("stroke-width", 1.5)
-      .attr("opacity", 0.6);
+      .attr("stroke", "#1e1e2e").attr("stroke-width", 1.5).attr("opacity", 0.6);
 
-    // Draw nodes
     const nodeGroups = g.selectAll("g.node")
-      .data(positionedNodes)
-      .enter()
-      .append("g")
+      .data(positionedNodes).enter().append("g")
       .attr("class", "node")
       .attr("transform", (d) => `translate(${d.x},${d.y})`)
       .style("cursor", "pointer");
 
-    nodeGroups
-      .append("circle")
-      .attr("r", 20)
-      .attr("fill", (d) => layerColors[d.layer])
-      .attr("opacity", 0.15)
-      .attr("stroke", (d) => layerColors[d.layer])
-      .attr("stroke-width", 1.5);
+    nodeGroups.append("circle")
+      .attr("r", 20).attr("fill", (d) => layerColors[d.layer])
+      .attr("opacity", 0.15).attr("stroke", (d) => layerColors[d.layer]).attr("stroke-width", 1.5);
 
-    nodeGroups
-      .append("circle")
-      .attr("r", 5)
-      .attr("fill", (d) => layerColors[d.layer]);
+    nodeGroups.append("circle")
+      .attr("r", 5).attr("fill", (d) => layerColors[d.layer]);
 
-    nodeGroups
-      .append("text")
-      .attr("y", 34)
-      .attr("text-anchor", "middle")
-      .attr("fill", "#e0e0e8")
-      .attr("font-size", 11)
+    nodeGroups.append("text")
+      .attr("y", 34).attr("text-anchor", "middle")
+      .attr("fill", "#e0e0e8").attr("font-size", 11)
       .text((d) => d.labelCn);
 
     // Click navigation
@@ -107,25 +83,30 @@ export default function ArchitectureMap() {
         if (mod?.page) window.location.href = "/claude-code-anatomy" + mod.page;
       });
 
-    // Zoom
-    const zoom = d3.zoom<SVGSVGElement, unknown>()
+    const zoomBehavior = zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.5, 3])
       .on("zoom", (event) => g.attr("transform", event.transform));
 
-    svg.call(zoom);
+    svg.call(zoomBehavior);
 
-    // Hover tooltip
     nodeGroups
       .on("mouseenter", function (event, d) {
         const rect = containerRef.current!.getBoundingClientRect();
         setTooltip({ x: event.clientX - rect.left, y: event.clientY - rect.top - 10, node: d });
-        d3.select(this).select("circle").transition().duration(200).attr("r", 24);
+        select(this).select("circle").transition().duration(200).attr("r", 24);
       })
       .on("mouseleave", function () {
         setTooltip(null);
-        d3.select(this).select("circle").transition().duration(200).attr("r", 20);
+        select(this).select("circle").transition().duration(200).attr("r", 20);
       });
   }, []);
+
+  useEffect(() => {
+    render();
+    const observer = new ResizeObserver(() => render());
+    if (containerRef.current) observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [render]);
 
   return (
     <div ref={containerRef} className="relative rounded-xl border border-bg-border bg-bg-card p-4 overflow-hidden">
