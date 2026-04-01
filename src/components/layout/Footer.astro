@@ -18,7 +18,7 @@ const { locale = "en" } = Astro.props;
       <div class="flex items-center gap-4">
         <span>{t(locale, "footer.basedOn")}</span>
         <span>·</span>
-        <span>1,902 files · 512K+ LOC</span>
+        <span>{locale === "zh" ? "1,902 个文件 · 512K+ 行代码" : "1,902 files · 512K+ LOC"}</span>
       </div>
     </div>
   </div>

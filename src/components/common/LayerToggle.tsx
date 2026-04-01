@@ -10,15 +10,15 @@ interface Props {
 export default function LayerToggle({
   plain,
   technical,
-  plainLabel = "通俗版",
-  technicalLabel = "技术版",
+  plainLabel = "Simple",
+  technicalLabel = "Technical",
 }: Props) {
   const [isTechnical, setIsTechnical] = useState(false);
 
   return (
     <div>
       <div className="mb-4 flex items-center gap-1 rounded-lg bg-bg-card p-1 w-fit border border-bg-border">
-        <div role="group" aria-label="内容深度切换">
+        <div role="group" aria-label={`${plainLabel} / ${technicalLabel}`}>
         <button
           onClick={() => setIsTechnical(false)}
           aria-pressed={!isTechnical}

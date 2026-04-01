@@ -10,7 +10,11 @@ interface Props {
   locale?: Locale;
 }
 
-const { title, description = "深入浅出分析 Claude Code 源码架构", locale = "en" } = Astro.props;
+const { title, description, locale = "en" } = Astro.props;
+const defaultDesc = locale === "zh"
+  ? "深入浅出分析 Claude Code 源码架构"
+  : "An in-depth visual analysis of Claude Code's source architecture";
+const metaDesc = description ?? defaultDesc;
 ---
 
 <!doctype html>
@@ -18,7 +22,7 @@ const { title, description = "深入浅出分析 Claude Code 源码架构", loca
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content={description} />
+    <meta name="description" content={metaDesc} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
     <link

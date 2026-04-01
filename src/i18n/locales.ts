@@ -12,7 +12,7 @@ export function getLocalePath(locale: Locale, path: string): string {
 }
 
 export function getAlternatePath(currentLocale: Locale, currentPath: string): string {
-  const stripped = currentPath.replace(BASE, "");
+  const stripped = currentPath.replace(new RegExp("^" + BASE.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), "");
   const withoutLocale = stripped.replace(/^\/(en|zh)/, "");
   const path = withoutLocale || "/";
   const targetLocale: Locale = currentLocale === "en" ? "zh" : "en";

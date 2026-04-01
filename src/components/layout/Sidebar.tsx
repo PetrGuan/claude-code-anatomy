@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { t } from "../../i18n/translations";
+import type { Locale } from "../../i18n/locales";
 
 interface SidebarItem {
   id: string;
@@ -8,9 +10,10 @@ interface SidebarItem {
 
 interface Props {
   items: SidebarItem[];
+  locale?: Locale;
 }
 
-export default function Sidebar({ items }: Props) {
+export default function Sidebar({ items, locale = "en" }: Props) {
   const [activeId, setActiveId] = useState("");
 
   useEffect(() => {
@@ -35,9 +38,9 @@ export default function Sidebar({ items }: Props) {
 
   return (
     <aside className="hidden lg:block fixed right-8 top-24 w-56">
-      <nav className="space-y-1" aria-label="页面导航">
+      <nav className="space-y-1" aria-label={locale === "zh" ? "页面导航" : "Page navigation"}>
         <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary mb-3">
-          目录
+          {t(locale, "common.toc")}
         </p>
         {items.map((item) => (
           <a

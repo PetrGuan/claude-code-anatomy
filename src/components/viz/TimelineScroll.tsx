@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { t } from "../../i18n/translations";
+import { getLocalePath } from "../../i18n/locales";
 import type { Locale } from "../../i18n/locales";
 
 interface TimelineStep {
@@ -66,7 +67,7 @@ export default function TimelineScroll({ basePath = "/claude-code-anatomy", loca
             </p>
             {step.link && (
               <a
-                href={`${basePath}${step.link}`}
+                href={getLocalePath(locale ?? "en", step.link)}
                 className="inline-block mt-3 text-sm text-accent-purple hover:underline"
               >
                 {t(locale, "common.learnMore")}

@@ -9,7 +9,7 @@ import StatCard from "../components/common/StatCard.tsx";
 import FlowDiagram from "../components/viz/FlowDiagram.tsx";
 import ToolOrchestrationDemo from "../components/interactive/ToolOrchestrationDemo.tsx";
 import { toolCategories, categoryName, toolDesc } from "../data/tools";
-import { snippets, snippetTitle } from "../data/codeSnippets";
+import { snippets, snippetTitle, snippetAnnotations } from "../data/codeSnippets";
 import CodeBlock from "../components/common/CodeBlock.astro";
 
 interface Props {
@@ -91,7 +91,7 @@ const executionEdges = [
 
     <div class="mt-24">
       <SectionHeading id="execution" title={t(locale, "toolSystem.executionTitle")} subtitle={t(locale, "toolSystem.executionSubtitle")} />
-      <FlowDiagram client:visible nodes={executionNodes} edges={executionEdges} direction="vertical" locale={locale} />
+      <FlowDiagram client:visible nodes={executionNodes} edges={executionEdges} direction="vertical" />
     </div>
 
     <div class="mt-24">
@@ -103,7 +103,7 @@ const executionEdges = [
       <SectionHeading id="code" title={t(locale, "toolSystem.codeTitle")} subtitle={t(locale, "toolSystem.codeSubtitle")} />
       <CodeBlock code={snippets.toolOrchestration.code} title={snippetTitle(snippets.toolOrchestration, locale)} />
       <div class="mt-4 space-y-2">
-        {Object.entries(snippets.toolOrchestration.annotations!).map(([line, note]) => (
+        {Object.entries(snippetAnnotations(snippets.toolOrchestration, locale) ?? {}).map(([line, note]) => (
           <div class="flex items-start gap-3 text-sm">
             <span class="flex-shrink-0 text-xs font-mono text-accent-emerald bg-accent-emerald/10 px-2 py-0.5 rounded">L{line}</span>
             <span class="text-text-secondary">{note}</span>

@@ -8,7 +8,7 @@ import LayerToggleQueryWhat from "../components/common/LayerToggleQueryWhat.tsx"
 import LayerToggleQueryStreaming from "../components/common/LayerToggleQueryStreaming.tsx";
 import StatCard from "../components/common/StatCard.tsx";
 import FlowDiagram from "../components/viz/FlowDiagram.tsx";
-import { snippets, snippetTitle } from "../data/codeSnippets";
+import { snippets, snippetTitle, snippetAnnotations } from "../data/codeSnippets";
 import CodeBlock from "../components/common/CodeBlock.astro";
 
 interface Props {
@@ -84,7 +84,7 @@ const toolLoopSteps = [
 
     <div class="mt-24">
       <SectionHeading id="flow" title={t(locale, "queryPipeline.flowTitle")} subtitle={t(locale, "queryPipeline.flowSubtitle")} />
-      <FlowDiagram client:visible nodes={pipelineNodes} edges={pipelineEdges} locale={locale} />
+      <FlowDiagram client:visible nodes={pipelineNodes} edges={pipelineEdges} />
     </div>
 
     <div class="mt-24">
@@ -128,7 +128,7 @@ const toolLoopSteps = [
       <SectionHeading id="code" title={t(locale, "queryPipeline.codeTitle")} subtitle={t(locale, "queryPipeline.codeSubtitle")} />
       <CodeBlock code={snippets.queryLoop.code} title={snippetTitle(snippets.queryLoop, locale)} />
       <div class="mt-4 space-y-2">
-        {Object.entries(snippets.queryLoop.annotations!).map(([line, note]) => (
+        {Object.entries(snippetAnnotations(snippets.queryLoop, locale) ?? {}).map(([line, note]) => (
           <div class="flex items-start gap-3 text-sm">
             <span class="flex-shrink-0 text-xs font-mono text-accent-cyan bg-accent-cyan/10 px-2 py-0.5 rounded">L{line}</span>
             <span class="text-text-secondary">{note}</span>

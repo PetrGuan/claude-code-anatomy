@@ -8,6 +8,7 @@ export interface CodeSnippet {
   code: string;
   highlights?: number[];
   annotations?: Record<number, string>;
+  annotationsCn?: Record<number, string>;
 }
 
 export const snippets: Record<string, CodeSnippet> = {
@@ -53,6 +54,11 @@ async function* submitMessage(
       14: "Streaming via Anthropic API — responses arrive token by token",
       25: "Recursive: after tool execution, loop back for Claude's next response",
     },
+    annotationsCn: {
+      7: "组装完整上下文：git 信息、文件状态、工具定义",
+      14: "通过 Anthropic API 流式传输 — 响应逐 token 到达",
+      25: "递归：工具执行后，循环回来获取 Claude 的下一个响应",
+    },
   },
   toolOrchestration: {
     id: "toolOrchestration",
@@ -88,6 +94,11 @@ async function* runTools(
       12: "Safe to parallelize — read ops don't conflict with each other",
       18: "Serial execution prevents race conditions on file writes",
     },
+    annotationsCn: {
+      7: "分割工具调用：Glob+Grep+Read 一起运行，Write+Edit 逐个运行",
+      12: "可以安全并行 — 读操作之间不会冲突",
+      18: "串行执行防止文件写入的竞态条件",
+    },
   },
   permissionCheck: {
     id: "permissionCheck",
@@ -120,6 +131,11 @@ async function canUseTool(
       13: "User-defined rules: 'always allow git commands', 'deny rm -rf', etc.",
       18: "Last resort: show the user what's about to happen and let them decide",
     },
+    annotationsCn: {
+      7: "ML 模型预测此操作是否安全 — 处理约 80% 的情况",
+      13: "用户定义规则：'总是允许 git 命令'、'禁止 rm -rf' 等",
+      18: "最后手段：向用户展示即将执行的操作，让用户决定",
+    },
   },
   asyncGenerator: {
     id: "asyncGenerator",
@@ -151,4 +167,9 @@ for await (const update of submitMessage(prompt)) {
 
 export function snippetTitle(snippet: CodeSnippet, locale: Locale): string {
   return locale === "zh" ? snippet.titleCn : snippet.title;
+}
+
+export function snippetAnnotations(snippet: CodeSnippet, locale: Locale): Record<number, string> | undefined {
+  if (!snippet.annotations) return undefined;
+  return locale === "zh" ? (snippet.annotationsCn ?? snippet.annotations) : snippet.annotations;
 }
