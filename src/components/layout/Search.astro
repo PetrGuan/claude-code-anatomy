@@ -7,6 +7,7 @@ interface Props {
 
 const { locale = "en" } = Astro.props;
 const placeholder = locale === "zh" ? "搜索..." : "Search...";
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <!-- Search trigger button -->
@@ -21,7 +22,7 @@ const placeholder = locale === "zh" ? "搜索..." : "Search...";
 </button>
 
 <!-- Search modal overlay -->
-<div id="search-modal" class="fixed inset-0 z-[100] hidden">
+<div id="search-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true" aria-label="Search">
   <!-- Backdrop -->
   <div id="search-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
 
@@ -113,7 +114,7 @@ const placeholder = locale === "zh" ? "搜索..." : "Search...";
   }
 </style>
 
-<script define:vars={{ placeholder }}>
+<script define:vars={{ placeholder, base }}>
   // Initialize Pagefind UI when search is opened
   let pagefindLoaded = false;
 
@@ -126,23 +127,28 @@ const placeholder = locale === "zh" ? "搜索..." : "Search...";
       // Dynamically load Pagefind UI
       const link = document.createElement('link');
       link.rel = 'stylesheet';
-      link.href = '/claude-code-anatomy/pagefind/pagefind-ui.css';
+      link.href = base + '/pagefind/pagefind-ui.css';
       document.head.appendChild(link);
 
       const script = document.createElement('script');
-      script.src = '/claude-code-anatomy/pagefind/pagefind-ui.js';
+      script.src = base + '/pagefind/pagefind-ui.js';
       script.onload = () => {
         new window.PagefindUI({
           element: '#pagefind-container',
           showSubResults: true,
           showImages: false,
           placeholder: placeholder,
-          baseUrl: '/claude-code-anatomy/',
+          baseUrl: base + '/',
         });
         // Auto-focus the search input
         setTimeout(() => {
           document.querySelector('.pagefind-ui__search-input')?.focus();
         }, 100);
+      };
+      script.onerror = () => {
+        pagefindLoaded = false;
+        const container = document.getElementById('pagefind-container');
+        if (container) container.innerHTML = '<p style="padding:16px;color:#8888a0;text-align:center">Search failed to load. Please try again.</p>';
       };
       document.head.appendChild(script);
     } else {
@@ -156,6 +162,7 @@ const placeholder = locale === "zh" ? "搜索..." : "Search...";
   function closeSearch() {
     document.getElementById('search-modal')?.classList.add('hidden');
     document.body.style.overflow = '';
+    document.getElementById('search-trigger')?.focus();
   }
 
   // Trigger button
@@ -166,7 +173,11 @@ const placeholder = locale === "zh" ? "搜索..." : "Search...";
 
   // Close on Escape
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeSearch();
+    if (e.key === 'Escape') {
+      if (!document.getElementById('search-modal')?.classList.contains('hidden')) {
+        closeSearch();
+      }
+    }
     // Cmd+K / Ctrl+K to open
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
       e.preventDefault();
@@ -176,6 +187,24 @@ const placeholder = locale === "zh" ? "搜索..." : "Search...";
       } else {
         closeSearch();
       }
+    }
+  });
+
+  // Focus trap
+  document.getElementById('search-modal')?.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab') return;
+    const modal = document.getElementById('search-modal');
+    if (!modal || modal.classList.contains('hidden')) return;
+    const focusable = modal.querySelectorAll('input, button, a, [tabindex]:not([tabindex="-1"])');
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
     }
   });
 </script>

@@ -14,7 +14,6 @@
   "dependencies": {
     "@astrojs/react": "^5.0.2",
     "@astrojs/tailwind": "^6.0.2",
-    "@pagefind/darwin-arm64": "^1.4.0",
     "astro": "^5.18.1",
     "d3": "^7.9.0",
     "d3-hierarchy": "^3.1.2",
@@ -22,7 +21,6 @@
     "d3-transition": "^3.0.1",
     "d3-zoom": "^3.0.0",
     "framer-motion": "^12.38.0",
-    "pagefind": "^1.4.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "shiki": "^4.0.2"
@@ -35,6 +33,7 @@
     "@types/d3-zoom": "^3.0.8",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "pagefind": "^1.4.0",
     "tailwindcss": "^3.4.19"
   }
 }
