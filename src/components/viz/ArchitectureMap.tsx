@@ -3,7 +3,7 @@ import { select } from "d3-selection";
 import { zoom } from "d3-zoom";
 import "d3-transition";
 import { nodes, edges, layerColors, layerLabels, nodeLabel, layerLabel, type GraphNode } from "../../data/architecture";
-import { modules } from "../../data/modules";
+import { modules, moduleName, moduleDesc } from "../../data/modules";
 import type { Locale } from "../../i18n/locales";
 
 export default function ArchitectureMap({ locale = "en" as Locale }: { locale?: Locale }) {
@@ -120,15 +120,37 @@ export default function ArchitectureMap({ locale = "en" as Locale }: { locale?: 
   return (
     <div ref={containerRef} className="relative rounded-xl border border-bg-border bg-bg-card p-4 overflow-hidden">
       <svg ref={svgRef} className="w-full" />
-      {tooltip && (
-        <div
-          className="absolute z-10 rounded-lg border border-bg-border bg-bg p-3 text-sm shadow-xl pointer-events-none"
-          style={{ left: tooltip.x, top: tooltip.y, transform: "translate(-50%, -100%)" }}
-        >
-          <p className="font-medium text-text">{nodeLabel(tooltip.node, locale)}</p>
-          <p className="text-text-secondary text-xs">{locale === "zh" ? tooltip.node.label : tooltip.node.labelCn}</p>
-        </div>
-      )}
+      {tooltip && (() => {
+        const mod = modules.find(m => m.id === tooltip.node.id);
+        return (
+          <div
+            className="absolute z-10 rounded-lg border border-bg-border bg-bg p-3 shadow-xl pointer-events-none max-w-xs"
+            style={{ left: tooltip.x, top: tooltip.y, transform: "translate(-50%, -100%)" }}
+          >
+            <p className="font-medium text-sm" style={{ color: layerColors[tooltip.node.layer] }}>
+              {nodeLabel(tooltip.node, locale)}
+            </p>
+            {mod && (
+              <>
+                <p className="text-text-secondary text-xs mt-1.5 leading-relaxed">
+                  {moduleDesc(mod, locale)}
+                </p>
+                <div className="flex items-center gap-3 mt-2 text-xs text-text-secondary/70 font-mono">
+                  <span>{mod.files} {locale === "zh" ? "文件" : "files"}</span>
+                  <span>·</span>
+                  <span>{(mod.lines / 1000).toFixed(0)}K {locale === "zh" ? "行" : "LOC"}</span>
+                  {mod.page && (
+                    <>
+                      <span>·</span>
+                      <span className="text-accent-purple">{locale === "zh" ? "可点击" : "click to view"}</span>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }
