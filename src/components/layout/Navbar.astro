@@ -41,46 +41,23 @@ const alternateLinkLabel = locale === "en" ? "中文" : "EN";
         Claude Code Anatomy
       </a>
       <div class="hidden lg:flex items-center gap-0.5">
-        {navItems.filter(i => i.group === "core").map((item) => (
-          <a
-            href={getLocalePath(locale, item.path)}
-            class:list={[
-              "px-2 py-1.5 rounded-lg text-xs transition-colors whitespace-nowrap",
-              currentPath === item.path
-                ? "bg-accent-purple/10 text-accent-purple"
-                : "text-text-secondary hover:text-text hover:bg-bg-card",
-            ]}
-          >
-            {t(locale, item.key)}
-          </a>
-        ))}
-        <span class="mx-1 text-bg-border">|</span>
-        {navItems.filter(i => i.group === "advanced").map((item) => (
-          <a
-            href={getLocalePath(locale, item.path)}
-            class:list={[
-              "px-2 py-1.5 rounded-lg text-xs transition-colors whitespace-nowrap",
-              currentPath === item.path
-                ? "bg-accent-purple/10 text-accent-purple"
-                : "text-text-secondary hover:text-text hover:bg-bg-card",
-            ]}
-          >
-            {t(locale, item.key)}
-          </a>
-        ))}
-        <span class="mx-1 text-bg-border">|</span>
-        {navItems.filter(i => i.group === "optional").map((item) => (
-          <a
-            href={getLocalePath(locale, item.path)}
-            class:list={[
-              "px-2 py-1.5 rounded-lg text-xs transition-colors whitespace-nowrap",
-              currentPath === item.path
-                ? "bg-accent-purple/10 text-accent-purple"
-                : "text-text-secondary hover:text-text hover:bg-bg-card",
-            ]}
-          >
-            {t(locale, item.key)}
-          </a>
+        {groups.map((group, gi) => (
+          <>
+            {gi > 0 && <span class="mx-1 text-bg-border">|</span>}
+            {navItems.filter(i => i.group === group).map((item) => (
+              <a
+                href={getLocalePath(locale, item.path)}
+                class:list={[
+                  "px-2 py-1.5 rounded-lg text-xs transition-colors whitespace-nowrap",
+                  currentPath === item.path
+                    ? "bg-accent-purple/10 text-accent-purple"
+                    : "text-text-secondary hover:text-text hover:bg-bg-card",
+                ]}
+              >
+                {t(locale, item.key)}
+              </a>
+            ))}
+          </>
         ))}
         <a
           href={alternatePath}

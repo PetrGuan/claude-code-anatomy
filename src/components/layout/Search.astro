@@ -123,7 +123,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     document.body.style.overflow = 'hidden';
 
     if (!pagefindLoaded) {
-      pagefindLoaded = true;
       // Dynamically load Pagefind UI
       const link = document.createElement('link');
       link.rel = 'stylesheet';
@@ -133,6 +132,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       const script = document.createElement('script');
       script.src = base + '/pagefind/pagefind-ui.js';
       script.onload = () => {
+        pagefindLoaded = true;
         new window.PagefindUI({
           element: '#pagefind-container',
           showSubResults: true,

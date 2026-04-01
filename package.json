@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && npx pagefind --site dist --glob '**/*.html'",
+    "build": "astro build && pagefind --site dist --glob '**/*.html'",
     "preview": "astro preview",
     "astro": "astro"
   },
