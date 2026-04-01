@@ -1,0 +1,140 @@
+---
+import type { Locale } from "../i18n/locales";
+import { t } from "../i18n/translations";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Sidebar from "../components/layout/Sidebar.tsx";
+import SectionHeading from "../components/common/SectionHeading.astro";
+import LayerToggleQueryWhat from "../components/common/LayerToggleQueryWhat.tsx";
+import LayerToggleQueryStreaming from "../components/common/LayerToggleQueryStreaming.tsx";
+import StatCard from "../components/common/StatCard.tsx";
+import FlowDiagram from "../components/viz/FlowDiagram.tsx";
+import { snippets, snippetTitle } from "../data/codeSnippets";
+import CodeBlock from "../components/common/CodeBlock.astro";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const sidebarItems = [
+  { id: "what", label: t(locale, "queryPipeline.whatTitle"), level: 1 },
+  { id: "flow", label: t(locale, "queryPipeline.flowTitle"), level: 1 },
+  { id: "system-prompt", label: t(locale, "queryPipeline.systemPromptTitle"), level: 1 },
+  { id: "streaming", label: t(locale, "queryPipeline.streamingTitle"), level: 1 },
+  { id: "tool-loop", label: t(locale, "queryPipeline.toolLoopTitle"), level: 1 },
+  { id: "code", label: t(locale, "queryPipeline.codeTitle"), level: 1 },
+];
+
+const pipelineNodes = [
+  { id: "input", label: t(locale, "queryPipeline.nodeInput"), description: t(locale, "queryPipeline.nodeInputDesc"), color: "#e0e0e8" },
+  { id: "normalize", label: t(locale, "queryPipeline.nodeNormalize"), description: t(locale, "queryPipeline.nodeNormalizeDesc"), color: "#8888a0" },
+  { id: "system", label: t(locale, "queryPipeline.nodeSystem"), description: t(locale, "queryPipeline.nodeSystemDesc"), color: "#22d3ee" },
+  { id: "api", label: t(locale, "queryPipeline.nodeApi"), description: t(locale, "queryPipeline.nodeApiDesc"), color: "#6c63ff" },
+  { id: "tools", label: t(locale, "queryPipeline.nodeTools"), description: t(locale, "queryPipeline.nodeToolsDesc"), color: "#10b981" },
+  { id: "loop", label: t(locale, "queryPipeline.nodeLoop"), description: t(locale, "queryPipeline.nodeLoopDesc"), color: "#a78bfa" },
+];
+
+const pipelineEdges = [
+  { from: "input", to: "normalize", label: t(locale, "queryPipeline.edgePreprocess") },
+  { from: "normalize", to: "system", label: t(locale, "queryPipeline.edgeContext") },
+  { from: "system", to: "api", label: t(locale, "queryPipeline.edgeRequest") },
+  { from: "api", to: "tools", label: t(locale, "queryPipeline.edgeToolUse") },
+  { from: "tools", to: "loop", label: t(locale, "queryPipeline.edgeResult") },
+];
+
+const systemPromptParts = [
+  { label: t(locale, "queryPipeline.sysDefault"), desc: t(locale, "queryPipeline.sysDefaultDesc"), size: "~5KB" },
+  { label: t(locale, "queryPipeline.sysEnv"), desc: t(locale, "queryPipeline.sysEnvDesc"), size: "~1KB" },
+  { label: t(locale, "queryPipeline.sysTools"), desc: t(locale, "queryPipeline.sysToolsDesc"), size: "~20KB" },
+  { label: t(locale, "queryPipeline.sysRules"), desc: t(locale, "queryPipeline.sysRulesDesc"), size: locale === "zh" ? "可变" : "Variable" },
+  { label: t(locale, "queryPipeline.sysMemory"), desc: t(locale, "queryPipeline.sysMemoryDesc"), size: locale === "zh" ? "可变" : "Variable" },
+];
+
+const toolLoopSteps = [
+  { num: "1", color: "#6c63ff", text: t(locale, "queryPipeline.toolStep1") },
+  { num: "2", color: "#f59e0b", text: t(locale, "queryPipeline.toolStep2") },
+  { num: "3", color: "#10b981", text: t(locale, "queryPipeline.toolStep3") },
+  { num: "4", color: "#22d3ee", text: t(locale, "queryPipeline.toolStep4") },
+  { num: "5", color: "#6c63ff", text: t(locale, "queryPipeline.toolStep5") },
+];
+---
+
+<BaseLayout title={t(locale, "queryPipeline.title")} locale={locale}>
+  <Sidebar client:load items={sidebarItems} locale={locale} />
+
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-16">
+      <p class="text-sm font-mono text-accent-cyan">{t(locale, "queryPipeline.tag")}</p>
+      <h1 class="text-4xl font-bold mt-2">{t(locale, "queryPipeline.title")}</h1>
+      <p class="mt-4 text-xl text-text-secondary">
+        {t(locale, "queryPipeline.subtitle")}
+      </p>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 mb-16">
+      <StatCard client:visible value={3000} label={t(locale, "queryPipeline.coreLines")} color="#22d3ee" />
+      <StatCard client:visible value={12} label={t(locale, "queryPipeline.pipelineFiles")} color="#6c63ff" />
+      <StatCard client:visible value={6} label={t(locale, "queryPipeline.stages")} color="#10b981" />
+    </div>
+
+    <SectionHeading id="what" title={t(locale, "queryPipeline.whatTitle")} />
+
+    <LayerToggleQueryWhat client:visible locale={locale} />
+
+    <div class="mt-24">
+      <SectionHeading id="flow" title={t(locale, "queryPipeline.flowTitle")} subtitle={t(locale, "queryPipeline.flowSubtitle")} />
+      <FlowDiagram client:visible nodes={pipelineNodes} edges={pipelineEdges} locale={locale} />
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="system-prompt" title={t(locale, "queryPipeline.systemPromptTitle")} subtitle={t(locale, "queryPipeline.systemPromptSubtitle")} />
+      <div class="space-y-4">
+        {systemPromptParts.map((item) => (
+          <div class="flex items-start gap-4 rounded-lg border border-bg-border bg-bg-card p-4">
+            <span class="text-xs font-mono text-accent-cyan bg-accent-cyan/10 px-2 py-1 rounded">{item.size}</span>
+            <div>
+              <p class="font-medium text-text">{item.label}</p>
+              <p class="text-sm text-text-secondary">{item.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="streaming" title={t(locale, "queryPipeline.streamingTitle")} subtitle={t(locale, "queryPipeline.streamingSubtitle")} />
+      <LayerToggleQueryStreaming client:visible locale={locale} />
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="tool-loop" title={t(locale, "queryPipeline.toolLoopTitle")} subtitle={t(locale, "queryPipeline.toolLoopSubtitle")} />
+      <div class="rounded-lg border border-bg-border bg-bg-card p-6">
+        <ol class="space-y-4 text-sm">
+          {toolLoopSteps.map((step) => (
+            <li class="flex gap-3">
+              <span
+                class="flex-shrink-0 w-6 h-6 rounded-full text-xs flex items-center justify-center font-mono"
+                style={`background-color: ${step.color}20; color: ${step.color}`}
+              >{step.num}</span>
+              <span>{step.text}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="code" title={t(locale, "queryPipeline.codeTitle")} subtitle={t(locale, "queryPipeline.codeSubtitle")} />
+      <CodeBlock code={snippets.queryLoop.code} title={snippetTitle(snippets.queryLoop, locale)} />
+      <div class="mt-4 space-y-2">
+        {Object.entries(snippets.queryLoop.annotations!).map(([line, note]) => (
+          <div class="flex items-start gap-3 text-sm">
+            <span class="flex-shrink-0 text-xs font-mono text-accent-cyan bg-accent-cyan/10 px-2 py-0.5 rounded">L{line}</span>
+            <span class="text-text-secondary">{note}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</BaseLayout>

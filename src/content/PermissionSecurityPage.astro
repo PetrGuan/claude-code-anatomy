@@ -1,0 +1,113 @@
+---
+import type { Locale } from "../i18n/locales";
+import { t } from "../i18n/translations";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Sidebar from "../components/layout/Sidebar.tsx";
+import SectionHeading from "../components/common/SectionHeading.astro";
+import LayerTogglePermissionWhat from "../components/common/LayerTogglePermissionWhat.tsx";
+import LayerTogglePermissionBash from "../components/common/LayerTogglePermissionBash.tsx";
+import StatCard from "../components/common/StatCard.tsx";
+import FlowDiagram from "../components/viz/FlowDiagram.tsx";
+import PermissionSimulator from "../components/interactive/PermissionSimulator.tsx";
+import { snippets, snippetTitle } from "../data/codeSnippets";
+import CodeBlock from "../components/common/CodeBlock.astro";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const sidebarItems = [
+  { id: "what", label: t(locale, "permissionSecurity.whatTitle"), level: 1 },
+  { id: "three-layers", label: t(locale, "permissionSecurity.threeLayersTitle"), level: 1 },
+  { id: "simulator", label: t(locale, "permissionSecurity.simulatorTitle"), level: 1 },
+  { id: "bash-security", label: t(locale, "permissionSecurity.bashTitle"), level: 1 },
+  { id: "rules", label: t(locale, "permissionSecurity.rulesTitle"), level: 1 },
+  { id: "code", label: t(locale, "permissionSecurity.codeTitle"), level: 1 },
+];
+
+const defenseNodes = [
+  { id: "input", label: t(locale, "permissionSecurity.nodeRequest"), description: t(locale, "permissionSecurity.nodeRequestDesc"), color: "#e0e0e8" },
+  { id: "ml", label: t(locale, "permissionSecurity.nodeML"), description: t(locale, "permissionSecurity.nodeMLDesc"), color: "#22d3ee" },
+  { id: "rules", label: t(locale, "permissionSecurity.nodeRules"), description: t(locale, "permissionSecurity.nodeRulesDesc"), color: "#f59e0b" },
+  { id: "dialog", label: t(locale, "permissionSecurity.nodeDialog"), description: t(locale, "permissionSecurity.nodeDialogDesc"), color: "#6c63ff" },
+  { id: "result", label: t(locale, "permissionSecurity.nodeDecision"), description: t(locale, "permissionSecurity.nodeDecisionDesc"), color: "#10b981" },
+];
+
+const defenseEdges = [
+  { from: "input", to: "ml", label: t(locale, "permissionSecurity.edgeEvaluate") },
+  { from: "ml", to: "rules", label: t(locale, "permissionSecurity.edgeUncertain") },
+  { from: "rules", to: "dialog", label: t(locale, "permissionSecurity.edgeNoMatch") },
+  { from: "dialog", to: "result", label: t(locale, "permissionSecurity.edgeDecide") },
+];
+
+const ruleExamples = [
+  { rule: '"allow": ["git *", "npm test"]', desc: t(locale, "permissionSecurity.rule1") },
+  { rule: '"deny": ["rm -rf *", "sudo *"]', desc: t(locale, "permissionSecurity.rule2") },
+  { rule: 'CLI: --always-allow-bash', desc: t(locale, "permissionSecurity.rule3") },
+  { rule: '"permissionMode": "auto"', desc: t(locale, "permissionSecurity.rule4") },
+];
+---
+
+<BaseLayout title={t(locale, "permissionSecurity.title")} locale={locale}>
+  <Sidebar client:load items={sidebarItems} locale={locale} />
+
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-16">
+      <p class="text-sm font-mono text-accent-amber">{t(locale, "permissionSecurity.tag")}</p>
+      <h1 class="text-4xl font-bold mt-2">{t(locale, "permissionSecurity.title")}</h1>
+      <p class="mt-4 text-xl text-text-secondary">{t(locale, "permissionSecurity.subtitle")}</p>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 mb-16">
+      <StatCard client:visible value={3} label={t(locale, "permissionSecurity.layers")} color="#f59e0b" />
+      <StatCard client:visible value={23} label={t(locale, "permissionSecurity.moduleFiles")} color="#6c63ff" />
+      <StatCard client:visible value={5000} suffix="+" label={t(locale, "permissionSecurity.securityLines")} color="#ef4444" />
+    </div>
+
+    <SectionHeading id="what" title={t(locale, "permissionSecurity.whatTitle")} />
+
+    <LayerTogglePermissionWhat client:visible locale={locale} />
+
+    <div class="mt-24">
+      <SectionHeading id="three-layers" title={t(locale, "permissionSecurity.threeLayersTitle")} subtitle={t(locale, "permissionSecurity.threeLayersSubtitle")} />
+      <FlowDiagram client:visible nodes={defenseNodes} edges={defenseEdges} direction="vertical" locale={locale} />
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="simulator" title={t(locale, "permissionSecurity.simulatorTitle")} subtitle={t(locale, "permissionSecurity.simulatorSubtitle")} />
+      <PermissionSimulator client:visible locale={locale} />
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="bash-security" title={t(locale, "permissionSecurity.bashTitle")} subtitle={t(locale, "permissionSecurity.bashSubtitle")} />
+      <LayerTogglePermissionBash client:visible locale={locale} />
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="rules" title={t(locale, "permissionSecurity.rulesTitle")} subtitle={t(locale, "permissionSecurity.rulesSubtitle")} />
+      <div class="space-y-3">
+        {ruleExamples.map((item) => (
+          <div class="rounded-lg border border-bg-border bg-bg-card p-4 flex items-start gap-4">
+            <code class="text-xs font-mono text-accent-amber bg-accent-amber/10 px-2 py-1 rounded flex-shrink-0">{item.rule}</code>
+            <span class="text-sm text-text-secondary">{item.desc}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="code" title={t(locale, "permissionSecurity.codeTitle")} subtitle={t(locale, "permissionSecurity.codeSubtitle")} />
+      <CodeBlock code={snippets.permissionCheck.code} title={snippetTitle(snippets.permissionCheck, locale)} />
+      <div class="mt-4 space-y-2">
+        {Object.entries(snippets.permissionCheck.annotations!).map(([line, note]) => (
+          <div class="flex items-start gap-3 text-sm">
+            <span class="flex-shrink-0 text-xs font-mono text-accent-amber bg-accent-amber/10 px-2 py-0.5 rounded">L{line}</span>
+            <span class="text-text-secondary">{note}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</BaseLayout>

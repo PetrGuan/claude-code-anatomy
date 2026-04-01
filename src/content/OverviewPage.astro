@@ -1,0 +1,164 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Sidebar from "../components/layout/Sidebar.tsx";
+import StatCard from "../components/common/StatCard.tsx";
+import SectionHeading from "../components/common/SectionHeading.astro";
+import LayerToggleScale from "../components/common/LayerToggleScale.tsx";
+import BubbleChart from "../components/viz/BubbleChart.tsx";
+import TreeExplorer from "../components/viz/TreeExplorer.tsx";
+import { t } from "../i18n/translations";
+import type { Locale } from "../i18n/locales";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const sidebarItems = [
+  { id: "scale", label: t(locale, "overview.scaleTitle"), level: 1 },
+  { id: "modules", label: t(locale, "overview.modulesTitle"), level: 1 },
+  { id: "tech-stack", label: t(locale, "overview.techStackTitle"), level: 1 },
+  { id: "directory", label: t(locale, "overview.directoryTitle"), level: 1 },
+  { id: "highlights", label: t(locale, "overview.highlightsTitle"), level: 1 },
+];
+
+const directoryTree = {
+  name: "src/",
+  children: [
+    { name: "main.tsx", description: t(locale, "directoryTree.mainTsx") },
+    { name: "QueryEngine.ts", description: t(locale, "directoryTree.queryEngine") },
+    { name: "query.ts", description: t(locale, "directoryTree.queryTs") },
+    { name: "Tool.ts", description: t(locale, "directoryTree.toolTs") },
+    { name: "tools.ts", description: t(locale, "directoryTree.toolsTs") },
+    { name: "commands.ts", description: t(locale, "directoryTree.commandsTs") },
+    {
+      name: "tools/",
+      description: t(locale, "directoryTree.toolsDir"),
+      children: [
+        { name: "BashTool/", description: t(locale, "directoryTree.bashTool") },
+        { name: "FileReadTool/", description: t(locale, "directoryTree.fileReadTool") },
+        { name: "FileEditTool/", description: t(locale, "directoryTree.fileEditTool") },
+        { name: "AgentTool/", description: t(locale, "directoryTree.agentTool") },
+        { name: "MCPTool/", description: t(locale, "directoryTree.mcpTool") },
+        { name: "... 39 more", description: "" },
+      ],
+    },
+    {
+      name: "services/",
+      description: t(locale, "directoryTree.servicesDir"),
+      children: [
+        { name: "api/", description: t(locale, "directoryTree.apiDir") },
+        { name: "mcp/", description: t(locale, "directoryTree.mcpDir") },
+        { name: "compact/", description: t(locale, "directoryTree.compactDir") },
+        { name: "analytics/", description: t(locale, "directoryTree.analyticsDir") },
+        { name: "tools/", description: t(locale, "directoryTree.toolsServiceDir") },
+      ],
+    },
+    {
+      name: "components/",
+      description: t(locale, "directoryTree.componentsDir"),
+      children: [
+        { name: "App.tsx", description: t(locale, "directoryTree.appTsx") },
+        { name: "REPL.tsx", description: t(locale, "directoryTree.replTsx") },
+        { name: "PromptInput/", description: t(locale, "directoryTree.promptInput") },
+        { name: "design-system/", description: t(locale, "directoryTree.designSystem") },
+      ],
+    },
+    { name: "hooks/", description: t(locale, "directoryTree.hooksDir") },
+    { name: "ink/", description: t(locale, "directoryTree.inkDir") },
+    { name: "bridge/", description: t(locale, "directoryTree.bridgeDir") },
+    { name: "utils/", description: t(locale, "directoryTree.utilsDir") },
+    { name: "state/", description: t(locale, "directoryTree.stateDir") },
+    { name: "commands/", description: t(locale, "directoryTree.commandsDir") },
+    { name: "skills/", description: t(locale, "directoryTree.skillsDir") },
+    { name: "plugins/", description: t(locale, "directoryTree.pluginsDir") },
+  ],
+};
+
+const techStack = [
+  { name: "Bun", desc: t(locale, "techStack.bunDesc"), color: "#f5f5f5" },
+  { name: "TypeScript", desc: t(locale, "techStack.tsDesc"), color: "#3178c6" },
+  { name: "React + Ink", desc: t(locale, "techStack.reactInkDesc"), color: "#61dafb" },
+  { name: "Yoga", desc: t(locale, "techStack.yogaDesc"), color: "#a78bfa" },
+  { name: "Zod", desc: t(locale, "techStack.zodDesc"), color: "#3068b7" },
+  { name: "tree-sitter", desc: t(locale, "techStack.treeSitterDesc"), color: "#f59e0b" },
+];
+
+const highlights = [
+  {
+    title: t(locale, "highlights.asyncGenTitle"),
+    desc: t(locale, "highlights.asyncGenDesc"),
+  },
+  {
+    title: t(locale, "highlights.readWriteTitle"),
+    desc: t(locale, "highlights.readWriteDesc"),
+  },
+  {
+    title: t(locale, "highlights.permissionTitle"),
+    desc: t(locale, "highlights.permissionDesc"),
+  },
+  {
+    title: t(locale, "highlights.featureFlagTitle"),
+    desc: t(locale, "highlights.featureFlagDesc"),
+  },
+];
+---
+
+<BaseLayout title={t(locale, "overview.title")} locale={locale}>
+  <Sidebar client:load items={sidebarItems} />
+
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-16">
+      <h1 class="text-4xl font-bold">{t(locale, "overview.title")}</h1>
+      <p class="mt-4 text-xl text-text-secondary">
+        {t(locale, "overview.subtitle")}
+      </p>
+    </div>
+
+    <SectionHeading id="scale" title={t(locale, "overview.scaleTitle")} subtitle={t(locale, "overview.scaleSubtitle")} />
+
+    <LayerToggleScale client:visible locale={locale} />
+
+    <div class="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <StatCard client:visible value={1902} label={t(locale, "common.sourceFiles")} color="#6c63ff" />
+      <StatCard client:visible value={512664} label={t(locale, "common.linesOfCode")} color="#22d3ee" />
+      <StatCard client:visible value={1332} label={t(locale, "overview.tsFiles")} color="#10b981" />
+      <StatCard client:visible value={552} label={t(locale, "overview.tsxFiles")} color="#f59e0b" />
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="modules" title={t(locale, "overview.modulesTitle")} subtitle={t(locale, "overview.modulesSubtitle")} />
+      <BubbleChart client:visible />
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="tech-stack" title={t(locale, "overview.techStackTitle")} subtitle={t(locale, "overview.techStackSubtitle")} />
+      <div class="grid sm:grid-cols-2 gap-4">
+        {techStack.map((tech) => (
+          <div class="rounded-lg border border-bg-border bg-bg-card p-4">
+            <p class="font-semibold" style={`color: ${tech.color}`}>{tech.name}</p>
+            <p class="text-sm text-text-secondary mt-1">{tech.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="directory" title={t(locale, "overview.directoryTitle")} subtitle={t(locale, "overview.directorySubtitle")} />
+      <TreeExplorer client:visible data={directoryTree} defaultExpanded={1} />
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="highlights" title={t(locale, "overview.highlightsTitle")} subtitle={t(locale, "overview.highlightsSubtitle")} />
+      <div class="space-y-6">
+        {highlights.map((item) => (
+          <div class="rounded-lg border border-bg-border bg-bg-card p-6">
+            <h3 class="font-semibold text-accent-purple">{item.title}</h3>
+            <p class="text-sm text-text-secondary mt-2 leading-relaxed">{item.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</BaseLayout>

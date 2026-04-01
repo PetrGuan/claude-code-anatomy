@@ -1,0 +1,115 @@
+---
+import type { Locale } from "../i18n/locales";
+import { t } from "../i18n/translations";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Sidebar from "../components/layout/Sidebar.tsx";
+import SectionHeading from "../components/common/SectionHeading.astro";
+import LayerToggleToolSystem from "../components/common/LayerToggleToolSystem.tsx";
+import StatCard from "../components/common/StatCard.tsx";
+import FlowDiagram from "../components/viz/FlowDiagram.tsx";
+import ToolOrchestrationDemo from "../components/interactive/ToolOrchestrationDemo.tsx";
+import { toolCategories, categoryName, toolDesc } from "../data/tools";
+import { snippets, snippetTitle } from "../data/codeSnippets";
+import CodeBlock from "../components/common/CodeBlock.astro";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const sidebarItems = [
+  { id: "what", label: t(locale, "toolSystem.whatTitle"), level: 1 },
+  { id: "catalog", label: t(locale, "toolSystem.catalogTitle"), level: 1 },
+  { id: "execution", label: t(locale, "toolSystem.executionTitle"), level: 1 },
+  { id: "orchestration", label: t(locale, "toolSystem.orchestrationTitle"), level: 1 },
+  { id: "code", label: t(locale, "toolSystem.codeTitle"), level: 1 },
+];
+
+const executionNodes = [
+  { id: "parse", label: t(locale, "toolSystem.nodeParse"), description: t(locale, "toolSystem.nodeParseDesc"), color: "#e0e0e8" },
+  { id: "validate", label: t(locale, "toolSystem.nodeValidate"), description: t(locale, "toolSystem.nodeValidateDesc"), color: "#8888a0" },
+  { id: "permission", label: t(locale, "toolSystem.nodePermission"), description: t(locale, "toolSystem.nodePermissionDesc"), color: "#f59e0b" },
+  { id: "execute", label: t(locale, "toolSystem.nodeExecute"), description: t(locale, "toolSystem.nodeExecuteDesc"), color: "#10b981" },
+  { id: "hook", label: t(locale, "toolSystem.nodeHook"), description: t(locale, "toolSystem.nodeHookDesc"), color: "#a78bfa" },
+  { id: "result", label: t(locale, "toolSystem.nodeResult"), description: t(locale, "toolSystem.nodeResultDesc"), color: "#22d3ee" },
+];
+
+const executionEdges = [
+  { from: "parse", to: "validate" },
+  { from: "validate", to: "permission" },
+  { from: "permission", to: "execute", label: t(locale, "toolSystem.edgeAllow") },
+  { from: "execute", to: "hook" },
+  { from: "hook", to: "result" },
+];
+---
+
+<BaseLayout title={t(locale, "toolSystem.title")} locale={locale}>
+  <Sidebar client:load items={sidebarItems} locale={locale} />
+
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-16">
+      <p class="text-sm font-mono text-accent-emerald">{t(locale, "toolSystem.tag")}</p>
+      <h1 class="text-4xl font-bold mt-2">{t(locale, "toolSystem.title")}</h1>
+      <p class="mt-4 text-xl text-text-secondary">
+        {t(locale, "toolSystem.subtitle")}
+      </p>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 mb-16">
+      <StatCard client:visible value={45} suffix="+" label={t(locale, "toolSystem.toolCount")} color="#10b981" />
+      <StatCard client:visible value={9} label={t(locale, "toolSystem.categories")} color="#6c63ff" />
+      <StatCard client:visible value={50828} label={t(locale, "toolSystem.implLines")} color="#f59e0b" />
+    </div>
+
+    <SectionHeading id="what" title={t(locale, "toolSystem.whatTitle")} />
+
+    <LayerToggleToolSystem client:visible locale={locale} />
+
+    <div class="mt-24">
+      <SectionHeading id="catalog" title={t(locale, "toolSystem.catalogTitle")} subtitle={t(locale, "toolSystem.catalogSubtitle")} />
+      <div class="grid sm:grid-cols-2 gap-4">
+        {toolCategories.map((category) => (
+          <div class="rounded-lg border border-bg-border bg-bg-card p-5">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="w-3 h-3 rounded-full" style={`background-color: ${category.color}`}></span>
+              <h3 class="font-semibold text-sm">{categoryName(category, locale)}</h3>
+              <span class="text-xs text-text-secondary ml-auto">{category.tools.length}{locale === "zh" ? " 个" : ""}</span>
+            </div>
+            <div class="space-y-1.5">
+              {category.tools.map((tool) => (
+                <div class="group flex items-start gap-2">
+                  <span class="font-mono text-xs text-accent-purple">{tool.name}</span>
+                  <span class="text-xs text-text-secondary hidden group-hover:inline">— {toolDesc(tool, locale)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="execution" title={t(locale, "toolSystem.executionTitle")} subtitle={t(locale, "toolSystem.executionSubtitle")} />
+      <FlowDiagram client:visible nodes={executionNodes} edges={executionEdges} direction="vertical" locale={locale} />
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="orchestration" title={t(locale, "toolSystem.orchestrationTitle")} subtitle={t(locale, "toolSystem.orchestrationSubtitle")} />
+      <ToolOrchestrationDemo client:visible locale={locale} />
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="code" title={t(locale, "toolSystem.codeTitle")} subtitle={t(locale, "toolSystem.codeSubtitle")} />
+      <CodeBlock code={snippets.toolOrchestration.code} title={snippetTitle(snippets.toolOrchestration, locale)} />
+      <div class="mt-4 space-y-2">
+        {Object.entries(snippets.toolOrchestration.annotations!).map(([line, note]) => (
+          <div class="flex items-start gap-3 text-sm">
+            <span class="flex-shrink-0 text-xs font-mono text-accent-emerald bg-accent-emerald/10 px-2 py-0.5 rounded">L{line}</span>
+            <span class="text-text-secondary">{note}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</BaseLayout>

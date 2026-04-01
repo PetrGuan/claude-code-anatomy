@@ -1,0 +1,86 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import StatCard from "../components/common/StatCard.tsx";
+import TimelineScroll from "../components/viz/TimelineScroll.tsx";
+import ArchitectureMap from "../components/viz/ArchitectureMap.tsx";
+import { t } from "../i18n/translations";
+import type { Locale } from "../i18n/locales";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+---
+
+<BaseLayout title={t(locale, "nav.home")} locale={locale}>
+  {/* Zone 1: Hero */}
+  <section class="relative overflow-hidden">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
+      <div class="text-center">
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
+          <span class="text-accent-purple">{t(locale, "home.titleAccent")}</span> {t(locale, "home.title")}
+        </h1>
+        <p class="mt-6 text-lg text-text-secondary max-w-2xl mx-auto">
+          {t(locale, "home.subtitle")}
+        </p>
+        <p class="mt-3 text-sm text-text-secondary/60">
+          {t(locale, "home.sourceNote")}
+        </p>
+      </div>
+
+      <div class="mt-16 grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard client:visible value={1902} label={t(locale, "common.sourceFiles")} color="#6c63ff" />
+        <StatCard client:visible value={512} suffix="K+" label={t(locale, "common.linesOfCode")} color="#22d3ee" />
+        <StatCard client:visible value={45} suffix="+" label={t(locale, "common.builtInTools")} color="#10b981" />
+        <StatCard client:visible value={6} label={t(locale, "common.coreSystems")} color="#f59e0b" />
+      </div>
+    </div>
+  </section>
+
+  {/* Zone 2: Journey */}
+  <section class="py-24 border-t border-bg-border">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl font-bold">{t(locale, "home.journeyTitle")}</h2>
+        <p class="mt-4 text-text-secondary max-w-xl mx-auto">
+          {t(locale, "home.journeySubtitle")}
+        </p>
+      </div>
+      <div class="max-w-2xl mx-auto">
+        <TimelineScroll client:visible basePath="/claude-code-anatomy" locale={locale} />
+      </div>
+    </div>
+  </section>
+
+  {/* Zone 3: Architecture Map */}
+  <section class="py-24 border-t border-bg-border">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl font-bold">{t(locale, "home.archTitle")}</h2>
+        <p class="mt-4 text-text-secondary max-w-xl mx-auto">
+          {t(locale, "home.archSubtitle")}
+        </p>
+      </div>
+      <ArchitectureMap client:visible />
+      <div class="mt-6 flex flex-wrap justify-center gap-6 text-sm">
+        <span class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-[#22d3ee]"></span>
+          {t(locale, "home.legendCore")}
+        </span>
+        <span class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-[#a78bfa]"></span>
+          {t(locale, "home.legendUI")}
+        </span>
+        <span class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-[#f472b6]"></span>
+          {t(locale, "home.legendExtension")}
+        </span>
+        <span class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-[#fb923c]"></span>
+          {t(locale, "home.legendIntegration")}
+        </span>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
