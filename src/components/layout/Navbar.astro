@@ -40,12 +40,40 @@ const alternateLinkLabel = locale === "en" ? "中文" : "EN";
         <span class="text-lg">∧</span>
         Claude Code Anatomy
       </a>
-      <div class="hidden lg:flex items-center gap-1">
-        {navItems.map((item) => (
+      <div class="hidden lg:flex items-center gap-0.5">
+        {navItems.filter(i => i.group === "core").map((item) => (
           <a
             href={getLocalePath(locale, item.path)}
             class:list={[
-              "px-3 py-2 rounded-lg text-sm transition-colors",
+              "px-2 py-1.5 rounded-lg text-xs transition-colors whitespace-nowrap",
+              currentPath === item.path
+                ? "bg-accent-purple/10 text-accent-purple"
+                : "text-text-secondary hover:text-text hover:bg-bg-card",
+            ]}
+          >
+            {t(locale, item.key)}
+          </a>
+        ))}
+        <span class="mx-1 text-bg-border">|</span>
+        {navItems.filter(i => i.group === "advanced").map((item) => (
+          <a
+            href={getLocalePath(locale, item.path)}
+            class:list={[
+              "px-2 py-1.5 rounded-lg text-xs transition-colors whitespace-nowrap",
+              currentPath === item.path
+                ? "bg-accent-purple/10 text-accent-purple"
+                : "text-text-secondary hover:text-text hover:bg-bg-card",
+            ]}
+          >
+            {t(locale, item.key)}
+          </a>
+        ))}
+        <span class="mx-1 text-bg-border">|</span>
+        {navItems.filter(i => i.group === "optional").map((item) => (
+          <a
+            href={getLocalePath(locale, item.path)}
+            class:list={[
+              "px-2 py-1.5 rounded-lg text-xs transition-colors whitespace-nowrap",
               currentPath === item.path
                 ? "bg-accent-purple/10 text-accent-purple"
                 : "text-text-secondary hover:text-text hover:bg-bg-card",
@@ -56,7 +84,7 @@ const alternateLinkLabel = locale === "en" ? "中文" : "EN";
         ))}
         <a
           href={alternatePath}
-          class="ml-2 px-3 py-2 rounded-lg text-sm transition-colors text-text-secondary hover:text-text hover:bg-bg-card border border-bg-border"
+          class="ml-1 px-2 py-1.5 rounded-lg text-xs transition-colors text-text-secondary hover:text-text hover:bg-bg-card border border-bg-border whitespace-nowrap"
         >
           {alternateLinkLabel}
         </a>
