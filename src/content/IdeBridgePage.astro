@@ -1,0 +1,102 @@
+---
+import type { Locale } from "../i18n/locales";
+import { t } from "../i18n/translations";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Sidebar from "../components/layout/Sidebar.tsx";
+import SectionHeading from "../components/common/SectionHeading.astro";
+import LayerToggleIdeBridge from "../components/common/LayerToggleIdeBridge.tsx";
+import StatCard from "../components/common/StatCard.tsx";
+import FlowDiagram from "../components/viz/FlowDiagram.tsx";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const sidebarItems = [
+  { id: "what", label: t(locale, "ideBridge.whatTitle"), level: 1 },
+  { id: "architecture", label: t(locale, "ideBridge.architectureTitle"), level: 1 },
+  { id: "features", label: t(locale, "ideBridge.featuresTitle"), level: 1 },
+];
+
+const bridgeNodes = [
+  { id: "extension", label: t(locale, "ideBridge.nodeExtension"), description: t(locale, "ideBridge.nodeExtensionDesc"), color: "#22d3ee" },
+  { id: "websocket", label: t(locale, "ideBridge.nodeWebSocket"), description: t(locale, "ideBridge.nodeWebSocketDesc"), color: "#6c63ff" },
+  { id: "bridge", label: t(locale, "ideBridge.nodeBridge"), description: t(locale, "ideBridge.nodeBridgeDesc"), color: "#f59e0b" },
+  { id: "repl", label: t(locale, "ideBridge.nodeRepl"), description: t(locale, "ideBridge.nodeReplDesc"), color: "#10b981" },
+];
+
+const bridgeEdges = [
+  { from: "extension", to: "websocket" },
+  { from: "websocket", to: "bridge" },
+  { from: "bridge", to: "repl" },
+];
+---
+
+<BaseLayout title={t(locale, "ideBridge.title")} locale={locale}>
+  <Sidebar client:load items={sidebarItems} locale={locale} />
+
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-16">
+      <p class="text-sm font-mono text-accent-emerald">{t(locale, "ideBridge.tag")}</p>
+      <h1 class="text-4xl font-bold mt-2">{t(locale, "ideBridge.title")}</h1>
+      <p class="mt-4 text-xl text-text-secondary">
+        {t(locale, "ideBridge.subtitle")}
+      </p>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 mb-16">
+      <StatCard client:visible value={31} label={t(locale, "ideBridge.bridgeFiles")} color="#22d3ee" />
+      <StatCard client:visible value={12613} label={t(locale, "ideBridge.bridgeLines")} color="#6c63ff" />
+      <StatCard client:visible value={3} label={t(locale, "ideBridge.transports")} color="#f59e0b" />
+    </div>
+
+    <SectionHeading id="what" title={t(locale, "ideBridge.whatTitle")} />
+
+    <LayerToggleIdeBridge client:visible locale={locale} />
+
+    <div class="mt-24">
+      <SectionHeading id="architecture" title={t(locale, "ideBridge.architectureTitle")} subtitle={t(locale, "ideBridge.architectureSubtitle")} />
+      <FlowDiagram client:visible nodes={bridgeNodes} edges={bridgeEdges} direction="vertical" />
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="features" title={t(locale, "ideBridge.featuresTitle")} subtitle={t(locale, "ideBridge.featuresSubtitle")} />
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="rounded-lg border border-bg-border bg-bg-card p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="w-3 h-3 rounded-full" style="background-color: #22d3ee"></span>
+            <h3 class="font-semibold text-sm">{t(locale, "ideBridge.feature1Title")}</h3>
+          </div>
+          <p class="text-xs text-text-secondary">{t(locale, "ideBridge.feature1Desc")}</p>
+        </div>
+
+        <div class="rounded-lg border border-bg-border bg-bg-card p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="w-3 h-3 rounded-full" style="background-color: #6c63ff"></span>
+            <h3 class="font-semibold text-sm">{t(locale, "ideBridge.feature2Title")}</h3>
+          </div>
+          <p class="text-xs text-text-secondary">{t(locale, "ideBridge.feature2Desc")}</p>
+        </div>
+
+        <div class="rounded-lg border border-bg-border bg-bg-card p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="w-3 h-3 rounded-full" style="background-color: #f59e0b"></span>
+            <h3 class="font-semibold text-sm">{t(locale, "ideBridge.feature3Title")}</h3>
+          </div>
+          <p class="text-xs text-text-secondary">{t(locale, "ideBridge.feature3Desc")}</p>
+        </div>
+
+        <div class="rounded-lg border border-bg-border bg-bg-card p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="w-3 h-3 rounded-full" style="background-color: #10b981"></span>
+            <h3 class="font-semibold text-sm">{t(locale, "ideBridge.feature4Title")}</h3>
+          </div>
+          <p class="text-xs text-text-secondary">{t(locale, "ideBridge.feature4Desc")}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
