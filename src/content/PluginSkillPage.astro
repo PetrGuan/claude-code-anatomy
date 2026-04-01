@@ -1,0 +1,139 @@
+---
+import type { Locale } from "../i18n/locales";
+import { t } from "../i18n/translations";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Sidebar from "../components/layout/Sidebar.tsx";
+import SectionHeading from "../components/common/SectionHeading.astro";
+import LayerTogglePluginSkill from "../components/common/LayerTogglePluginSkill.tsx";
+import StatCard from "../components/common/StatCard.tsx";
+import FlowDiagram from "../components/viz/FlowDiagram.tsx";
+import TreeExplorer from "../components/viz/TreeExplorer.tsx";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const sidebarItems = [
+  { id: "what", label: t(locale, "pluginSkill.whatTitle"), level: 1 },
+  { id: "structure", label: t(locale, "pluginSkill.structureTitle"), level: 1 },
+  { id: "loading", label: t(locale, "pluginSkill.loadingTitle"), level: 1 },
+  { id: "hooks", label: t(locale, "pluginSkill.hooksTitle"), level: 1 },
+];
+
+const treeDescriptions = {
+  manifest: { en: "Manifest with metadata", zh: "包含元数据的清单文件" },
+  commands: { en: "Custom slash commands (.md)", zh: "自定义斜杠命令（.md）" },
+  agents: { en: "Custom agents", zh: "自定义 Agent" },
+  skills: { en: "Custom skills", zh: "自定义技能" },
+  hooks: { en: "Hook definitions (hooks.json)", zh: "钩子定义（hooks.json）" },
+  outputStyles: { en: "Custom output formatters", zh: "自定义输出格式化器" },
+  mcpServers: { en: "MCP server configs", zh: "MCP 服务器配置" },
+};
+
+const pluginTree = {
+  name: "my-plugin/",
+  children: [
+    { name: "plugin.json", description: treeDescriptions.manifest[locale] },
+    { name: "commands/", description: treeDescriptions.commands[locale] },
+    { name: "agents/", description: treeDescriptions.agents[locale] },
+    { name: "skills/", description: treeDescriptions.skills[locale] },
+    { name: "hooks/", description: treeDescriptions.hooks[locale] },
+    { name: "output-styles/", description: treeDescriptions.outputStyles[locale] },
+    { name: "mcpServers/", description: treeDescriptions.mcpServers[locale] },
+  ],
+};
+
+const loadingNodes = [
+  { id: "discover", label: t(locale, "pluginSkill.nodeDiscover"), description: t(locale, "pluginSkill.nodeDiscoverDesc"), color: "#6c63ff" },
+  { id: "validate", label: t(locale, "pluginSkill.nodeValidate"), description: t(locale, "pluginSkill.nodeValidateDesc"), color: "#f59e0b" },
+  { id: "register", label: t(locale, "pluginSkill.nodeRegister"), description: t(locale, "pluginSkill.nodeRegisterDesc"), color: "#10b981" },
+  { id: "activate", label: t(locale, "pluginSkill.nodeActivate"), description: t(locale, "pluginSkill.nodeActivateDesc"), color: "#22d3ee" },
+];
+
+const loadingEdges = [
+  { from: "discover", to: "validate" },
+  { from: "validate", to: "register" },
+  { from: "register", to: "activate" },
+];
+
+const hookTypes = [
+  {
+    name: "PreToolUse",
+    color: "#f59e0b",
+    desc: "Runs before tool execution, can modify input or deny",
+  },
+  {
+    name: "PostToolUse",
+    color: "#10b981",
+    desc: "Runs after tool execution, can modify output",
+  },
+  {
+    name: "UserPromptSubmit",
+    color: "#6c63ff",
+    desc: "Runs before processing user input",
+  },
+  {
+    name: "SessionStart",
+    color: "#22d3ee",
+    desc: "Runs when a new session begins",
+  },
+  {
+    name: "FileChanged",
+    color: "#a78bfa",
+    desc: "Triggered by file system monitoring",
+  },
+  {
+    name: "Notification",
+    color: "#e0e0e8",
+    desc: "System notification events",
+  },
+];
+---
+
+<BaseLayout title={t(locale, "pluginSkill.title")} locale={locale}>
+  <Sidebar client:load items={sidebarItems} locale={locale} />
+
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-16">
+      <p class="text-sm font-mono text-accent-emerald">{t(locale, "pluginSkill.tag")}</p>
+      <h1 class="text-4xl font-bold mt-2">{t(locale, "pluginSkill.title")}</h1>
+      <p class="mt-4 text-xl text-text-secondary">
+        {t(locale, "pluginSkill.subtitle")}
+      </p>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 mb-16">
+      <StatCard client:visible value={23} label={t(locale, "pluginSkill.pluginFiles")} color="#6c63ff" />
+      <StatCard client:visible value={19} label={t(locale, "pluginSkill.skillFiles")} color="#10b981" />
+      <StatCard client:visible value={12} label={t(locale, "pluginSkill.hookTypes")} color="#f59e0b" />
+    </div>
+
+    <SectionHeading id="what" title={t(locale, "pluginSkill.whatTitle")} />
+
+    <LayerTogglePluginSkill client:visible locale={locale} />
+
+    <div class="mt-24">
+      <SectionHeading id="structure" title={t(locale, "pluginSkill.structureTitle")} subtitle={t(locale, "pluginSkill.structureSubtitle")} />
+      <TreeExplorer client:visible data={pluginTree} defaultExpanded={2} />
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="loading" title={t(locale, "pluginSkill.loadingTitle")} subtitle={t(locale, "pluginSkill.loadingSubtitle")} />
+      <FlowDiagram client:visible nodes={loadingNodes} edges={loadingEdges} direction="horizontal" />
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="hooks" title={t(locale, "pluginSkill.hooksTitle")} subtitle={t(locale, "pluginSkill.hooksSubtitle")} />
+      <div class="grid sm:grid-cols-2 gap-4">
+        {hookTypes.map((hook) => (
+          <div class="rounded-lg border border-bg-border bg-bg-card p-5">
+            <p class="font-mono font-semibold text-sm" style={`color: ${hook.color}`}>{hook.name}</p>
+            <p class="text-sm text-text-secondary mt-2">{hook.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</BaseLayout>
