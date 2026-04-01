@@ -1,0 +1,121 @@
+---
+import type { Locale } from "../i18n/locales";
+import { t } from "../i18n/translations";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Sidebar from "../components/layout/Sidebar.tsx";
+import SectionHeading from "../components/common/SectionHeading.astro";
+import StatCard from "../components/common/StatCard.tsx";
+import FlowDiagram from "../components/viz/FlowDiagram.tsx";
+import LayerToggleTerminalUI from "../components/common/LayerToggleTerminalUI.tsx";
+
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+
+const sidebarItems = [
+  { id: "what", label: t(locale, "terminalUI.whatTitle"), level: 1 },
+  { id: "pipeline", label: t(locale, "terminalUI.pipelineTitle"), level: 1 },
+  { id: "comparison", label: t(locale, "terminalUI.comparisonTitle"), level: 1 },
+  { id: "highlights", label: t(locale, "terminalUI.highlightsTitle"), level: 1 },
+];
+
+const pipelineNodes = [
+  { id: "react", label: t(locale, "terminalUI.nodeReact"), description: t(locale, "terminalUI.nodeReactDesc"), color: "#61dafb" },
+  { id: "reconciler", label: t(locale, "terminalUI.nodeReconciler"), description: t(locale, "terminalUI.nodeReconcilerDesc"), color: "#a78bfa" },
+  { id: "yoga", label: t(locale, "terminalUI.nodeYoga"), description: t(locale, "terminalUI.nodeYogaDesc"), color: "#f59e0b" },
+  { id: "ansi", label: t(locale, "terminalUI.nodeAnsi"), description: t(locale, "terminalUI.nodeAnsiDesc"), color: "#10b981" },
+  { id: "screen", label: t(locale, "terminalUI.nodeScreen"), description: t(locale, "terminalUI.nodeScreenDesc"), color: "#e0e0e8" },
+];
+
+const pipelineEdges = [
+  { from: "react", to: "reconciler" },
+  { from: "reconciler", to: "yoga" },
+  { from: "yoga", to: "ansi" },
+  { from: "ansi", to: "screen" },
+];
+
+const comparisonRows = [
+  { aspect: "Reconciler", browser: "react-dom", ink: "Custom ink reconciler" },
+  { aspect: "Layout", browser: "CSS / Browser engine", ink: "Yoga (Flexbox)" },
+  { aspect: "Output", browser: "HTML DOM", ink: "ANSI escape codes" },
+  { aspect: "Events", browser: "DOM events", ink: "stdin key / mouse parsing" },
+  { aspect: "Styling", browser: "CSS", ink: "ANSI colors + chalk" },
+];
+
+const highlights = [
+  {
+    title: t(locale, "terminalUI.highlight1Title"),
+    desc: t(locale, "terminalUI.highlight1Desc"),
+  },
+  {
+    title: t(locale, "terminalUI.highlight2Title"),
+    desc: t(locale, "terminalUI.highlight2Desc"),
+  },
+  {
+    title: t(locale, "terminalUI.highlight3Title"),
+    desc: t(locale, "terminalUI.highlight3Desc"),
+  },
+];
+---
+
+<BaseLayout title={t(locale, "terminalUI.title")} locale={locale}>
+  <Sidebar client:load items={sidebarItems} locale={locale} />
+
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-16">
+      <p class="text-sm font-mono text-accent-amber">{t(locale, "terminalUI.tag")}</p>
+      <h1 class="text-4xl font-bold mt-2">{t(locale, "terminalUI.title")}</h1>
+      <p class="mt-4 text-xl text-text-secondary">{t(locale, "terminalUI.subtitle")}</p>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 mb-16">
+      <StatCard client:visible value={346} label={t(locale, "terminalUI.components")} color="#61dafb" />
+      <StatCard client:visible value={96} label={t(locale, "terminalUI.inkFiles")} color="#a78bfa" />
+      <StatCard client:visible value={19842} label={t(locale, "terminalUI.inkLines")} color="#10b981" />
+    </div>
+
+    <SectionHeading id="what" title={t(locale, "terminalUI.whatTitle")} />
+
+    <LayerToggleTerminalUI client:visible locale={locale} />
+
+    <div class="mt-24">
+      <SectionHeading id="pipeline" title={t(locale, "terminalUI.pipelineTitle")} subtitle={t(locale, "terminalUI.pipelineSubtitle")} />
+      <FlowDiagram client:visible nodes={pipelineNodes} edges={pipelineEdges} direction="vertical" />
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="comparison" title={t(locale, "terminalUI.comparisonTitle")} subtitle={t(locale, "terminalUI.comparisonSubtitle")} />
+      <div class="overflow-x-auto rounded-lg border border-bg-border">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-bg-border bg-bg-card">
+              <th class="px-4 py-3 text-left font-semibold text-text-secondary">Aspect</th>
+              <th class="px-4 py-3 text-left font-semibold" style="color: #61dafb;">Browser React</th>
+              <th class="px-4 py-3 text-left font-semibold" style="color: #a78bfa;">Ink (Terminal)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {comparisonRows.map((row, i) => (
+              <tr class={`border-b border-bg-border last:border-0 ${i % 2 === 0 ? "" : "bg-bg-card/50"}`}>
+                <td class="px-4 py-3 font-medium text-text">{row.aspect}</td>
+                <td class="px-4 py-3 text-text-secondary">{row.browser}</td>
+                <td class="px-4 py-3 text-text-secondary">{row.ink}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="highlights" title={t(locale, "terminalUI.highlightsTitle")} subtitle={t(locale, "terminalUI.highlightsSubtitle")} />
+      <div class="space-y-6">
+        {highlights.map((item) => (
+          <div class="rounded-lg border border-bg-border bg-bg-card p-6">
+            <h3 class="font-semibold text-accent-purple">{item.title}</h3>
+            <p class="text-sm text-text-secondary mt-2 leading-relaxed">{item.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</BaseLayout>
