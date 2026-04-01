@@ -3,6 +3,7 @@ import type { Locale } from "../../i18n/locales";
 import { getLocalePath, getAlternatePath } from "../../i18n/locales";
 import { t } from "../../i18n/translations";
 import Search from "./Search.astro";
+import { contentPages, pageGroups } from "../../data/pages";
 
 interface Props {
   locale?: Locale;
@@ -10,22 +11,13 @@ interface Props {
 
 const { locale = "en" } = Astro.props;
 
+// Home page + all content pages
 const navItems = [
-  { path: "/", key: "nav.home", group: "core" },
-  { path: "/overview", key: "nav.overview", group: "core" },
-  { path: "/query-pipeline", key: "nav.queryPipeline", group: "core" },
-  { path: "/tool-system", key: "nav.toolSystem", group: "core" },
-  { path: "/permission-security", key: "nav.permissionSecurity", group: "core" },
-  { path: "/terminal-ui", key: "nav.terminalUI", group: "advanced" },
-  { path: "/plugin-skill", key: "nav.pluginSkill", group: "advanced" },
-  { path: "/message-compaction", key: "nav.messageCompaction", group: "advanced" },
-  { path: "/agent-system", key: "nav.agentSystem", group: "advanced" },
-  { path: "/ide-bridge", key: "nav.ideBridge", group: "optional" },
-  { path: "/mcp-integration", key: "nav.mcpIntegration", group: "optional" },
-  { path: "/glossary", key: "nav.glossary", group: "reference" },
+  { path: "/", navKey: "nav.home", group: "core" as const },
+  ...contentPages.map(p => ({ path: p.path, navKey: p.navKey, group: p.group })),
 ];
 
-const groups = ["core", "advanced", "optional", "reference"] as const;
+const groups = pageGroups;
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const currentPath = Astro.url.pathname.replace(base, '') || '/';
@@ -52,7 +44,7 @@ const alternateLinkLabel = locale === "en" ? "中文" : "EN";
                 : "text-text-secondary hover:text-text hover:bg-bg-card",
             ]}
           >
-            {t(locale, item.key)}
+            {t(locale, item.navKey)}
           </a>
         ))}
         {/* More dropdown for advanced + optional pages */}
@@ -84,7 +76,7 @@ const alternateLinkLabel = locale === "en" ? "中文" : "EN";
                     : "text-text-secondary hover:text-text hover:bg-bg-card",
                 ]}
               >
-                {t(locale, item.key)}
+                {t(locale, item.navKey)}
               </a>
             ))}
             <div class="border-t border-bg-border my-1"></div>
@@ -98,7 +90,7 @@ const alternateLinkLabel = locale === "en" ? "中文" : "EN";
                     : "text-text-secondary hover:text-text hover:bg-bg-card",
                 ]}
               >
-                {t(locale, item.key)}
+                {t(locale, item.navKey)}
               </a>
             ))}
             <div class="border-t border-bg-border my-1"></div>
@@ -112,7 +104,7 @@ const alternateLinkLabel = locale === "en" ? "中文" : "EN";
                     : "text-text-secondary hover:text-text hover:bg-bg-card",
                 ]}
               >
-                {t(locale, item.key)}
+                {t(locale, item.navKey)}
               </a>
             ))}
           </div>
@@ -146,7 +138,7 @@ const alternateLinkLabel = locale === "en" ? "中文" : "EN";
                 : "text-text-secondary hover:text-text",
             ]}
           >
-            {t(locale, item.key)}
+            {t(locale, item.navKey)}
           </a>
         ))}
       </>
