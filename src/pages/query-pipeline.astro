@@ -1,0 +1,131 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Sidebar from "../components/layout/Sidebar.tsx";
+import SectionHeading from "../components/common/SectionHeading.astro";
+import LayerToggleQueryWhat from "../components/common/LayerToggleQueryWhat.tsx";
+import LayerToggleQueryStreaming from "../components/common/LayerToggleQueryStreaming.tsx";
+import StatCard from "../components/common/StatCard.tsx";
+import FlowDiagram from "../components/viz/FlowDiagram.tsx";
+import { snippets } from "../data/codeSnippets";
+
+const sidebarItems = [
+  { id: "what", label: "这是什么", level: 1 },
+  { id: "flow", label: "消息流水线", level: 1 },
+  { id: "system-prompt", label: "系统提示构建", level: 1 },
+  { id: "streaming", label: "流式处理", level: 1 },
+  { id: "tool-loop", label: "工具调用循环", level: 1 },
+  { id: "code", label: "核心代码", level: 1 },
+];
+
+const pipelineNodes = [
+  { id: "input", label: "用户输入", description: "PromptInput 组件捕获用户输入，附加当前目录、git 状态等上下文信息。变量替换和 Shell 命令预处理在此完成。", color: "#e0e0e8" },
+  { id: "normalize", label: "消息标准化", description: "创建标准化的 user message，注入记忆附件（Memory），过滤权限受限内容，去重附件。", color: "#8888a0" },
+  { id: "system", label: "系统提示拼装", description: "组装完整的系统提示：默认提示 + 用户环境 + 工具定义 + 项目规则 + 附加上下文。这是 Claude 收到的完整指令。", color: "#22d3ee" },
+  { id: "api", label: "API 流式调用", description: "通过 Anthropic API 发送请求，配置模型、token 预算、thinking 模式。响应以 async generator 流式返回。", color: "#6c63ff" },
+  { id: "tools", label: "工具执行", description: "解析 Claude 返回的 tool_use 块，通过权限检查后调度执行。读操作并行，写操作串行。", color: "#10b981" },
+  { id: "loop", label: "循环/返回", description: "工具结果作为新消息送回 Claude。如果 Claude 需要更多操作，循环继续。直到 stop_reason 为 end_turn 时结束。", color: "#a78bfa" },
+];
+
+const pipelineEdges = [
+  { from: "input", to: "normalize", label: "预处理" },
+  { from: "normalize", to: "system", label: "注入上下文" },
+  { from: "system", to: "api", label: "发送请求" },
+  { from: "api", to: "tools", label: "tool_use" },
+  { from: "tools", to: "loop", label: "执行结果" },
+];
+
+const systemPromptParts = [
+  { label: "默认系统提示", desc: "定义 Claude Code 的身份、能力、行为规范", size: "~5KB" },
+  { label: "用户环境信息", desc: "操作系统、Shell、工作目录、git 状态、当前日期", size: "~1KB" },
+  { label: "工具定义", desc: "45+ 工具的名称、描述、输入 JSON Schema", size: "~20KB" },
+  { label: "项目规则", desc: "CLAUDE.md / .claude/config.json 中的用户自定义规则", size: "可变" },
+  { label: "记忆附件", desc: "之前对话中保存的记忆、文件引用", size: "可变" },
+];
+
+const toolLoopSteps = [
+  { num: "1", color: "#6c63ff", colorClass: "accent-purple", text: 'Claude 的响应中包含 <code class="text-accent-purple">tool_use</code> 块（"我想读取 src/main.tsx"）' },
+  { num: "2", color: "#f59e0b", colorClass: "accent-amber", text: "权限系统评估：这个操作安全吗？→ 通过后执行工具" },
+  { num: "3", color: "#10b981", colorClass: "accent-emerald", text: '工具执行结果作为 <code class="text-accent-emerald">tool_result</code> 消息追加到对话历史' },
+  { num: "4", color: "#22d3ee", colorClass: "accent-cyan", text: "带着新的对话历史再次调用 API — Claude 看到工具结果后决定下一步" },
+  { num: "5", color: "#6c63ff", colorClass: "accent-purple", text: '重复直到 Claude 返回 <code class="text-accent-purple">stop_reason: "end_turn"</code>（任务完成）' },
+];
+---
+
+<BaseLayout title="查询管线">
+  <Sidebar client:load items={sidebarItems} />
+
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-16">
+      <p class="text-sm font-mono text-accent-cyan">核心系统</p>
+      <h1 class="text-4xl font-bold mt-2">查询管线</h1>
+      <p class="mt-4 text-xl text-text-secondary">
+        从你敲下回车到 Claude 回复的完整旅程
+      </p>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 mb-16">
+      <StatCard client:visible value={3000} label="核心代码行数" color="#22d3ee" />
+      <StatCard client:visible value={12} label="管线文件" color="#6c63ff" />
+      <StatCard client:visible value={6} label="处理阶段" color="#10b981" />
+    </div>
+
+    <SectionHeading id="what" title="这是什么？" />
+
+    <LayerToggleQueryWhat client:visible />
+
+    <div class="mt-24">
+      <SectionHeading id="flow" title="消息流水线" subtitle="点击每个节点查看详细说明" />
+      <FlowDiagram client:visible nodes={pipelineNodes} edges={pipelineEdges} />
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="system-prompt" title="系统提示构建" subtitle="Claude 实际收到的完整指令" />
+      <div class="space-y-4">
+        {systemPromptParts.map((item) => (
+          <div class="flex items-start gap-4 rounded-lg border border-bg-border bg-bg-card p-4">
+            <span class="text-xs font-mono text-accent-cyan bg-accent-cyan/10 px-2 py-1 rounded">{item.size}</span>
+            <div>
+              <p class="font-medium text-text">{item.label}</p>
+              <p class="text-sm text-text-secondary">{item.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="streaming" title="流式处理" subtitle="为什么回复是一个字一个字蹦出来的？" />
+      <LayerToggleQueryStreaming client:visible />
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="tool-loop" title="工具调用循环" subtitle="Claude 是如何不断调用工具直到完成任务的？" />
+      <div class="rounded-lg border border-bg-border bg-bg-card p-6">
+        <ol class="space-y-4 text-sm">
+          {toolLoopSteps.map((step) => (
+            <li class="flex gap-3">
+              <span class={`flex-shrink-0 w-6 h-6 rounded-full bg-${step.colorClass}/20 text-${step.colorClass} text-xs flex items-center justify-center font-mono`}>{step.num}</span>
+              <span set:html={step.text} />
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="code" title="核心代码" subtitle="简化后的查询循环实现" />
+      <div class="rounded-lg border border-bg-border bg-bg-card p-6 overflow-x-auto">
+        <p class="text-xs text-text-secondary mb-4 font-mono">{snippets.queryLoop.titleCn}</p>
+        <pre class="text-sm font-mono leading-relaxed"><code class="text-text">{snippets.queryLoop.code}</code></pre>
+      </div>
+      <div class="mt-4 space-y-2">
+        {Object.entries(snippets.queryLoop.annotations!).map(([line, note]) => (
+          <div class="flex items-start gap-3 text-sm">
+            <span class="flex-shrink-0 text-xs font-mono text-accent-cyan bg-accent-cyan/10 px-2 py-0.5 rounded">L{line}</span>
+            <span class="text-text-secondary">{note}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</BaseLayout>

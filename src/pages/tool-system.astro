@@ -1,0 +1,109 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Sidebar from "../components/layout/Sidebar.tsx";
+import SectionHeading from "../components/common/SectionHeading.astro";
+import LayerToggleToolSystem from "../components/common/LayerToggleToolSystem.tsx";
+import StatCard from "../components/common/StatCard.tsx";
+import FlowDiagram from "../components/viz/FlowDiagram.tsx";
+import ToolOrchestrationDemo from "../components/interactive/ToolOrchestrationDemo.tsx";
+import { toolCategories } from "../data/tools";
+import { snippets } from "../data/codeSnippets";
+
+const sidebarItems = [
+  { id: "what", label: "这是什么", level: 1 },
+  { id: "catalog", label: "工具目录", level: 1 },
+  { id: "execution", label: "执行流程", level: 1 },
+  { id: "orchestration", label: "调度策略", level: 1 },
+  { id: "code", label: "核心代码", level: 1 },
+];
+
+const executionNodes = [
+  { id: "parse", label: "解析 tool_use", description: "从 Claude 的响应中提取 tool_use 块：工具名称、输入参数", color: "#e0e0e8" },
+  { id: "validate", label: "输入校验", description: "用 Zod schema 校验工具输入，拒绝格式错误的调用", color: "#8888a0" },
+  { id: "permission", label: "权限检查", description: "canUseTool() 三层评估：ML 分类器 → 规则引擎 → 用户确认", color: "#f59e0b" },
+  { id: "execute", label: "执行工具", description: "调用工具的 call() 方法，传入 ToolUseContext（应用状态、文件历史等）", color: "#10b981" },
+  { id: "hook", label: "PostToolUse Hook", description: "执行用户定义的 PostToolUse 钩子：可修改输出、发送通知、记录日志", color: "#a78bfa" },
+  { id: "result", label: "返回结果", description: "将 tool_result 消息添加到对话历史，供 Claude 在下一轮使用", color: "#22d3ee" },
+];
+
+const executionEdges = [
+  { from: "parse", to: "validate" },
+  { from: "validate", to: "permission" },
+  { from: "permission", to: "execute", label: "允许" },
+  { from: "execute", to: "hook" },
+  { from: "hook", to: "result" },
+];
+---
+
+<BaseLayout title="工具系统">
+  <Sidebar client:load items={sidebarItems} />
+
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-16">
+      <p class="text-sm font-mono text-accent-emerald">核心系统</p>
+      <h1 class="text-4xl font-bold mt-2">工具系统</h1>
+      <p class="mt-4 text-xl text-text-secondary">
+        45 个工具，3 种执行模式，AI 的瑞士军刀
+      </p>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 mb-16">
+      <StatCard client:visible value={45} suffix="+" label="内置工具" color="#10b981" />
+      <StatCard client:visible value={9} label="工具类别" color="#6c63ff" />
+      <StatCard client:visible value={50828} label="实现代码行数" color="#f59e0b" />
+    </div>
+
+    <SectionHeading id="what" title="这是什么？" />
+
+    <LayerToggleToolSystem client:visible />
+
+    <div class="mt-24">
+      <SectionHeading id="catalog" title="工具目录" subtitle="悬停查看每个工具的功能" />
+      <div class="grid sm:grid-cols-2 gap-4">
+        {toolCategories.map((category) => (
+          <div class="rounded-lg border border-bg-border bg-bg-card p-5">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="w-3 h-3 rounded-full" style={`background-color: ${category.color}`}></span>
+              <h3 class="font-semibold text-sm">{category.nameCn}</h3>
+              <span class="text-xs text-text-secondary ml-auto">{category.tools.length} 个</span>
+            </div>
+            <div class="space-y-1.5">
+              {category.tools.map((tool) => (
+                <div class="group flex items-start gap-2">
+                  <span class="font-mono text-xs text-accent-purple">{tool.name}</span>
+                  <span class="text-xs text-text-secondary hidden group-hover:inline">— {tool.descriptionCn}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="execution" title="执行流程" subtitle="一个工具调用从解析到返回的完整过程" />
+      <FlowDiagram client:visible nodes={executionNodes} edges={executionEdges} direction="vertical" />
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="orchestration" title="调度策略" subtitle="读并行，写串行 — 点击运行查看效果" />
+      <ToolOrchestrationDemo client:visible />
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="code" title="核心代码" subtitle="工具调度的简化实现" />
+      <div class="rounded-lg border border-bg-border bg-bg-card p-6 overflow-x-auto">
+        <p class="text-xs text-text-secondary mb-4 font-mono">{snippets.toolOrchestration.titleCn}</p>
+        <pre class="text-sm font-mono leading-relaxed"><code class="text-text">{snippets.toolOrchestration.code}</code></pre>
+      </div>
+      <div class="mt-4 space-y-2">
+        {Object.entries(snippets.toolOrchestration.annotations!).map(([line, note]) => (
+          <div class="flex items-start gap-3 text-sm">
+            <span class="flex-shrink-0 text-xs font-mono text-accent-emerald bg-accent-emerald/10 px-2 py-0.5 rounded">L{line}</span>
+            <span class="text-text-secondary">{note}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</BaseLayout>
