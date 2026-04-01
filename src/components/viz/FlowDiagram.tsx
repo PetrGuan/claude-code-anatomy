@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export interface FlowNode {
@@ -22,7 +22,17 @@ interface Props {
 
 export default function FlowDiagram({ nodes, edges, direction = "horizontal" }: Props) {
   const [activeNode, setActiveNode] = useState<string | null>(null);
-  const isHorizontal = direction === "horizontal";
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const effectiveDirection = isMobile ? "vertical" : direction;
+  const isHorizontal = effectiveDirection === "horizontal";
 
   return (
     <div className="rounded-xl border border-bg-border bg-bg-card p-6 overflow-x-auto">
@@ -56,6 +66,7 @@ export default function FlowDiagram({ nodes, edges, direction = "horizontal" }: 
                   <span className="text-text-secondary text-xs">
                     {isHorizontal ? "→" : "↓"}
                   </span>
+
                   {edge.label && (
                     <span className="text-[10px] text-text-secondary whitespace-nowrap">
                       {edge.label}

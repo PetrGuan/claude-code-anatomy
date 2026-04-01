@@ -15,7 +15,7 @@ export default function ArchitectureMap({ locale = "en" as Locale }: { locale?: 
     if (!svgRef.current || !containerRef.current) return;
 
     const width = containerRef.current.clientWidth;
-    const height = 500;
+    const height = Math.min(500, width * 0.8);
     const svg = select(svgRef.current).attr("width", width).attr("height", height);
     svg.selectAll("*").remove();
 

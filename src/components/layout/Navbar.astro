@@ -65,8 +65,9 @@ const alternateLinkLabel = locale === "en" ? "中文" : "EN";
       </button>
     </div>
   </div>
-  <div id="mobile-menu" class="hidden lg:hidden border-t border-bg-border bg-bg px-4 pb-4">
-    {navItems.map((item) => (
+  <div id="mobile-menu" class="hidden lg:hidden border-t border-bg-border bg-bg px-4 pb-4 max-h-[70vh] overflow-y-auto">
+    <!-- Core pages -->
+    {navItems.slice(0, 5).map((item) => (
       <a
         href={getLocalePath(locale, item.path)}
         class:list={[
@@ -79,6 +80,38 @@ const alternateLinkLabel = locale === "en" ? "中文" : "EN";
         {t(locale, item.key)}
       </a>
     ))}
+    <div class="border-t border-bg-border my-2"></div>
+    <!-- Advanced pages -->
+    {navItems.slice(5, 9).map((item) => (
+      <a
+        href={getLocalePath(locale, item.path)}
+        class:list={[
+          "block px-3 py-2 rounded-lg text-sm transition-colors",
+          currentPath === item.path
+            ? "bg-accent-purple/10 text-accent-purple"
+            : "text-text-secondary hover:text-text",
+        ]}
+      >
+        {t(locale, item.key)}
+      </a>
+    ))}
+    <div class="border-t border-bg-border my-2"></div>
+    <!-- Additional pages -->
+    {navItems.slice(9).map((item) => (
+      <a
+        href={getLocalePath(locale, item.path)}
+        class:list={[
+          "block px-3 py-2 rounded-lg text-sm transition-colors",
+          currentPath === item.path
+            ? "bg-accent-purple/10 text-accent-purple"
+            : "text-text-secondary hover:text-text",
+        ]}
+      >
+        {t(locale, item.key)}
+      </a>
+    ))}
+    <div class="border-t border-bg-border my-2"></div>
+    <!-- Language switcher -->
     <a
       href={alternatePath}
       class="block px-3 py-2 rounded-lg text-sm transition-colors text-text-secondary hover:text-text border border-bg-border mt-1"
