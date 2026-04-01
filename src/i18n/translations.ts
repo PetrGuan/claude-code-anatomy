@@ -588,6 +588,44 @@ const translations = {
     mcpAuthDesc: { en: "Handle OAuth authentication flows for MCP servers that require authorization", zh: "处理需要授权的 MCP 服务器的 OAuth 认证流程" },
     toolsFooter: { en: "These tools are automatically registered when MCP servers connect. Claude uses them like any built-in tool — with the same permission checks and orchestration.", zh: "这些工具在 MCP 服务器连接时自动注册。Claude 像使用任何内置工具一样使用它们 — 具有相同的权限检查和调度机制。" },
   },
+  codeTracer: {
+    title: { en: "Interactive Code Walkthrough", zh: "交互式代码走读" },
+    subtitle: { en: "Click through the query pipeline execution, step by step", zh: "逐步点击查询管线的执行过程" },
+    prev: { en: "← Previous", zh: "← 上一步" },
+    next: { en: "Next →", zh: "下一步 →" },
+    stepOf: { en: "Step {n} of {total}", zh: "第 {n} 步 / 共 {total} 步" },
+    clickHint: { en: "Click highlighted function names to follow the call chain", zh: "点击高亮的函数名跟踪调用链" },
+    step1Title: { en: "Entry: submitMessage()", zh: "入口：submitMessage()" },
+    step1Annotation: {
+      en: "Everything starts here. submitMessage() is an async generator that orchestrates the entire conversation turn — from receiving the user's prompt to streaming back Claude's response.",
+      zh: "一切从这里开始。submitMessage() 是一个 async generator，编排整个对话轮次 — 从接收用户提示到流式返回 Claude 的响应。"
+    },
+    step2Title: { en: "Context Assembly", zh: "上下文组装" },
+    step2Annotation: {
+      en: "Before calling the API, the system assembles a comprehensive context: the default system prompt, user environment info (OS, git status, cwd), all 45+ tool definitions, project rules from CLAUDE.md, and memory attachments from previous conversations.",
+      zh: "在调用 API 之前，系统组装完整的上下文：默认系统提示、用户环境信息（操作系统、git 状态、工作目录）、全部 45+ 工具定义、CLAUDE.md 中的项目规则，以及之前对话的记忆附件。"
+    },
+    step3Title: { en: "API Streaming Call", zh: "API 流式调用" },
+    step3Annotation: {
+      en: "The assembled context is sent to the Anthropic API via streaming. Responses arrive token by token as an async iterable. Each chunk is yielded immediately — the terminal UI updates in real-time, never buffering the full response.",
+      zh: "组装好的上下文通过流式发送到 Anthropic API。响应以 async iterable 的形式逐 token 到达。每个块立即 yield — 终端 UI 实时更新，从不缓冲完整响应。"
+    },
+    step4Title: { en: "Tool Orchestration", zh: "工具调度" },
+    step4Annotation: {
+      en: "When Claude's response contains tool_use blocks, the orchestrator partitions them: read-only tools (Glob, Grep, Read) execute in parallel via Promise.all, while write tools (Edit, Write, Bash) execute serially to prevent race conditions.",
+      zh: "当 Claude 的响应包含 tool_use 块时，调度器对它们进行分区：只读工具（Glob、Grep、Read）通过 Promise.all 并行执行，写工具（Edit、Write、Bash）串行执行以防止竞态条件。"
+    },
+    step5Title: { en: "Permission Check", zh: "权限检查" },
+    step5Annotation: {
+      en: "Before any tool executes, canUseTool() runs the three-layer defense: ML classifier for fast probabilistic assessment (handles ~80% of cases), rule engine for user-defined allow/deny patterns, and finally user confirmation dialog if still uncertain.",
+      zh: "在任何工具执行之前，canUseTool() 运行三层防线：ML 分类器进行快速概率评估（处理约 80% 的情况），规则引擎匹配用户定义的允许/拒绝模式，最后如果仍不确定则弹出用户确认对话框。"
+    },
+    step6Title: { en: "Recursive Loop", zh: "递归循环" },
+    step6Annotation: {
+      en: "After tool execution, results are appended to the conversation history and submitMessage() calls itself recursively. This loop continues — Claude sees the tool results, may request more tools, until it returns stop_reason: 'end_turn' and the conversation turn is complete.",
+      zh: "工具执行后，结果被追加到对话历史中，submitMessage() 递归调用自身。这个循环持续进行 — Claude 看到工具结果，可能请求更多工具，直到返回 stop_reason: 'end_turn'，对话轮次完成。"
+    },
+  },
 } as const;
 
 type TranslationValue = { en: string; zh: string };
