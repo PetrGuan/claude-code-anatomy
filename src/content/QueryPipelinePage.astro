@@ -1,6 +1,8 @@
 ---
 import type { Locale } from "../i18n/locales";
 import { t } from "../i18n/translations";
+import RelatedPages from "../components/layout/RelatedPages.astro";
+import PageNav from "../components/layout/PageNav.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Sidebar from "../components/layout/Sidebar.tsx";
 import SectionHeading from "../components/common/SectionHeading.astro";
@@ -127,5 +129,8 @@ const toolLoopSteps = [
       <SectionHeading id="code" title={t(locale, "codeTracer.title")} subtitle={t(locale, "codeTracer.subtitle")} />
       <CodeTracer client:visible locale={locale} />
     </div>
+
+    <RelatedPages locale={locale} currentPath="/query-pipeline" />
+    <PageNav locale={locale} currentPath="/query-pipeline" />
   </div>
 </BaseLayout>

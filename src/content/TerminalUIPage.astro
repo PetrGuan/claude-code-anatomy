@@ -1,6 +1,8 @@
 ---
 import type { Locale } from "../i18n/locales";
 import { t } from "../i18n/translations";
+import RelatedPages from "../components/layout/RelatedPages.astro";
+import PageNav from "../components/layout/PageNav.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Sidebar from "../components/layout/Sidebar.tsx";
 import SectionHeading from "../components/common/SectionHeading.astro";
@@ -141,5 +143,8 @@ const highlights = [
         ))}
       </div>
     </div>
+
+    <RelatedPages locale={locale} currentPath="/terminal-ui" />
+    <PageNav locale={locale} currentPath="/terminal-ui" />
   </div>
 </BaseLayout>

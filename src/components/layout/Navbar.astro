@@ -22,9 +22,10 @@ const navItems = [
   { path: "/agent-system", key: "nav.agentSystem", group: "advanced" },
   { path: "/ide-bridge", key: "nav.ideBridge", group: "optional" },
   { path: "/mcp-integration", key: "nav.mcpIntegration", group: "optional" },
+  { path: "/glossary", key: "nav.glossary", group: "reference" },
 ];
 
-const groups = ["core", "advanced", "optional"] as const;
+const groups = ["core", "advanced", "optional", "reference"] as const;
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const currentPath = Astro.url.pathname.replace(base, '') || '/';
@@ -88,6 +89,20 @@ const alternateLinkLabel = locale === "en" ? "中文" : "EN";
             ))}
             <div class="border-t border-bg-border my-1"></div>
             {navItems.filter(i => i.group === "optional").map((item) => (
+              <a
+                href={getLocalePath(locale, item.path)}
+                class:list={[
+                  "block px-4 py-2 text-sm transition-colors",
+                  currentPath === item.path
+                    ? "bg-accent-purple/10 text-accent-purple"
+                    : "text-text-secondary hover:text-text hover:bg-bg-card",
+                ]}
+              >
+                {t(locale, item.key)}
+              </a>
+            ))}
+            <div class="border-t border-bg-border my-1"></div>
+            {navItems.filter(i => i.group === "reference").map((item) => (
               <a
                 href={getLocalePath(locale, item.path)}
                 class:list={[

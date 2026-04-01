@@ -1,0 +1,48 @@
+---
+import type { Locale } from "../../i18n/locales";
+import { getLocalePath } from "../../i18n/locales";
+import { t } from "../../i18n/translations";
+
+interface Props {
+  locale: Locale;
+  currentPath: string;
+}
+
+const { locale, currentPath } = Astro.props;
+
+const pageOrder = [
+  { path: "/overview", key: "nav.overview" },
+  { path: "/query-pipeline", key: "nav.queryPipeline" },
+  { path: "/tool-system", key: "nav.toolSystem" },
+  { path: "/permission-security", key: "nav.permissionSecurity" },
+  { path: "/terminal-ui", key: "nav.terminalUI" },
+  { path: "/plugin-skill", key: "nav.pluginSkill" },
+  { path: "/message-compaction", key: "nav.messageCompaction" },
+  { path: "/agent-system", key: "nav.agentSystem" },
+  { path: "/ide-bridge", key: "nav.ideBridge" },
+  { path: "/mcp-integration", key: "nav.mcpIntegration" },
+];
+
+const currentIndex = pageOrder.findIndex(p => p.path === currentPath);
+const prev = currentIndex > 0 ? pageOrder[currentIndex - 1] : null;
+const next = currentIndex < pageOrder.length - 1 ? pageOrder[currentIndex + 1] : null;
+---
+
+{(prev || next) && (
+  <div class="mt-24 border-t border-bg-border pt-8">
+    <div class="flex items-stretch justify-between gap-4">
+      {prev ? (
+        <a href={getLocalePath(locale, prev.path)} class="group flex-1 rounded-lg border border-bg-border p-4 hover:border-accent-purple/30 hover:bg-bg-card transition-colors">
+          <span class="text-xs text-text-secondary">{t(locale, "common.prevPage")}</span>
+          <p class="mt-1 text-sm font-medium text-accent-purple group-hover:underline">{t(locale, prev.key)}</p>
+        </a>
+      ) : <div class="flex-1" />}
+      {next ? (
+        <a href={getLocalePath(locale, next.path)} class="group flex-1 rounded-lg border border-bg-border p-4 hover:border-accent-purple/30 hover:bg-bg-card transition-colors text-right">
+          <span class="text-xs text-text-secondary">{t(locale, "common.nextPage")}</span>
+          <p class="mt-1 text-sm font-medium text-accent-purple group-hover:underline">{t(locale, next.key)}</p>
+        </a>
+      ) : <div class="flex-1" />}
+    </div>
+  </div>
+)}

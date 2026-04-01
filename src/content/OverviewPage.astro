@@ -8,6 +8,8 @@ import BubbleChart from "../components/viz/BubbleChart.tsx";
 import TreeExplorer from "../components/viz/TreeExplorer.tsx";
 import { t } from "../i18n/translations";
 import type { Locale } from "../i18n/locales";
+import RelatedPages from "../components/layout/RelatedPages.astro";
+import PageNav from "../components/layout/PageNav.astro";
 
 interface Props {
   locale: Locale;
@@ -160,5 +162,8 @@ const highlights = [
         ))}
       </div>
     </div>
+
+    <RelatedPages locale={locale} currentPath="/overview" />
+    <PageNav locale={locale} currentPath="/overview" />
   </div>
 </BaseLayout>

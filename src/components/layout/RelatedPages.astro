@@ -1,0 +1,64 @@
+---
+import type { Locale } from "../../i18n/locales";
+import { getLocalePath } from "../../i18n/locales";
+import { t } from "../../i18n/translations";
+
+interface Props {
+  locale: Locale;
+  currentPath: string;
+}
+
+const { locale, currentPath } = Astro.props;
+
+// Define relationships between pages
+const relationships: Record<string, string[]> = {
+  "/overview": ["/query-pipeline", "/tool-system", "/permission-security"],
+  "/query-pipeline": ["/tool-system", "/permission-security", "/message-compaction"],
+  "/tool-system": ["/query-pipeline", "/permission-security", "/agent-system"],
+  "/permission-security": ["/query-pipeline", "/tool-system"],
+  "/terminal-ui": ["/overview", "/plugin-skill"],
+  "/plugin-skill": ["/tool-system", "/agent-system"],
+  "/message-compaction": ["/query-pipeline", "/overview"],
+  "/agent-system": ["/tool-system", "/plugin-skill"],
+  "/ide-bridge": ["/overview", "/mcp-integration"],
+  "/mcp-integration": ["/tool-system", "/ide-bridge"],
+};
+
+const pageInfo: Record<string, { key: string; descKey: string; color: string }> = {
+  "/overview": { key: "nav.overview", descKey: "overview.subtitle", color: "#6c63ff" },
+  "/query-pipeline": { key: "nav.queryPipeline", descKey: "queryPipeline.subtitle", color: "#22d3ee" },
+  "/tool-system": { key: "nav.toolSystem", descKey: "toolSystem.subtitle", color: "#10b981" },
+  "/permission-security": { key: "nav.permissionSecurity", descKey: "permissionSecurity.subtitle", color: "#f59e0b" },
+  "/terminal-ui": { key: "nav.terminalUI", descKey: "terminalUI.subtitle", color: "#a78bfa" },
+  "/plugin-skill": { key: "nav.pluginSkill", descKey: "pluginSkill.subtitle", color: "#f472b6" },
+  "/message-compaction": { key: "nav.messageCompaction", descKey: "messageCompaction.subtitle", color: "#22d3ee" },
+  "/agent-system": { key: "nav.agentSystem", descKey: "agentSystem.subtitle", color: "#f472b6" },
+  "/ide-bridge": { key: "nav.ideBridge", descKey: "ideBridge.subtitle", color: "#fb923c" },
+  "/mcp-integration": { key: "nav.mcpIntegration", descKey: "mcpIntegration.subtitle", color: "#fb923c" },
+};
+
+const related = (relationships[currentPath] || []).slice(0, 3);
+---
+
+{related.length > 0 && (
+  <div class="mt-16">
+    <h3 class="text-lg font-semibold mb-4">{t(locale, "common.relatedPages")}</h3>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      {related.map((path) => {
+        const info = pageInfo[path];
+        return info && (
+          <a
+            href={getLocalePath(locale, path)}
+            class="group rounded-lg border border-bg-border p-4 hover:border-accent-purple/30 hover:bg-bg-card transition-colors"
+          >
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-2 h-2 rounded-full" style={`background-color: ${info.color}`}></span>
+              <span class="text-sm font-medium text-text group-hover:text-accent-purple transition-colors">{t(locale, info.key)}</span>
+            </div>
+            <p class="text-xs text-text-secondary line-clamp-2">{t(locale, info.descKey)}</p>
+          </a>
+        );
+      })}
+    </div>
+  </div>
+)}

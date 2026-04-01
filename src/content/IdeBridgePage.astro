@@ -1,6 +1,8 @@
 ---
 import type { Locale } from "../i18n/locales";
 import { t } from "../i18n/translations";
+import RelatedPages from "../components/layout/RelatedPages.astro";
+import PageNav from "../components/layout/PageNav.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Sidebar from "../components/layout/Sidebar.tsx";
 import SectionHeading from "../components/common/SectionHeading.astro";
@@ -98,5 +100,8 @@ const bridgeEdges = [
         </div>
       </div>
     </div>
+
+    <RelatedPages locale={locale} currentPath="/ide-bridge" />
+    <PageNav locale={locale} currentPath="/ide-bridge" />
   </div>
 </BaseLayout>

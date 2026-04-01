@@ -13,6 +13,7 @@ const translations = {
     agentSystem: { en: "Agents", zh: "Agent 系统" },
     ideBridge: { en: "IDE Bridge", zh: "IDE 桥接" },
     mcpIntegration: { en: "MCP", zh: "MCP 集成" },
+    glossary: { en: "Glossary", zh: "术语表" },
   },
   common: {
     plainLabel: { en: "Simple", zh: "通俗版" },
@@ -24,6 +25,9 @@ const translations = {
     builtInTools: { en: "Built-in tools", zh: "内置工具" },
     coreSystems: { en: "Core systems", zh: "核心系统" },
     items: { en: "items", zh: "个" },
+    prevPage: { en: "Previous", zh: "上一篇" },
+    nextPage: { en: "Next", zh: "下一篇" },
+    relatedPages: { en: "Related Pages", zh: "相关页面" },
   },
   footer: {
     description: {
@@ -625,6 +629,11 @@ const translations = {
       en: "After tool execution, results are appended to the conversation history and submitMessage() calls itself recursively. This loop continues — Claude sees the tool results, may request more tools, until it returns stop_reason: 'end_turn' and the conversation turn is complete.",
       zh: "工具执行后，结果被追加到对话历史中，submitMessage() 递归调用自身。这个循环持续进行 — Claude 看到工具结果，可能请求更多工具，直到返回 stop_reason: 'end_turn'，对话轮次完成。"
     },
+  },
+  glossary: {
+    title: { en: "Glossary", zh: "术语表" },
+    subtitle: { en: "Key technical terms explained for all readers", zh: "为所有读者解释的关键技术术语" },
+    searchPlaceholder: { en: "Filter terms...", zh: "筛选术语..." },
   },
 } as const;
 

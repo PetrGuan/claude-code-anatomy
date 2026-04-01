@@ -1,0 +1,47 @@
+---
+import type { Locale } from "../i18n/locales";
+import { getLocalePath } from "../i18n/locales";
+import { t } from "../i18n/translations";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SectionHeading from "../components/common/SectionHeading.astro";
+import { glossaryTerms, termName, termDefinition } from "../data/glossary";
+
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+
+const sortedTerms = [...glossaryTerms].sort((a, b) =>
+  termName(a, locale).localeCompare(termName(b, locale))
+);
+---
+
+<BaseLayout title={t(locale, "glossary.title")} locale={locale}>
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-16">
+      <h1 class="text-4xl font-bold">{t(locale, "glossary.title")}</h1>
+      <p class="mt-4 text-xl text-text-secondary">{t(locale, "glossary.subtitle")}</p>
+    </div>
+
+    <div class="space-y-6">
+      {sortedTerms.map((term) => (
+        <div id={term.term.toLowerCase().replace(/[^a-z0-9]+/g, '-')} class="scroll-mt-24 rounded-lg border border-bg-border bg-bg-card p-5">
+          <div class="flex items-start justify-between gap-4">
+            <h3 class="font-semibold text-accent-purple font-mono text-sm">
+              {termName(term, locale)}
+            </h3>
+            {term.relatedPage && (
+              <a
+                href={getLocalePath(locale, term.relatedPage)}
+                class="text-xs text-text-secondary hover:text-accent-purple transition-colors whitespace-nowrap"
+              >
+                {locale === "zh" ? "查看详情 →" : "See details →"}
+              </a>
+            )}
+          </div>
+          <p class="mt-2 text-sm text-text-secondary leading-relaxed">
+            {termDefinition(term, locale)}
+          </p>
+        </div>
+      ))}
+    </div>
+  </div>
+</BaseLayout>
