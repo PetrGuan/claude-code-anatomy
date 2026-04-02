@@ -994,7 +994,7 @@ const translations = {
       wrongGate: { en: "Wrong gate!", zh: "走错了！" },
       // Room narratives
       room1Intro: { en: "You are a user's message: \"Help me fix this bug.\" But you can't reach Claude yet — you're just raw text. You need CONTEXT. Collect the 3 items in this room to build your complete system prompt.", zh: "你是一条用户消息：\"帮我修复这个 bug。\" 但你还不能到达 Claude — 你只是原始文本。你需要上下文。收集房间里的 3 个物品来构建完整的系统提示。" },
-      room2Intro: { en: "Your packed message has been sent to the Claude API. But Claude doesn't reply all at once — the response streams back token by token. Catch 8 tokens to assemble the response!", zh: "你打包好的消息已发送到 Claude API。但 Claude 不会一次性回复 — 响应逐 token 流式返回。接住 8 个 token 来组装响应！" },
+      room2Intro: { en: "Your packed message has been sent to the Claude API. Claude's response streams back word by word — catch the tokens to assemble the reply!", zh: "你打包好的消息已发送到 Claude API。Claude 的响应逐词流式返回 — 接住 token 来组装回复！" },
       room3Intro: { en: "Claude's response includes tool calls — it wants to read files AND edit code. But wait: read-only tools can run in parallel (fast!), while write tools must run serially (safe!). Sort each tool to the correct lane.", zh: "Claude 的响应包含工具调用 — 它想读取文件并编辑代码。但注意：只读工具可以并行运行（快！），写工具必须串行运行（安全！）。把每个工具分到正确的轨道。" },
       room4Intro: { en: "Before any tool executes, it must pass the Security Checkpoint. Each command needs your judgment: is it safe to Allow, dangerous enough to Deny, or ambiguous enough to Ask the user? Walk through the correct gate!", zh: "在任何工具执行之前，必须通过安全关卡。每条命令需要你的判断：安全可以允许、危险应该拒绝、还是模糊需要询问用户？走过正确的门！" },
       // Item pickup messages
@@ -1003,7 +1003,7 @@ const translations = {
       gotMemory: { en: "Got Memory! Context from previous conversations helps Claude understand history.", zh: "获得记忆！之前对话的上下文帮助 Claude 理解历史。" },
       allCollected: { en: "Context bag complete! You're now a full system prompt. Head to the exit →", zh: "上下文背包完成！你现在是一个完整的系统提示。走向出口 →" },
       // Token catching messages
-      tokenProgress: { en: "Tokens caught! Each one is a piece of Claude's streaming response.", zh: "接住了 token！每一个都是 Claude 流式响应的一部分。" },
+      tokenProgress: { en: "Tokens caught! Each one is a piece of Claude's streaming response.", zh: "接住了 token！每一个都是 Claude 流式响应的一部分。" }, // fallback; overridden by word-by-word narrative
       tokensComplete: { en: "Response assembled! All tokens caught. Claude's reply is ready. Head to the exit →", zh: "响应组装完成！所有 token 已接住。Claude 的回复准备好了。走向出口 →" },
       // Tool pickup messages
       toolRead: { en: "Picked up Read — reads file contents without changing anything. Which lane?", zh: "拿起 Read — 读取文件内容，不做任何修改。放哪个轨道？" },

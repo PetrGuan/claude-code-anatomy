@@ -58,6 +58,15 @@ const initialTools: ToolDef[] = [
 ];
 const toolEmoji: Record<string, string> = { Read: "📖", Glob: "📂", Grep: "🔍", Edit: "✏️", Write: "📝", Bash: "💻" };
 
+// Room 2: response words that build a sentence
+const responseWords = [
+  { word: "Let", wordCn: "让" },
+  { word: "me", wordCn: "我" },
+  { word: "look", wordCn: "看看" },
+  { word: "at", wordCn: "这个" },
+  { word: "that.", wordCn: "bug。" },
+];
+
 // Room 4 commands
 const securityCommands = [
   { cmd: "git status", answer: "allow" as const },
@@ -83,8 +92,9 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
   const [inventory, setInventory] = useState<string[]>([]);
 
   // Room 2: catch tokens
-  const [tokens, setTokens] = useState<{ x: number; y: number; id: number; born: number }[]>([]);
+  const [tokens, setTokens] = useState<{ x: number; y: number; id: number; born: number; wordIndex: number }[]>([]);
   const [tokensCaught, setTokensCaught] = useState(0);
+  const [caughtWords, setCaughtWords] = useState<string[]>([]);
   const tokenIdRef = useRef(0);
 
   // Room 3: sort tools
@@ -106,7 +116,7 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
   const isRoomComplete = useCallback((ri: number) => {
     switch (ri) {
       case 0: return inventory.length >= 3;
-      case 1: return tokensCaught >= 8;
+      case 1: return tokensCaught >= 5;
       case 2: return sortedTools.length >= 6;
       case 3: return currentCommand >= 3;
       default: return false;
@@ -135,6 +145,7 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
     if (ri === 1) {
       setTokens([]);
       setTokensCaught(0);
+      setCaughtWords([]);
       tokenIdRef.current = 0;
     }
     if (ri === 2) {
@@ -223,15 +234,20 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
       const caught = tokens.find(tk => tk.x === nx && tk.y === ny);
       if (caught) {
         setTokens(prev => prev.filter(tk => tk.id !== caught.id));
+        const word = isZh ? responseWords[caught.wordIndex].wordCn : responseWords[caught.wordIndex].word;
         setTokensCaught(prev => {
           const newCount = prev + 1;
-          if (newCount >= 8) {
+          if (newCount >= 5) {
             setTimeout(() => setNarrative(t(locale, "games.pg.tokensComplete")), 500);
           }
           return newCount;
         });
+        setCaughtWords(prev => {
+          const next = [...prev, word];
+          setNarrative(`Claude: "${next.join(" ")}${next.length < 5 ? " ..." : ""}"`)
+          return next;
+        });
         doFlash("green");
-        setNarrative(t(locale, "games.pg.tokenProgress"));
       }
     }
 
@@ -292,9 +308,8 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
   // Room 2: token spawning
   useEffect(() => {
     if (roomIndex !== 1) return;
-    if (tokensCaught >= 8) return;
+    if (tokensCaught >= 5) return;
     const interval = setInterval(() => {
-      // Spawn a token at a random walkable position
       const wallSet = new Set(roomMeta[1].walls.map(w => `${w.x},${w.y}`));
       let x: number, y: number;
       let attempts = 0;
@@ -306,20 +321,22 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
 
       const id = ++tokenIdRef.current;
       setTokens(prev => {
-        // Max 5 tokens on screen
-        if (prev.length >= 5) return prev;
-        return [...prev, { x, y, id, born: Date.now() }];
+        if (prev.length >= 2) return prev; // max 2 on screen
+        // Next word index = total caught + on screen
+        const nextWordIndex = tokensCaught + prev.length;
+        if (nextWordIndex >= 5) return prev;
+        return [...prev, { x, y, id, born: Date.now(), wordIndex: nextWordIndex }];
       });
-    }, 1500);
+    }, 2000);
     return () => clearInterval(interval);
   }, [roomIndex, tokensCaught]);
 
-  // Room 2: token expiry (3 seconds)
+  // Room 2: token expiry (4 seconds)
   useEffect(() => {
     if (roomIndex !== 1) return;
     const interval = setInterval(() => {
       const now = Date.now();
-      setTokens(prev => prev.filter(tk => now - tk.born < 3000));
+      setTokens(prev => prev.filter(tk => now - tk.born < 4000));
     }, 500);
     return () => clearInterval(interval);
   }, [roomIndex]);
@@ -379,7 +396,7 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
         <button
           onClick={() => {
             setRoomIndex(0); setPlayerPos({ x: 1, y: 3 }); setGameComplete(false);
-            setInventory([]); setTokensCaught(0); setTokens([]);
+            setInventory([]); setTokensCaught(0); setTokens([]); setCaughtWords([]);
             setCarrying(null); setSortedTools([]);
             setToolPositions(new Map(initialTools.map(t => [t.name, { ...t.pos }])));
             setCurrentCommand(0);
@@ -410,8 +427,8 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
       case 1:
         return (
           <div className="text-xs font-bold text-text-secondary">
-            {t(locale, "games.pg.tokens")}: {tokensCaught}/8
-            {tokensCaught >= 8 && <span className="text-accent-emerald ml-1">✓</span>}
+            {t(locale, "games.pg.tokens")}: {tokensCaught}/5
+            {tokensCaught >= 5 && <span className="text-accent-emerald ml-1">✓</span>}
           </div>
         );
       case 2:
@@ -532,20 +549,21 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
 
         {/* Room 2: Tokens */}
         {roomIndex === 1 && tokens.map(tk => {
-          const age = (Date.now() - tk.born) / 3000; // 0 to 1
+          const age = (Date.now() - tk.born) / 4000; // match 4s expiry
+          const word = isZh ? responseWords[tk.wordIndex]?.wordCn : responseWords[tk.wordIndex]?.word;
           return (
             <div key={tk.id} className="absolute flex items-center justify-center"
               style={{
-                left: tk.x * TILE + TILE / 4,
-                top: tk.y * TILE + TILE / 4,
-                width: TILE / 2,
-                height: TILE / 2,
+                left: tk.x * TILE,
+                top: tk.y * TILE,
+                width: TILE,
+                height: TILE,
                 opacity: Math.max(0.2, 1 - age),
                 transition: "opacity 0.3s",
               }}>
-              <div className="w-3 h-3 rounded-full" style={{
-                backgroundColor: ["#6c63ff", "#22d3ee", "#10b981", "#f59e0b", "#ec4899"][tk.id % 5],
-              }} />
+              <span className="text-xs font-bold font-mono px-1 py-0.5 rounded bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/30">
+                {word}
+              </span>
             </div>
           );
         })}
