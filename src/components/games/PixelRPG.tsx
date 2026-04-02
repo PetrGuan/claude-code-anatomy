@@ -6,365 +6,327 @@ import { playerSprite, npcSprites, objectSprites } from "./sprites";
 
 // Types
 interface Position { x: number; y: number; }
-interface NPC {
-  id: string;
-  pos: Position;
-  emoji: string;
-  name: string;
-  nameCn: string;
-  dialogue: DialogueLine[];
-}
-interface DialogueLine {
-  text: string;
-  textCn: string;
-  choices?: { label: string; labelCn: string; correct?: boolean; next?: number }[];
-}
-interface Room {
-  id: string;
-  name: string;
-  nameCn: string;
-  color: string;
-  width: number;
-  height: number;
-  walls: Position[];
-  npcs: NPC[];
-  exitRight?: Position;
-  exitLeft?: Position;
-  objects: { pos: Position; emoji: string; tooltip: string; tooltipCn: string }[];
+
+const TILE = 40;
+const ROOM_W = 12;
+const ROOM_H = 8;
+
+// --- Wall helpers ---
+function makeWalls(exits: { right?: boolean; left?: boolean; rightGateRows?: number[] }) {
+  const walls: Position[] = [];
+  // top & bottom
+  for (let x = 0; x < ROOM_W; x++) { walls.push({ x, y: 0 }); walls.push({ x, y: ROOM_H - 1 }); }
+  // left
+  for (let y = 0; y < ROOM_H; y++) {
+    if (exits.left && (y === 3 || y === 4)) continue;
+    walls.push({ x: 0, y });
+  }
+  // right
+  for (let y = 0; y < ROOM_H; y++) {
+    if (exits.right && (y === 3 || y === 4)) continue;
+    if (exits.rightGateRows && exits.rightGateRows.includes(y)) continue;
+    walls.push({ x: ROOM_W - 1, y });
+  }
+  return walls;
 }
 
-// Room definitions
-const TILE = 40;
-const rooms: Room[] = [
-  {
-    id: "entrance",
-    name: "Input Hall",
-    nameCn: "输入大厅",
-    color: "#6c63ff",
-    width: 12,
-    height: 8,
-    walls: [
-      ...Array.from({length: 12}, (_, x) => ({x, y: 0})),
-      ...Array.from({length: 12}, (_, x) => ({x, y: 7})),
-      ...Array.from({length: 8}, (_, y) => ({x: 0, y})),
-      ...Array.from({length: 8}, (_, y) => ({x: 11, y})).filter(p => p.y !== 3 && p.y !== 4),
-    ],
-    npcs: [
-      {
-        id: "prompt-input",
-        pos: { x: 5, y: 3 },
-        emoji: "📋",
-        name: "PromptInput",
-        nameCn: "输入处理器",
-        dialogue: [
-          { text: "Welcome, little message! I'm PromptInput. I capture everything the user types and attach context to it.", textCn: "欢迎，小消息！我是输入处理器。我捕获用户输入的所有内容并附加上下文。" },
-          { text: "Before you travel to Claude, I need to pack your bag. What context should I attach?", textCn: "在你前往 Claude 之前，我需要给你打包。应该附加什么上下文？",
-            choices: [
-              { label: "Current directory + git status + tool definitions", labelCn: "当前目录 + git 状态 + 工具定义", correct: true, next: 2 },
-              { label: "Just the user's text, nothing else", labelCn: "只有用户文本，没有其他", correct: false, next: 3 },
-            ]
-          },
-          { text: "Correct! I attach the working directory, git status, all 45+ tool definitions, project rules from CLAUDE.md, and memory from previous conversations. You're now a fully-packed message!", textCn: "正确！我附加工作目录、git 状态、所有 45+ 工具定义、CLAUDE.md 的项目规则以及之前对话的记忆。你现在是一条完整的消息了！" },
-          { text: "Not quite! Without context, Claude wouldn't know where you are, what tools are available, or what rules to follow. Let me pack everything: directory, git status, tools, rules, and memory.", textCn: "不太对！没有上下文，Claude 不知道你在哪里、有什么工具可用、该遵循什么规则。让我打包所有东西：目录、git 状态、工具、规则和记忆。" },
-        ],
-      },
-    ],
-    exitRight: { x: 11, y: 3 },
-    objects: [
-      { pos: { x: 3, y: 2 }, emoji: "🖥️", tooltip: "Terminal: where the user types", tooltipCn: "终端：用户输入的地方" },
-      { pos: { x: 7, y: 5 }, emoji: "📁", tooltip: "CLAUDE.md: project rules", tooltipCn: "CLAUDE.md：项目规则" },
-      { pos: { x: 2, y: 5 }, emoji: "🧠", tooltip: "Memory: past conversation context", tooltipCn: "记忆：过去的对话上下文" },
-    ],
-  },
-  {
-    id: "api",
-    name: "API Cloud",
-    nameCn: "API 云端",
-    color: "#22d3ee",
-    width: 12,
-    height: 8,
-    walls: [
-      ...Array.from({length: 12}, (_, x) => ({x, y: 0})),
-      ...Array.from({length: 12}, (_, x) => ({x, y: 7})),
-      ...Array.from({length: 8}, (_, y) => ({x: 0, y})).filter(p => p.y !== 3 && p.y !== 4),
-      ...Array.from({length: 8}, (_, y) => ({x: 11, y})).filter(p => p.y !== 3 && p.y !== 4),
-    ],
-    npcs: [
-      {
-        id: "claude-api",
-        pos: { x: 6, y: 3 },
-        emoji: "☁️",
-        name: "Claude API",
-        nameCn: "Claude API",
-        dialogue: [
-          { text: "I'm the Claude API! I receive your packed message and stream back a response token by token. No waiting for the full reply!", textCn: "我是 Claude API！我接收你打包好的消息，并逐 token 流式返回响应。不用等待完整回复！" },
-          { text: "How does streaming work? It uses a special pattern called...", textCn: "流式传输如何工作？它使用一种叫做...的特殊模式",
-            choices: [
-              { label: "Async Generators (yield tokens one by one)", labelCn: "异步生成器（逐个 yield token）", correct: true, next: 2 },
-              { label: "Callbacks (fire and forget)", labelCn: "回调函数（即发即忘）", correct: false, next: 3 },
-            ]
-          },
-          { text: "Yes! Async generators yield each token as it arrives. The UI updates in real-time. Memory stays flat. You can cancel anytime. It's the backbone of Claude Code!", textCn: "对！异步生成器在每个 token 到达时 yield。UI 实时更新。内存保持平稳。随时可以取消。这是 Claude Code 的骨架！" },
-          { text: "Callbacks could work but they don't compose well. Async generators let tool results flow naturally with yield* — no manual message forwarding needed.", textCn: "回调可以工作，但组合性不好。异步生成器通过 yield* 让工具结果自然流动 — 不需要手动消息转发。" },
-        ],
-      },
-    ],
-    exitLeft: { x: 0, y: 3 },
-    exitRight: { x: 11, y: 3 },
-    objects: [
-      { pos: { x: 3, y: 2 }, emoji: "⚡", tooltip: "Streaming: tokens arrive one by one", tooltipCn: "流式传输：token 逐个到达" },
-      { pos: { x: 9, y: 2 }, emoji: "🌊", tooltip: "AsyncGenerator: the streaming pattern", tooltipCn: "AsyncGenerator：流式模式" },
-      { pos: { x: 4, y: 5 }, emoji: "📊", tooltip: "Token budget: tracks context window usage", tooltipCn: "Token 预算：跟踪上下文窗口使用" },
-      { pos: { x: 8, y: 5 }, emoji: "🗜️", tooltip: "Compaction: summarizes when context is full", tooltipCn: "压缩：上下文满时进行摘要" },
-    ],
-  },
-  {
-    id: "tools",
-    name: "Tool Workshop",
-    nameCn: "工具工坊",
-    color: "#10b981",
-    width: 12,
-    height: 8,
-    walls: [
-      ...Array.from({length: 12}, (_, x) => ({x, y: 0})),
-      ...Array.from({length: 12}, (_, x) => ({x, y: 7})),
-      ...Array.from({length: 8}, (_, y) => ({x: 0, y})).filter(p => p.y !== 3 && p.y !== 4),
-      ...Array.from({length: 8}, (_, y) => ({x: 11, y})).filter(p => p.y !== 3 && p.y !== 4),
-    ],
-    npcs: [
-      {
-        id: "tool-master",
-        pos: { x: 6, y: 3 },
-        emoji: "🔧",
-        name: "ToolMaster",
-        nameCn: "工具大师",
-        dialogue: [
-          { text: "Welcome to the Tool Workshop! I manage 45+ tools. Claude picks which ones to use. Read, Write, Edit, Bash, Grep, Glob — each one does something specific.", textCn: "欢迎来到工具工坊！我管理 45+ 工具。Claude 选择使用哪些。Read、Write、Edit、Bash、Grep、Glob — 每个做特定的事。" },
-          { text: "Claude wants to read a file AND search for a pattern. How should I schedule these?", textCn: "Claude 想读取文件并搜索模式。我应该如何调度？",
-            choices: [
-              { label: "Run both in parallel — they're both read-only!", labelCn: "并行运行 — 它们都是只读的！", correct: true, next: 2 },
-              { label: "Run them one at a time to be safe", labelCn: "一次运行一个以确保安全", correct: false, next: 3 },
-            ]
-          },
-          { text: "Exactly! Read-only tools (Read, Grep, Glob) run in parallel via Promise.all. Write tools (Edit, Write, Bash) must run serially to prevent race conditions. Smart scheduling!", textCn: "完全正确！只读工具（Read、Grep、Glob）通过 Promise.all 并行运行。写工具（Edit、Write、Bash）必须串行运行以防止竞态条件。智能调度！" },
-          { text: "Playing it safe is understandable, but unnecessary for read-only tools! They can't conflict. Running Read and Grep in parallel saves time with zero risk.", textCn: "谨慎是可以理解的，但对只读工具不必要！它们不会冲突。并行运行 Read 和 Grep 在零风险下节省时间。" },
-        ],
-      },
-    ],
-    exitLeft: { x: 0, y: 3 },
-    exitRight: { x: 11, y: 3 },
-    objects: [
-      { pos: { x: 2, y: 2 }, emoji: "📖", tooltip: "Read: reads files", tooltipCn: "Read：读取文件" },
-      { pos: { x: 4, y: 2 }, emoji: "✏️", tooltip: "Edit: modifies files", tooltipCn: "Edit：修改文件" },
-      { pos: { x: 6, y: 5 }, emoji: "🔍", tooltip: "Grep: searches file contents", tooltipCn: "Grep：搜索文件内容" },
-      { pos: { x: 8, y: 2 }, emoji: "💻", tooltip: "Bash: runs shell commands", tooltipCn: "Bash：运行 Shell 命令" },
-      { pos: { x: 9, y: 5 }, emoji: "🌐", tooltip: "WebSearch: searches the web", tooltipCn: "WebSearch：搜索网络" },
-      { pos: { x: 3, y: 5 }, emoji: "📂", tooltip: "Glob: finds files by pattern", tooltipCn: "Glob：按模式查找文件" },
-    ],
-  },
-  {
-    id: "security",
-    name: "Security Checkpoint",
-    nameCn: "安全关卡",
-    color: "#f59e0b",
-    width: 12,
-    height: 8,
-    walls: [
-      ...Array.from({length: 12}, (_, x) => ({x, y: 0})),
-      ...Array.from({length: 12}, (_, x) => ({x, y: 7})),
-      ...Array.from({length: 8}, (_, y) => ({x: 0, y})).filter(p => p.y !== 3 && p.y !== 4),
-      ...Array.from({length: 8}, (_, y) => ({x: 11, y})),
-    ],
-    npcs: [
-      {
-        id: "security-guard",
-        pos: { x: 6, y: 3 },
-        emoji: "🛡️",
-        name: "SecurityGuard",
-        nameCn: "安全守卫",
-        dialogue: [
-          { text: "Halt! I'm the SecurityGuard. Before any tool executes, I check if it's safe. I have THREE layers of defense!", textCn: "站住！我是安全守卫。在任何工具执行之前，我检查它是否安全。我有三层防线！" },
-          { text: "A command comes in: 'rm -rf /'. What should I do?", textCn: "一条命令进来了：'rm -rf /'。我该怎么做？",
-            choices: [
-              { label: "DENY — this deletes everything!", labelCn: "拒绝 — 这会删除所有东西！", correct: true, next: 2 },
-              { label: "ASK the user first", labelCn: "先问用户", correct: false, next: 3 },
-            ]
-          },
-          { text: "Right! My ML classifier catches this instantly with 99.9% confidence. No need to bother the user. Layer 1 (ML) handles ~80% of cases. Layer 2 (Rules) catches custom policies. Layer 3 (User Dialog) is the last resort.", textCn: "对！我的 ML 分类器以 99.9% 的置信度立即捕获。不需要打扰用户。第一层（ML）处理约 80% 的情况。第二层（规则）捕获自定义策略。第三层（用户对话框）是最后手段。" },
-          { text: "Asking is safer, but too slow for obvious threats! My ML classifier denies 'rm -rf /' instantly. I only ask the user for genuinely ambiguous commands like 'npm install'.", textCn: "询问更安全，但对明显威胁太慢！我的 ML 分类器立即拒绝 'rm -rf /'。我只对真正模糊的命令（如 'npm install'）询问用户。" },
-        ],
-      },
-    ],
-    exitLeft: { x: 0, y: 3 },
-    objects: [
-      { pos: { x: 3, y: 2 }, emoji: "🤖", tooltip: "Layer 1: ML Classifier (~80% of decisions)", tooltipCn: "第一层：ML 分类器（约 80% 的决策）" },
-      { pos: { x: 6, y: 5 }, emoji: "📜", tooltip: "Layer 2: Rule Engine (user-defined)", tooltipCn: "第二层：规则引擎（用户定义）" },
-      { pos: { x: 9, y: 2 }, emoji: "👤", tooltip: "Layer 3: User Confirmation (last resort)", tooltipCn: "第三层：用户确认（最后手段）" },
-      { pos: { x: 9, y: 5 }, emoji: "🏁", tooltip: "Exit: response delivered!", tooltipCn: "出口：响应已送达！" },
-    ],
-  },
+// Room metadata (colors, names, walls)
+const roomMeta = [
+  { id: "entrance", name: "Input Hall", nameCn: "输入大厅", color: "#6c63ff", walls: makeWalls({ right: true }) },
+  { id: "api", name: "API Cloud", nameCn: "API 云端", color: "#22d3ee", walls: makeWalls({ left: true, right: true }) },
+  { id: "tools", name: "Tool Workshop", nameCn: "工具工坊", color: "#10b981", walls: makeWalls({ left: true, right: true }) },
+  { id: "security", name: "Security Checkpoint", nameCn: "安全关卡", color: "#f59e0b", walls: makeWalls({ left: true, rightGateRows: [1, 2, 3, 4, 5, 6] }) },
+];
+
+// Room 1 collectible items
+const collectibles = [
+  { id: "prompt", emoji: "🖥️", label: "User Prompt", labelCn: "用户提示", pos: { x: 3, y: 2 } },
+  { id: "rules", emoji: "📁", label: "CLAUDE.md", labelCn: "CLAUDE.md", pos: { x: 7, y: 5 } },
+  { id: "memory", emoji: "🧠", label: "Memory", labelCn: "记忆", pos: { x: 2, y: 5 } },
+];
+
+// Room 3 tools
+interface ToolDef { name: string; type: "read" | "write"; pos: Position; }
+const initialTools: ToolDef[] = [
+  { name: "Read", type: "read", pos: { x: 2, y: 2 } },
+  { name: "Glob", type: "read", pos: { x: 4, y: 3 } },
+  { name: "Grep", type: "read", pos: { x: 3, y: 4 } },
+  { name: "Edit", type: "write", pos: { x: 7, y: 2 } },
+  { name: "Write", type: "write", pos: { x: 9, y: 3 } },
+  { name: "Bash", type: "write", pos: { x: 8, y: 4 } },
+];
+const toolEmoji: Record<string, string> = { Read: "📖", Glob: "📂", Grep: "🔍", Edit: "✏️", Write: "📝", Bash: "💻" };
+
+// Room 4 commands
+const securityCommands = [
+  { cmd: "git status", answer: "allow" as const },
+  { cmd: "rm -rf /", answer: "deny" as const },
+  { cmd: "npm install", answer: "ask" as const },
 ];
 
 interface Props { locale?: Locale; }
 
 export default function PixelRPG({ locale = "en" as Locale }: Props) {
-  const [roomIndex, setRoomIndex] = useState(0);
-  const [playerPos, setPlayerPos] = useState<Position>({ x: 1, y: 3 });
-  const [dialogue, setDialogue] = useState<{ npc: NPC; lineIndex: number } | null>(null);
-  const [tooltip, setTooltip] = useState<string | null>(null);
-  const [completedRooms, setCompletedRooms] = useState<Set<string>>(new Set());
-  const [gameComplete, setGameComplete] = useState(false);
-  const [correctAnswers, setCorrectAnswers] = useState(0);
-  const [scale, setScale] = useState(1);
+  const isZh = locale === "zh";
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const room = rooms[roomIndex];
-  const isZh = locale === "zh";
+  // Shared state
+  const [roomIndex, setRoomIndex] = useState(0);
+  const [playerPos, setPlayerPos] = useState<Position>({ x: 1, y: 3 });
+  const [gameComplete, setGameComplete] = useState(false);
+  const [scale, setScale] = useState(1);
+  const [flash, setFlash] = useState<"green" | "red" | null>(null);
+  const [flashText, setFlashText] = useState<string | null>(null);
 
+  // Room 1: collect items
+  const [inventory, setInventory] = useState<string[]>([]);
+
+  // Room 2: catch tokens
+  const [tokens, setTokens] = useState<{ x: number; y: number; id: number; born: number }[]>([]);
+  const [tokensCaught, setTokensCaught] = useState(0);
+  const tokenIdRef = useRef(0);
+
+  // Room 3: sort tools
+  const [carrying, setCarrying] = useState<string | null>(null);
+  const [sortedTools, setSortedTools] = useState<string[]>([]);
+  const [toolPositions, setToolPositions] = useState<Map<string, Position>>(
+    () => new Map(initialTools.map(t => [t.name, { ...t.pos }]))
+  );
+
+  // Room 4: gate judgment
+  const [currentCommand, setCurrentCommand] = useState(0);
+
+  const room = roomMeta[roomIndex];
+
+  // Room completion checks
+  const isRoomComplete = useCallback((ri: number) => {
+    switch (ri) {
+      case 0: return inventory.length >= 3;
+      case 1: return tokensCaught >= 8;
+      case 2: return sortedTools.length >= 6;
+      case 3: return currentCommand >= 3;
+      default: return false;
+    }
+  }, [inventory.length, tokensCaught, sortedTools.length, currentCommand]);
+
+  // Trigger flash effect
+  const doFlash = useCallback((color: "green" | "red", text?: string) => {
+    setFlash(color);
+    if (text) setFlashText(text);
+    setTimeout(() => { setFlash(null); setFlashText(null); }, 600);
+  }, []);
+
+  // Wall check
   const isWall = useCallback((x: number, y: number) => {
-    return room.walls.some(w => w.x === x && w.y === y) ||
-      room.npcs.some(n => n.pos.x === x && n.pos.y === y) ||
-      room.objects.some(o => o.pos.x === x && o.pos.y === y);
-  }, [room]);
+    return room.walls.some(w => w.x === x && w.y === y);
+  }, [room.walls]);
 
+  // Reset room-specific state when entering a new room
+  const enterRoom = useCallback((ri: number, fromLeft: boolean) => {
+    setRoomIndex(ri);
+    setPlayerPos({ x: fromLeft ? 1 : ROOM_W - 2, y: 3 });
+    setFlash(null);
+    setFlashText(null);
+
+    if (ri === 1) {
+      setTokens([]);
+      setTokensCaught(0);
+      tokenIdRef.current = 0;
+    }
+    if (ri === 2) {
+      setCarrying(null);
+      setSortedTools([]);
+      setToolPositions(new Map(initialTools.map(t => [t.name, { ...t.pos }])));
+    }
+    if (ri === 3) {
+      setCurrentCommand(0);
+    }
+  }, []);
+
+  // Handle movement
   const handleMove = useCallback((dx: number, dy: number) => {
-    if (dialogue) return;
     const nx = playerPos.x + dx;
     const ny = playerPos.y + dy;
+    const ri = roomIndex;
 
-    // Check room transitions — must complete current room's NPC dialogue first
-    if (room.exitRight && nx === room.exitRight.x + 1 && (ny === room.exitRight.y || ny === room.exitRight.y + 1)) {
-      if (!completedRooms.has(room.id)) {
-        setTooltip(isZh ? "⚠️ 先和 NPC 对话完成任务！" : "⚠️ Talk to the NPC first to proceed!");
-        setTimeout(() => setTooltip(null), 2000);
-        return;
-      }
-      if (roomIndex < rooms.length - 1) {
-        setRoomIndex(r => r + 1);
-        setPlayerPos({ x: 1, y: 3 });
-        setTooltip(null);
-        return;
-      }
+    // --- Room transitions ---
+    // Right exit (rooms 0-2)
+    if (ri < 3 && nx === ROOM_W && (ny === 3 || ny === 4)) {
+      if (!isRoomComplete(ri)) return; // locked
+      enterRoom(ri + 1, true);
+      return;
     }
-    if (room.exitLeft && nx === room.exitLeft.x - 1 && (ny === room.exitLeft.y || ny === room.exitLeft.y + 1)) {
-      if (roomIndex > 0) {
-        setRoomIndex(r => r - 1);
-        setPlayerPos({ x: rooms[roomIndex - 1].width - 2, y: 3 });
-        setTooltip(null);
-        return;
-      }
+    // Left exit (rooms 1-3)
+    if (ri > 0 && nx === -1 && (ny === 3 || ny === 4)) {
+      enterRoom(ri - 1, false);
+      return;
     }
 
-    if (nx < 0 || ny < 0 || nx >= room.width || ny >= room.height) return;
+    // Bounds
+    if (nx < 0 || ny < 0 || nx >= ROOM_W || ny >= ROOM_H) return;
+
+    // --- Room 4: gate check (walking into x=11) ---
+    if (ri === 3 && nx === ROOM_W - 1 && ny >= 1 && ny <= 6 && currentCommand < 3) {
+      let gate: "allow" | "deny" | "ask";
+      if (ny <= 2) gate = "allow";
+      else if (ny <= 4) gate = "deny";
+      else gate = "ask";
+
+      const correct = securityCommands[currentCommand].answer === gate;
+      if (correct) {
+        doFlash("green", isZh ? "正确！" : "Correct!");
+        setCurrentCommand(c => c + 1);
+        if (currentCommand + 1 >= 3) {
+          // game complete after short delay
+          setTimeout(() => setGameComplete(true), 800);
+        }
+      } else {
+        doFlash("red", isZh ? "走错了！" : "Wrong gate!");
+      }
+      return; // don't move into the wall
+    }
+
     if (isWall(nx, ny)) return;
-    setPlayerPos({ x: nx, y: ny });
 
-    // Check proximity to objects for tooltip
-    const nearObj = room.objects.find(o =>
-      Math.abs(o.pos.x - nx) <= 1 && Math.abs(o.pos.y - ny) <= 1
-    );
-    setTooltip(nearObj ? (isZh ? nearObj.tooltipCn : nearObj.tooltip) : null);
-  }, [dialogue, playerPos, room, roomIndex, isWall, isZh, completedRooms]);
-
-  const handleInteract = useCallback(() => {
-    if (dialogue) return;
-    // Check if near an NPC
-    const npc = room.npcs.find(n =>
-      Math.abs(n.pos.x - playerPos.x) <= 1 && Math.abs(n.pos.y - playerPos.y) <= 1
-    );
-    if (npc) {
-      setDialogue({ npc, lineIndex: 0 });
-    }
-    // Check if at final room exit
-    if (room.id === "security" && completedRooms.has("security")) {
-      setGameComplete(true);
-    }
-  }, [dialogue, room, playerPos, completedRooms]);
-
-  const advanceDialogue = useCallback((choiceIndex?: number) => {
-    if (!dialogue) return;
-    const { npc, lineIndex } = dialogue;
-    const line = npc.dialogue[lineIndex];
-
-    if (line?.choices && choiceIndex !== undefined) {
-      const choice = line.choices[choiceIndex];
-      if (choice.correct) setCorrectAnswers(c => c + 1);
-      if (choice.next !== undefined) {
-        setDialogue({ npc, lineIndex: choice.next });
-        return;
+    // --- Room 1: pick up collectibles ---
+    if (ri === 0) {
+      const item = collectibles.find(c => c.pos.x === nx && c.pos.y === ny && !inventory.includes(c.id));
+      if (item) {
+        setInventory(prev => [...prev, item.id]);
+        doFlash("green");
       }
     }
 
-    // Advance to next line or close.
-    // When a choice jumps to a feedback line (e.g. next: 2 or next: 3), that
-    // feedback line has no choices. So the "no choices" branch below correctly
-    // closes the dialogue and marks the room complete after one more click.
-    // This is intentional — show feedback, one click to close.
-    const nextIndex = lineIndex + 1;
-    if (nextIndex < npc.dialogue.length && !npc.dialogue[nextIndex - 1]?.choices) {
-      setDialogue({ npc, lineIndex: nextIndex });
-    } else {
-      setDialogue(null);
-      setCompletedRooms(prev => new Set([...prev, room.id]));
+    // --- Room 2: catch tokens ---
+    if (ri === 1) {
+      const caught = tokens.find(tk => tk.x === nx && tk.y === ny);
+      if (caught) {
+        setTokens(prev => prev.filter(tk => tk.id !== caught.id));
+        setTokensCaught(c => c + 1);
+        doFlash("green");
+      }
     }
-  }, [dialogue, room.id]);
 
-  // Keyboard handler — attached to the game container (not window) so it only
-  // fires when the game is focused, preventing arrow-key hijacking of page scroll.
+    // --- Room 3: pick up / place tools ---
+    if (ri === 2) {
+      if (!carrying) {
+        // Try to pick up a tool at this position
+        for (const [name, pos] of toolPositions.entries()) {
+          if (pos.x === nx && pos.y === ny && !sortedTools.includes(name)) {
+            setCarrying(name);
+            doFlash("green");
+            break;
+          }
+        }
+      } else {
+        // Check if stepping into a zone
+        const inParallel = nx >= 1 && nx <= 4 && ny >= 5 && ny <= 6;
+        const inSerial = nx >= 7 && nx <= 10 && ny >= 5 && ny <= 6;
+        if (inParallel || inSerial) {
+          const toolDef = initialTools.find(t => t.name === carrying);
+          const zone = inParallel ? "parallel" : "serial";
+          const correct = (toolDef!.type === "read" && zone === "parallel") ||
+                          (toolDef!.type === "write" && zone === "serial");
+          if (correct) {
+            setSortedTools(prev => [...prev, carrying!]);
+            setToolPositions(prev => {
+              const next = new Map(prev);
+              next.set(carrying!, { x: nx, y: ny });
+              return next;
+            });
+            doFlash("green", isZh ? "正确！" : "Correct!");
+          } else {
+            // Return tool to original position
+            const orig = initialTools.find(t => t.name === carrying)!;
+            setToolPositions(prev => {
+              const next = new Map(prev);
+              next.set(carrying!, { ...orig.pos });
+              return next;
+            });
+            doFlash("red", isZh ? "放错了！" : "Wrong lane!");
+          }
+          setCarrying(null);
+        }
+      }
+    }
+
+    setPlayerPos({ x: nx, y: ny });
+  }, [playerPos, roomIndex, isWall, isRoomComplete, enterRoom, inventory, tokens, carrying, toolPositions, sortedTools, currentCommand, doFlash, isZh]);
+
+  // Room 2: token spawning
+  useEffect(() => {
+    if (roomIndex !== 1) return;
+    if (tokensCaught >= 8) return;
+    const interval = setInterval(() => {
+      // Spawn a token at a random walkable position
+      const wallSet = new Set(roomMeta[1].walls.map(w => `${w.x},${w.y}`));
+      let x: number, y: number;
+      let attempts = 0;
+      do {
+        x = 1 + Math.floor(Math.random() * (ROOM_W - 2));
+        y = 1 + Math.floor(Math.random() * (ROOM_H - 2));
+        attempts++;
+      } while (wallSet.has(`${x},${y}`) && attempts < 50);
+
+      const id = ++tokenIdRef.current;
+      setTokens(prev => {
+        // Max 5 tokens on screen
+        if (prev.length >= 5) return prev;
+        return [...prev, { x, y, id, born: Date.now() }];
+      });
+    }, 1500);
+    return () => clearInterval(interval);
+  }, [roomIndex, tokensCaught]);
+
+  // Room 2: token expiry (3 seconds)
+  useEffect(() => {
+    if (roomIndex !== 1) return;
+    const interval = setInterval(() => {
+      const now = Date.now();
+      setTokens(prev => prev.filter(tk => now - tk.born < 3000));
+    }, 500);
+    return () => clearInterval(interval);
+  }, [roomIndex]);
+
+  // Keyboard handler
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-
-      if (dialogue) {
-        if (e.key === " " || e.key === "Enter") {
-          e.preventDefault();
-          const line = dialogue.npc.dialogue[dialogue.lineIndex];
-          if (!line?.choices) advanceDialogue();
-        }
-        return;
-      }
-
       switch (e.key) {
         case "ArrowUp": case "w": case "W": e.preventDefault(); handleMove(0, -1); break;
         case "ArrowDown": case "s": case "S": e.preventDefault(); handleMove(0, 1); break;
         case "ArrowLeft": case "a": case "A": e.preventDefault(); handleMove(-1, 0); break;
         case "ArrowRight": case "d": case "D": e.preventDefault(); handleMove(1, 0); break;
-        case " ": case "Enter": e.preventDefault(); handleInteract(); break;
       }
     }
     const el = containerRef.current;
     if (el) el.addEventListener("keydown", onKey);
     return () => { if (el) el.removeEventListener("keydown", onKey); };
-  }, [dialogue, handleMove, handleInteract, advanceDialogue]);
+  }, [handleMove]);
 
-  // Keep focus on game container — refocus after any interaction
+  // Focus management
   const refocusGame = useCallback(() => {
     requestAnimationFrame(() => containerRef.current?.focus());
   }, []);
-
   useEffect(() => { containerRef.current?.focus(); }, []);
-
-  // Refocus when dialogue closes or room changes
-  useEffect(() => { if (!dialogue) refocusGame(); }, [dialogue, refocusGame]);
   useEffect(() => { refocusGame(); }, [roomIndex, refocusGame]);
 
-  // Responsive scaling — shrink the game viewport to fit narrow containers
+  // Responsive scaling
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const update = () => {
       const containerWidth = el.clientWidth;
-      const gameWidth = room.width * TILE;
+      const gameWidth = ROOM_W * TILE;
       setScale(Math.min(1, containerWidth / gameWidth));
     };
     update();
     const observer = new ResizeObserver(update);
     observer.observe(el);
     return () => observer.disconnect();
-  }, [room.width]);
+  }, []);
 
-  const currentLine = dialogue ? dialogue.npc.dialogue[dialogue.lineIndex] : null;
-
+  // --- GAME COMPLETE SCREEN ---
   if (gameComplete) {
     return (
       <div className="max-w-2xl mx-auto text-center space-y-6 py-12">
@@ -374,15 +336,18 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
         </h2>
         <p className="text-text-secondary">
           {isZh
-            ? "你成功地将一条用户消息送过了 Claude Code 的整个管线：输入 → API → 工具 → 安全 → 响应。"
-            : "You successfully guided a user message through Claude Code's entire pipeline: Input → API → Tools → Security → Response."
+            ? "你成功地将一条用户消息送过了 Claude Code 的整个管线：收集上下文 → 接住 Token → 分拣工具 → 安全审判。"
+            : "You guided a message through Claude Code's entire pipeline: Collect Context → Catch Tokens → Sort Tools → Security Judgment."
           }
         </p>
-        <p className="text-lg font-bold text-accent-emerald">
-          {correctAnswers}/4 {isZh ? "个问题回答正确" : "questions answered correctly"}
-        </p>
         <button
-          onClick={() => { setRoomIndex(0); setPlayerPos({x:1,y:3}); setCompletedRooms(new Set()); setCorrectAnswers(0); setGameComplete(false); }}
+          onClick={() => {
+            setRoomIndex(0); setPlayerPos({ x: 1, y: 3 }); setGameComplete(false);
+            setInventory([]); setTokensCaught(0); setTokens([]);
+            setCarrying(null); setSortedTools([]);
+            setToolPositions(new Map(initialTools.map(t => [t.name, { ...t.pos }])));
+            setCurrentCommand(0);
+          }}
           className="px-6 py-3 rounded-lg bg-accent-purple text-white font-bold hover:bg-accent-purple/80 transition-colors"
         >
           {isZh ? "再玩一次" : "Play Again"}
@@ -391,10 +356,60 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
     );
   }
 
+  // --- HUD for each room ---
+  const renderHUD = () => {
+    switch (roomIndex) {
+      case 0:
+        return (
+          <div className="flex items-center gap-2 text-xs">
+            <span className="font-bold text-text-secondary">{t(locale, "games.pg.inventory")}:</span>
+            {collectibles.map(c => (
+              <span key={c.id} className={`text-base ${inventory.includes(c.id) ? "" : "opacity-20"}`}>
+                {c.emoji}
+              </span>
+            ))}
+            {inventory.length >= 3 && <span className="text-accent-emerald ml-1">✓</span>}
+          </div>
+        );
+      case 1:
+        return (
+          <div className="text-xs font-bold text-text-secondary">
+            {t(locale, "games.pg.tokens")}: {tokensCaught}/8
+            {tokensCaught >= 8 && <span className="text-accent-emerald ml-1">✓</span>}
+          </div>
+        );
+      case 2:
+        return (
+          <div className="text-xs font-bold text-text-secondary">
+            {carrying && (
+              <span className="mr-3 text-accent-purple">
+                {t(locale, "games.pg.carrying")}: {toolEmoji[carrying]} {carrying}
+              </span>
+            )}
+            {t(locale, "games.pg.sorted")}: {sortedTools.length}/6
+            {sortedTools.length >= 6 && <span className="text-accent-emerald ml-1">✓</span>}
+          </div>
+        );
+      case 3:
+        return (
+          <div className="text-xs font-bold text-text-secondary">
+            {t(locale, "games.pg.commands")}: {Math.min(currentCommand, 3)}/3
+            {currentCommand >= 3 && <span className="text-accent-emerald ml-1">✓</span>}
+          </div>
+        );
+    }
+  };
+
+  // Room hint
+  const hintKeys = ["games.pg.collectHint", "games.pg.tokenHint", "games.pg.sortHint", "games.pg.gateHint"];
+
+  // Is the exit on the right unlocked?
+  const exitUnlocked = isRoomComplete(roomIndex);
+
   return (
     <div ref={containerRef} tabIndex={0} className="outline-none max-w-2xl mx-auto">
       {/* Room header */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full" style={{ backgroundColor: room.color }} />
           <span className="text-sm font-bold" style={{ color: room.color }}>
@@ -402,11 +417,11 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
           </span>
         </div>
         <div className="flex gap-1">
-          {rooms.map((r, i) => (
+          {roomMeta.map((r, i) => (
             <span
               key={r.id}
               className={`w-6 h-2 rounded-full ${
-                completedRooms.has(r.id) ? "bg-accent-emerald" :
+                isRoomComplete(i) && i < roomIndex ? "bg-accent-emerald" :
                 i === roomIndex ? "bg-accent-purple" : "bg-bg-border"
               }`}
             />
@@ -414,14 +429,20 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
         </div>
       </div>
 
-      {/* Game viewport — wrapped to maintain scaled height in document flow */}
-      <div style={{ height: `${room.height * TILE * scale}px`, overflow: "hidden" }}>
+      {/* Hint + HUD */}
+      <div className="flex items-center justify-between mb-2 px-1">
+        <span className="text-xs text-text-secondary italic">{t(locale, hintKeys[roomIndex])}</span>
+        {renderHUD()}
+      </div>
+
+      {/* Game viewport */}
+      <div style={{ height: `${ROOM_H * TILE * scale}px`, overflow: "hidden" }}>
       <div
         className="relative rounded-xl border-2 overflow-hidden bg-bg"
         style={{
           borderColor: room.color,
-          width: `${room.width * TILE}px`,
-          height: `${room.height * TILE}px`,
+          width: `${ROOM_W * TILE}px`,
+          height: `${ROOM_H * TILE}px`,
           imageRendering: "pixelated",
           transform: `scale(${scale})`,
           transformOrigin: "top left",
@@ -436,6 +457,22 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
           backgroundSize: `${TILE}px ${TILE}px`,
         }} />
 
+        {/* Flash overlay */}
+        {flash && (
+          <div className="absolute inset-0 pointer-events-none z-30 transition-opacity" style={{
+            backgroundColor: flash === "green" ? "rgba(16,185,129,0.2)" : "rgba(239,68,68,0.2)",
+          }} />
+        )}
+
+        {/* Flash text */}
+        {flashText && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-40">
+            <span className={`text-lg font-bold px-3 py-1 rounded ${flash === "green" ? "text-accent-emerald bg-bg/80" : "text-red-400 bg-bg/80"}`}>
+              {flashText}
+            </span>
+          </div>
+        )}
+
         {/* Walls */}
         {room.walls.map((w, i) => (
           <div
@@ -445,57 +482,148 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
           />
         ))}
 
-        {/* Exit indicators — locked until room completed */}
-        {room.exitRight && (
+        {/* --- Room-specific rendering --- */}
+
+        {/* Room 1: Collectible items */}
+        {roomIndex === 0 && collectibles.map(c => (
+          !inventory.includes(c.id) && (
+            <div key={c.id} className="absolute flex items-center justify-center animate-pulse"
+              style={{ left: c.pos.x * TILE, top: c.pos.y * TILE, width: TILE, height: TILE }}>
+              {objectSprites[c.emoji] ? (
+                <PixelSprite sprite={objectSprites[c.emoji]} size={4} />
+              ) : (
+                <span className="text-lg">{c.emoji}</span>
+              )}
+            </div>
+          )
+        ))}
+
+        {/* Room 2: Tokens */}
+        {roomIndex === 1 && tokens.map(tk => {
+          const age = (Date.now() - tk.born) / 3000; // 0 to 1
+          return (
+            <div key={tk.id} className="absolute flex items-center justify-center"
+              style={{
+                left: tk.x * TILE + TILE / 4,
+                top: tk.y * TILE + TILE / 4,
+                width: TILE / 2,
+                height: TILE / 2,
+                opacity: Math.max(0.2, 1 - age),
+                transition: "opacity 0.3s",
+              }}>
+              <div className="w-3 h-3 rounded-full" style={{
+                backgroundColor: ["#6c63ff", "#22d3ee", "#10b981", "#f59e0b", "#ec4899"][tk.id % 5],
+              }} />
+            </div>
+          );
+        })}
+
+        {/* Room 3: Zone highlights */}
+        {roomIndex === 2 && (
+          <>
+            {/* Parallel zone */}
+            <div className="absolute border-2 border-cyan-400/40 rounded"
+              style={{
+                left: 1 * TILE, top: 5 * TILE,
+                width: 4 * TILE, height: 2 * TILE,
+                backgroundColor: "rgba(34,211,238,0.08)",
+              }}>
+              <span className="absolute top-0 left-1 text-[10px] font-bold text-cyan-400">
+                {t(locale, "games.pg.parallel")}
+              </span>
+            </div>
+            {/* Serial zone */}
+            <div className="absolute border-2 border-amber-400/40 rounded"
+              style={{
+                left: 7 * TILE, top: 5 * TILE,
+                width: 4 * TILE, height: 2 * TILE,
+                backgroundColor: "rgba(245,158,11,0.08)",
+              }}>
+              <span className="absolute top-0 left-1 text-[10px] font-bold text-amber-400">
+                {t(locale, "games.pg.serial")}
+              </span>
+            </div>
+          </>
+        )}
+
+        {/* Room 3: Tool items */}
+        {roomIndex === 2 && initialTools.map(td => {
+          const pos = toolPositions.get(td.name);
+          if (!pos) return null;
+          const isSorted = sortedTools.includes(td.name);
+          const isCarried = carrying === td.name;
+          if (isCarried) return null; // don't render if being carried
+          return (
+            <div key={td.name} className={`absolute flex flex-col items-center justify-center ${isSorted ? "opacity-60" : ""}`}
+              style={{ left: pos.x * TILE, top: pos.y * TILE, width: TILE, height: TILE }}>
+              <span className="text-sm">{toolEmoji[td.name]}</span>
+              <span className="text-[8px] font-mono text-text-secondary">{td.name}</span>
+            </div>
+          );
+        })}
+
+        {/* Room 4: Gates */}
+        {roomIndex === 3 && (
+          <>
+            {/* Allow gate */}
+            <div className="absolute flex items-center justify-center"
+              style={{ left: (ROOM_W - 1) * TILE, top: 1 * TILE, width: TILE, height: 2 * TILE, backgroundColor: "rgba(34,197,94,0.2)", borderLeft: "3px solid #22c55e" }}>
+              <span className="text-[10px] font-bold text-green-400">{t(locale, "games.pg.allowGate")}</span>
+            </div>
+            {/* Deny gate */}
+            <div className="absolute flex items-center justify-center"
+              style={{ left: (ROOM_W - 1) * TILE, top: 3 * TILE, width: TILE, height: 2 * TILE, backgroundColor: "rgba(239,68,68,0.2)", borderLeft: "3px solid #ef4444" }}>
+              <span className="text-[10px] font-bold text-red-400">{t(locale, "games.pg.denyGate")}</span>
+            </div>
+            {/* Ask gate */}
+            <div className="absolute flex items-center justify-center"
+              style={{ left: (ROOM_W - 1) * TILE, top: 5 * TILE, width: TILE, height: 2 * TILE, backgroundColor: "rgba(168,85,247,0.2)", borderLeft: "3px solid #a855f7" }}>
+              <span className="text-[10px] font-bold text-purple-400">{t(locale, "games.pg.askGate")}</span>
+            </div>
+            {/* Command display */}
+            {currentCommand < 3 && (
+              <div className="absolute flex items-center justify-center z-20"
+                style={{ left: 2 * TILE, top: 3 * TILE, width: 7 * TILE, height: 2 * TILE }}>
+                <div className="bg-bg/90 border border-bg-border rounded-lg px-4 py-2 text-center">
+                  <span className="text-[10px] text-text-secondary block mb-1">
+                    {isZh ? "判断这条命令：" : "Judge this command:"}
+                  </span>
+                  <code className="text-sm font-mono font-bold text-accent-purple">
+                    {securityCommands[currentCommand].cmd}
+                  </code>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Right exit indicator */}
+        {roomIndex < 3 && (
           <div
-            className={`absolute flex items-center justify-center text-sm ${completedRooms.has(room.id) ? "animate-pulse" : ""}`}
-            style={{ left: room.exitRight.x * TILE, top: room.exitRight.y * TILE, width: TILE, height: TILE * 2, color: completedRooms.has(room.id) ? room.color : "#ef4444" }}
+            className={`absolute flex items-center justify-center text-sm ${exitUnlocked ? "animate-pulse" : ""}`}
+            style={{
+              left: (ROOM_W - 1) * TILE, top: 3 * TILE,
+              width: TILE, height: TILE * 2,
+              color: exitUnlocked ? room.color : "#ef4444",
+            }}
           >
-            {completedRooms.has(room.id) ? "→" : "🔒"}
+            {exitUnlocked ? "→" : "🔒"}
           </div>
         )}
-        {room.exitLeft && (
+
+        {/* Left exit indicator */}
+        {roomIndex > 0 && (
           <div
             className="absolute flex items-center justify-center text-xs animate-pulse"
-            style={{ left: room.exitLeft.x * TILE, top: room.exitLeft.y * TILE, width: TILE, height: TILE * 2, color: room.color }}
+            style={{ left: 0, top: 3 * TILE, width: TILE, height: TILE * 2, color: room.color }}
           >
             ←
           </div>
         )}
 
-        {/* Objects */}
-        {room.objects.map((obj, i) => (
-          <div
-            key={`o${i}`}
-            className="absolute flex items-center justify-center"
-            style={{ left: obj.pos.x * TILE, top: obj.pos.y * TILE, width: TILE, height: TILE }}
-          >
-            {objectSprites[obj.emoji] ? (
-              <PixelSprite sprite={objectSprites[obj.emoji]} size={4} />
-            ) : (
-              <span className="text-lg">{obj.emoji}</span>
-            )}
-          </div>
-        ))}
-
-        {/* NPCs */}
-        {room.npcs.map(npc => (
-          <div key={npc.id} className="absolute flex flex-col items-center" style={{ left: npc.pos.x * TILE, top: npc.pos.y * TILE - 12, width: TILE }}>
-            <span className="text-[10px] font-mono text-text-secondary whitespace-nowrap">{isZh ? npc.nameCn : npc.name}</span>
-            {npcSprites[npc.id] ? (
-              <PixelSprite sprite={npcSprites[npc.id]} size={3} />
-            ) : (
-              <span className="text-xl">{npc.emoji}</span>
-            )}
-            {!completedRooms.has(room.id) && (
-              <span className="text-yellow-400 text-xs animate-bounce">!</span>
-            )}
-          </div>
-        ))}
-
         {/* Player */}
         <div
-          className="absolute transition-all duration-100 flex items-center justify-center"
+          className="absolute transition-all duration-100 flex items-center justify-center z-10"
           style={{
             left: playerPos.x * TILE,
             top: playerPos.y * TILE,
@@ -505,61 +633,13 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
         >
           <PixelSprite sprite={playerSprite} size={3} />
         </div>
-
-        {/* Tooltip */}
-        {tooltip && !dialogue && (
-          <div className="absolute bottom-2 left-2 right-2 bg-bg/90 border border-bg-border rounded-lg px-3 py-2 text-xs text-text-secondary backdrop-blur">
-            {tooltip}
-          </div>
-        )}
-
-        {/* I8: Mission complete hint — security room has no exit, so prompt player to press Space */}
-        {room.id === "security" && completedRooms.has("security") && !dialogue && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <span className="text-2xl animate-bounce">🏁</span>
-          </div>
-        )}
       </div>
       </div>
 
-      {/* Dialogue box */}
-      {dialogue && currentLine && (
-        <div className="mt-3 rounded-xl border border-bg-border bg-bg-card p-4">
-          <p className="text-xs font-bold mb-2" style={{ color: room.color }}>
-            {dialogue.npc.emoji} {isZh ? dialogue.npc.nameCn : dialogue.npc.name}
-          </p>
-          <p className="text-sm text-text leading-relaxed">
-            {isZh ? currentLine.textCn : currentLine.text}
-          </p>
-          {currentLine.choices ? (
-            <div className="mt-3 space-y-2">
-              {currentLine.choices.map((choice, i) => (
-                <button
-                  key={i}
-                  onClick={() => { advanceDialogue(i); refocusGame(); }}
-                  className="block w-full text-left px-3 py-2 rounded-lg border border-bg-border text-sm text-text-secondary hover:text-accent-purple hover:border-accent-purple transition-colors"
-                >
-                  {String.fromCharCode(65 + i)}. {isZh ? choice.labelCn : choice.label}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <button
-              onClick={() => { advanceDialogue(); refocusGame(); }}
-              className="mt-3 text-xs text-text-secondary hover:text-accent-purple transition-colors"
-            >
-              {isZh ? "[空格键/点击继续]" : "[Space / Click to continue]"}
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Controls hint — keyboard only, hidden on mobile */}
-      {!dialogue && (
-        <p className="mt-3 text-center text-xs text-text-secondary/50 hidden lg:block">
-          {isZh ? "方向键/WASD 移动 · 空格键互动" : "Arrow keys / WASD to move · Space to interact"}
-        </p>
-      )}
+      {/* Controls hint */}
+      <p className="mt-3 text-center text-xs text-text-secondary/50 hidden lg:block">
+        {isZh ? "方向键/WASD 移动" : "Arrow keys / WASD to move"}
+      </p>
 
       {/* Touch D-pad for mobile */}
       <div className="mt-3 flex justify-center lg:hidden">
@@ -568,7 +648,7 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
           <button onMouseDown={e => e.preventDefault()} onClick={() => { handleMove(0, -1); refocusGame(); }} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">↑</button>
           <div />
           <button onMouseDown={e => e.preventDefault()} onClick={() => { handleMove(-1, 0); refocusGame(); }} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">←</button>
-          <button onMouseDown={e => e.preventDefault()} onClick={() => { handleInteract(); refocusGame(); }} className="p-3 rounded bg-bg-card border border-bg-border text-center text-xs text-accent-purple">ACT</button>
+          <div />
           <button onMouseDown={e => e.preventDefault()} onClick={() => { handleMove(1, 0); refocusGame(); }} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">→</button>
           <div />
           <button onMouseDown={e => e.preventDefault()} onClick={() => { handleMove(0, 1); refocusGame(); }} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">↓</button>
