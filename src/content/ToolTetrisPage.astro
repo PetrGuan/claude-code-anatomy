@@ -1,0 +1,34 @@
+---
+import type { Locale } from "../i18n/locales";
+import { getLocalePath } from "../i18n/locales";
+import { t } from "../i18n/translations";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ToolTetris from "../components/games/ToolTetris.tsx";
+
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+---
+
+<BaseLayout title={t(locale, "games.ts.title")} locale={locale}>
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-8">
+      <a href={getLocalePath(locale, "/games")} class="text-sm text-text-secondary hover:text-accent-purple transition-colors">
+        &larr; {t(locale, "games.hubTitle")}
+      </a>
+    </div>
+
+    <ToolTetris client:only="react" locale={locale} />
+
+    <div class="mt-8 rounded-lg border border-bg-border bg-bg-card p-6">
+      <h3 class="text-sm font-bold text-text mb-3">{locale === "zh" ? "特殊规则" : "Special Rules"}</h3>
+      <ul class="text-xs text-text-secondary space-y-2 leading-relaxed">
+        <li>&#x1F535; {locale === "zh" ? "蓝色块（只读工具）：整行全蓝可瞬间并行消除，连消翻倍加分" : "Blue blocks (read-only tools): all-blue rows clear instantly in parallel, consecutive clears multiply score"}</li>
+        <li>&#x1F7E0; {locale === "zh" ? "橙色块（写工具）：含橙色的行需要串行消除（慢），且打断连击" : "Orange blocks (write tools): rows with orange clear serially (slow), and break combo streaks"}</li>
+        <li>&#x1F534; {locale === "zh" ? "红色危险块：按 X 键拒绝！否则落地会爆炸" : "Red danger blocks: press X to deny! Otherwise they explode on landing"}</li>
+        <li>&#x2B50; {locale === "zh" ? "星星道具：消除含星星的行激活随机特效" : "Star power-ups: clear a row containing a star to activate random effects"}</li>
+        <li>&#x1F5DC; {locale === "zh" ? "棋盘满到 80% 时自动压缩底部行" : "Board auto-compresses bottom rows when 80% full"}</li>
+        <li>&#x1F916; {locale === "zh" ? "每 200 分可按 A 键召唤 Agent 自动放一块" : "Press A to summon an Agent helper every 200 points"}</li>
+      </ul>
+    </div>
+  </div>
+</BaseLayout>
