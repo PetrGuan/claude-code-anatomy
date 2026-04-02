@@ -3,7 +3,7 @@ import type { Locale } from "../i18n/locales";
 import { getLocalePath } from "../i18n/locales";
 import { t } from "../i18n/translations";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import PermissionGuard from "../components/games/PermissionGuard.tsx";
+import PixelRPG from "../components/games/PixelRPG.tsx";
 
 interface Props { locale: Locale; }
 const { locale } = Astro.props;
@@ -17,14 +17,14 @@ const { locale } = Astro.props;
       </a>
     </div>
 
-    <PermissionGuard client:load locale={locale} />
+    <PixelRPG client:load locale={locale} />
 
     <div class="mt-12 rounded-lg border border-bg-border bg-bg-card p-6">
       <h3 class="text-sm font-bold text-text mb-3">{t(locale, "games.pg.howItWorks")}</h3>
       <p class="text-xs text-text-secondary leading-relaxed">
         {locale === "zh"
-          ? "Claude Code 使用三层权限系统：ML 分类器处理 ~80% 的常见情况（如 git status → 允许），规则引擎匹配你的自定义策略，最后才弹出确认对话框。这个游戏模拟的就是这个判断过程。"
-          : "Claude Code uses a three-layer permission system: ML classifier handles ~80% of common cases (e.g., git status → allow), rule engine matches your custom policies, and finally a confirmation dialog. This game simulates that decision process."
+          ? "这个游戏模拟一条消息穿过 Claude Code 的四个核心系统的旅程：输入处理（附加上下文）、API 流式传输（异步生成器）、工具执行（并行调度）和权限安全（ML 分类器 + 规则 + 用户确认）。"
+          : "This game simulates a message's journey through Claude Code's four core systems: Input Processing (attaching context), API Streaming (async generators), Tool Execution (parallel scheduling), and Permission Security (ML classifier + rules + user confirmation)."
         }
       </p>
       <a

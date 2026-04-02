@@ -971,9 +971,9 @@ const translations = {
     hubSubtitle: { en: "Learn Claude Code concepts through play", zh: "通过游戏学习 Claude Code 的概念" },
     playBtn: { en: "Play", zh: "开始" },
     pg: {
-      title: { en: "Permission Guard", zh: "权限守卫" },
-      subtitle: { en: "Judge CLI commands — is it safe?", zh: "判断 CLI 命令 — 安全吗？" },
-      desc: { en: "Commands scroll in. You decide: Allow, Deny, or Ask User. Think fast — the clock is ticking.", zh: "命令滚入。你来决定：允许、拒绝还是询问用户。快想 — 时间在流逝。" },
+      title: { en: "Inside Claude Code", zh: "深入 Claude Code" },
+      subtitle: { en: "Guide a message through Claude Code's internals", zh: "引导消息穿过 Claude Code 的内部世界" },
+      desc: { en: "Guide a message through Claude Code's 4 core systems in this pixel RPG adventure", zh: "在这个像素 RPG 冒险中引导消息穿过 Claude Code 的 4 个核心系统" },
       allow: { en: "Allow", zh: "允许" },
       deny: { en: "Deny", zh: "拒绝" },
       ask: { en: "Ask User", zh: "询问用户" },
