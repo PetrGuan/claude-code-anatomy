@@ -1,0 +1,83 @@
+---
+import type { Locale } from "../i18n/locales";
+import { t } from "../i18n/translations";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Sidebar from "../components/layout/Sidebar.tsx";
+import SectionHeading from "../components/common/SectionHeading.astro";
+
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+
+const sidebarItems = [
+  { id: "buddy", label: locale === "zh" ? "伙伴精灵" : "Companion Sprite", level: 1 },
+  { id: "vim", label: "Vim Mode", level: 1 },
+  { id: "voice", label: locale === "zh" ? "语音输入" : "Voice Input", level: 1 },
+  { id: "names", label: locale === "zh" ? "最长类名" : "Longest Name", level: 1 },
+  { id: "codenames", label: locale === "zh" ? "内部代号" : "Codenames", level: 1 },
+  { id: "undercover", label: locale === "zh" ? "卧底模式" : "Undercover", level: 1 },
+  { id: "cost", label: locale === "zh" ? "成本追踪" : "Cost Tracker", level: 1 },
+  { id: "extreme", label: locale === "zh" ? "极端文件" : "Extreme Files", level: 1 },
+  { id: "encoding", label: locale === "zh" ? "物种之谜" : "Species Puzzle", level: 1 },
+];
+
+const items = [
+  { id: "buddy", titleKey: "easterEggs.buddyTitle", descKey: "easterEggs.buddyDesc", icon: "🦆", color: "#f59e0b" },
+  { id: "vim", titleKey: "easterEggs.vimTitle", descKey: "easterEggs.vimDesc", icon: "⌨️", color: "#10b981" },
+  { id: "voice", titleKey: "easterEggs.voiceTitle", descKey: "easterEggs.voiceDesc", icon: "🎙️", color: "#6c63ff" },
+  { id: "names", titleKey: "easterEggs.namesTitle", descKey: "easterEggs.namesDesc", icon: "📏", color: "#ef4444" },
+  { id: "codenames", titleKey: "easterEggs.codenamesTitle", descKey: "easterEggs.codenamesDesc", icon: "🕵️", color: "#22d3ee" },
+  { id: "undercover", titleKey: "easterEggs.undercoverTitle", descKey: "easterEggs.undercoverDesc", icon: "🥷", color: "#a78bfa" },
+  { id: "cost", titleKey: "easterEggs.costTitle", descKey: "easterEggs.costDesc", icon: "💰", color: "#f59e0b" },
+  { id: "extreme", titleKey: "easterEggs.extremeTitle", descKey: "easterEggs.extremeDesc", icon: "📊", color: "#f472b6" },
+  { id: "encoding", titleKey: "easterEggs.encodingTitle", descKey: "easterEggs.encodingDesc", icon: "🧩", color: "#fb923c" },
+];
+---
+
+<BaseLayout title={t(locale, "easterEggs.title")} locale={locale}>
+  <Sidebar client:load items={sidebarItems} locale={locale} />
+
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-16 text-center">
+      <p class="text-6xl mb-4">🥚</p>
+      <h1 class="text-4xl font-bold">{t(locale, "easterEggs.title")}</h1>
+      <p class="mt-4 text-xl text-text-secondary max-w-2xl mx-auto">
+        {t(locale, "easterEggs.subtitle")}
+      </p>
+    </div>
+
+    <div class="space-y-12">
+      {items.map((item) => (
+        <div id={item.id} class="scroll-mt-24">
+          <div class="rounded-xl border border-bg-border bg-bg-card p-6 hover:border-bg-border/80 transition-colors">
+            <div class="flex items-start gap-4">
+              <span class="text-3xl flex-shrink-0">{item.icon}</span>
+              <div>
+                <h2 class="text-xl font-bold" style={`color: ${item.color}`}>
+                  {t(locale, item.titleKey)}
+                </h2>
+                <div class="mt-3 text-sm text-text-secondary leading-relaxed space-y-2">
+                  {t(locale, item.descKey).split("\n\n").map((p, i) => (
+                    <p>{p}</p>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* Fun ASCII art footer */}
+    <div class="mt-24 text-center">
+      <pre class="text-text-secondary text-xs font-mono inline-block text-left">
+{`   __
+  / _)
+ / /
+/ /___
+\_____/
+  Claude Code
+  512K lines of surprises`}
+      </pre>
+    </div>
+  </div>
+</BaseLayout>

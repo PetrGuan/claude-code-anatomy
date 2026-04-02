@@ -28,6 +28,7 @@ export const contentPages: PageDef[] = [
   { path: "/mcp-integration", navKey: "nav.mcpIntegration", descKey: "mcpIntegration.subtitle", color: "#fb923c", group: "optional", related: ["/tool-system", "/ide-bridge"] },
   // Reference
   { path: "/glossary", navKey: "nav.glossary", descKey: "glossary.subtitle", color: "#8888a0", group: "reference" },
+  { path: "/easter-eggs", navKey: "nav.easterEggs", descKey: "easterEggs.subtitle", color: "#f59e0b", group: "reference" },
 ];
 
 export const pageGroups = ["core", "advanced", "optional", "reference"] as const;

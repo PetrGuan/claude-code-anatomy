@@ -14,6 +14,7 @@ const translations = {
     ideBridge: { en: "IDE Bridge", zh: "IDE 桥接" },
     mcpIntegration: { en: "MCP", zh: "MCP 集成" },
     glossary: { en: "Glossary", zh: "术语表" },
+    easterEggs: { en: "Easter Eggs", zh: "彩蛋" },
   },
   common: {
     plainLabel: { en: "Simple", zh: "通俗版" },
@@ -912,6 +913,55 @@ const translations = {
     mcWhyFourStrategiesDesc: {
       en: "A single compaction strategy would either be too aggressive (losing important context) or too conservative (running out of space). The four strategies form a defense-in-depth:\n\n• **Auto-compact** (proactive): Runs before problems occur. Summarizes the oldest messages first, preserving recent context. Handles ~90% of cases — most conversations never hit a 413 error.\n• **Reactive compact** (recovery): Catches the remaining ~10% — conversations that grow too fast between auto-compact checks. Parses the exact token overage from the 413 error for precise trimming.\n• **Context collapse** (cheap): Before doing a full summarization, tries simply collapsing expanded content blocks. Zero API cost, instant.\n• **Micro-compact** (targeted): Summarizes individual oversized tool results inline rather than compacting the entire history. A single `cat large_file.ts` shouldn't force a full conversation summary.\n\nThe key insight: each strategy has different cost/precision tradeoffs. Collapse is free but coarse. Auto-compact is a full API call but planned. Reactive is expensive but precise. Micro is targeted but local. Together they handle every scenario efficiently.",
       zh: "单一压缩策略要么太激进（丢失重要上下文）要么太保守（空间不足）。四种策略形成纵深防御：\n\n• **自动压缩**（主动）：在问题发生前运行。优先总结最旧的消息，保留最近的上下文。处理约 90% 的情况 — 大多数对话从不会遇到 413 错误。\n• **响应式压缩**（恢复）：捕获剩余约 10% — 在自动压缩检查之间增长过快的对话。从 413 错误中解析确切的 token 超额以进行精确修剪。\n• **上下文折叠**（廉价）：在进行完整摘要之前，尝试简单地折叠展开的内容块。零 API 成本，即时完成。\n• **微压缩**（定向）：对单个超大工具结果进行内联摘要，而不是压缩整个历史。一次 `cat large_file.ts` 不应该强制进行完整的对话摘要。\n\n关键洞察：每种策略有不同的成本/精度权衡。折叠是免费但粗糙的。自动压缩是完整的 API 调用但有计划的。响应式是昂贵但精确的。微压缩是定向但局部的。它们一起高效处理每种场景。"
+    },
+  },
+  easterEggs: {
+    title: { en: "Easter Eggs & Curiosities", zh: "彩蛋与趣闻" },
+    subtitle: { en: "The weird, wonderful, and unexpected things hiding in 512K lines of code", zh: "隐藏在 51 万行代码中的奇妙、有趣和意想不到的东西" },
+    buddyTitle: { en: "Your Personal Companion Sprite", zh: "你的专属伙伴精灵" },
+    buddyDesc: {
+      en: "Claude Code generates a unique companion sprite for every user based on their user ID. There are **18 species** (Duck, Goose, Blob, Cat, Dragon, Octopus, Owl, Penguin, Turtle, Snail, Ghost, Axolotl, Capybara, Cactus, Robot, Rabbit, Mushroom, Chonk), **6 eye styles**, **8 hat types**, **5 stats** (DEBUGGING, PATIENCE, CHAOS, WISDOM, SNARK), and **5 rarity tiers** from common (60%) to legendary (1%). Each sprite has 3 animation frames for idle fidgeting. The PRNG comment reads: \"Mulberry32 — tiny seeded PRNG, good enough for picking ducks.\"",
+      zh: "Claude Code 根据用户 ID 为每个用户生成独特的伙伴精灵。有 **18 个物种**（鸭子、鹅、Blob、猫、龙、章鱼、猫头鹰、企鹅、乌龟、蜗牛、幽灵、美西螈、水豚、仙人掌、机器人、兔子、蘑菇、胖墩），**6 种眼睛样式**，**8 种帽子**，**5 项属性**（调试、耐心、混乱、智慧、毒舌），以及从普通（60%）到传奇（1%）的 **5 个稀有度**。每个精灵有 3 帧闲置动画。随机数生成器的注释写道：\"Mulberry32 — 微型种子 PRNG，用来挑鸭子够用了。\""
+    },
+    vimTitle: { en: "Full Vim Mode in a CLI", zh: "CLI 中的完整 Vim 模式" },
+    vimDesc: {
+      en: "Yes, really. Claude Code implements a complete vim emulation with INSERT/NORMAL modes, hjkl motions, word motions (wb e), line positions (0^$), find (fFtT), text objects (inner/around word, quotes, parens), delete/change/yank operators, dot-repeat, register system, and a max command count of 10,000. All in a tool that talks to an AI.",
+      zh: "是的，真的。Claude Code 实现了完整的 vim 仿真：INSERT/NORMAL 模式、hjkl 移动、单词移动（wb e）、行位置（0^$）、查找（fFtT）、文本对象（内部/周围 word、引号、括号）、delete/change/yank 操作符、点重复、寄存器系统，最大命令计数 10,000。这一切都在一个与 AI 对话的工具中。"
+    },
+    voiceTitle: { en: "Voice Input via Spacebar", zh: "按空格键语音输入" },
+    voiceDesc: {
+      en: "Hold spacebar, speak, release. Claude Code connects to Anthropic's private `voice_stream` WebSocket endpoint for real-time speech-to-text. It records 16kHz mono audio, streams it for transcription, and types the result into your prompt. Requires a Claude.ai subscription and a microphone. Has a kill-switch codename: `tengu_amber_quartz_disabled`.",
+      zh: "按住空格键，说话，松开。Claude Code 连接到 Anthropic 的私有 `voice_stream` WebSocket 端点进行实时语音转文字。录制 16kHz 单声道音频，流式传输进行转录，将结果输入到你的提示中。需要 Claude.ai 订阅和麦克风。有一个代号为 `tengu_amber_quartz_disabled` 的终止开关。"
+    },
+    namesTitle: { en: "The Longest Class Name Award", zh: "最长类名奖" },
+    namesDesc: {
+      en: "Winner: `TelemetrySafeError_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS` (58 characters). This isn't a joke — the ridiculous name is a deliberate code review checkpoint. Every developer who types this name is forced to verify they're not leaking sensitive data. The companion type `AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS` is even longer at 60 characters.",
+      zh: "获奖者：`TelemetrySafeError_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS`（58 个字符）。这不是玩笑 — 这个荒谬的名字是故意的代码审查检查点。每个输入这个名字的开发者都被迫验证自己没有泄露敏感数据。配套类型 `AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS` 更长，有 60 个字符。"
+    },
+    codenamesTitle: { en: "87 Internal Codenames", zh: "87 个内部代号" },
+    codenamesDesc: {
+      en: "The codebase has 87 unique feature flags, most with cryptic codenames: KAIROS (assistant mode with 9+ variants including channels, push, dream, brief), CHICAGO_MCP (MCP server selection), COORDINATOR_MODE (multi-agent), VOICE_MODE, ULTRAPLAN, ULTRATHINK, TORCH, LODESTONE, and more. The `feature()` function from `bun:bundle` eliminates all disabled codepaths at build time — the public npm package contains none of these.",
+      zh: "代码库有 87 个唯一特性开关，大多数有神秘代号：KAIROS（助手模式，有 9+ 变体包括频道、推送、梦境、简报）、CHICAGO_MCP（MCP 服务器选择）、COORDINATOR_MODE（多 Agent）、VOICE_MODE、ULTRAPLAN、ULTRATHINK、TORCH、LODESTONE 等。`bun:bundle` 的 `feature()` 函数在构建时消除所有禁用的代码路径 — 公共 npm 包不包含任何这些。"
+    },
+    undercoverTitle: { en: "Undercover Mode", zh: "卧底模式" },
+    undercoverDesc: {
+      en: "When Anthropic employees use Claude Code on public/open-source repos, \"undercover mode\" auto-activates. It strips all Co-Authored-By attribution, prevents mentioning internal project names, and adds safety instructions to avoid leaking model codenames. Force it with `CLAUDE_CODE_UNDERCOVER=1`. The entire feature is dead-code-eliminated from public builds.",
+      zh: "当 Anthropic 员工在公共/开源仓库上使用 Claude Code 时，\"卧底模式\"自动激活。它删除所有 Co-Authored-By 署名，防止提及内部项目名称，并添加安全指令以避免泄露模型代号。可以用 `CLAUDE_CODE_UNDERCOVER=1` 强制开启。整个功能在公共构建中被死代码消除。"
+    },
+    costTitle: { en: "It Tracks Every Penny", zh: "它追踪每一分钱" },
+    costDesc: {
+      en: "The cost tracker (`src/cost-tracker.ts`, 323 lines) records input tokens, output tokens, cache reads, cache writes, web search requests, API duration, lines of code added/removed — all persisted to disk per session. Costs are calculated to 4 decimal places (or 2 for amounts over $0.50). It even tracks FPS metrics for the terminal UI.",
+      zh: "成本追踪器（`src/cost-tracker.ts`，323 行）记录输入 token、输出 token、缓存读取、缓存写入、网络搜索请求、API 时长、添加/删除的代码行数 — 全部按会话持久化到磁盘。成本精确计算到小数点后 4 位（超过 $0.50 时精确到 2 位）。它甚至追踪终端 UI 的 FPS 指标。"
+    },
+    extremeTitle: { en: "Extreme Files", zh: "极端文件" },
+    extremeDesc: {
+      en: "Longest file: `src/cli/print.ts` at **5,594 lines** (208KB) — the streaming output renderer. Runner-up: `src/screens/REPL.tsx` at **5,005 lines** — the main conversation loop UI. Third: `src/utils/messages.ts` at **5,512 lines** — message creation and manipulation. The deepest directory path spans 100+ characters. There are 346 React components rendering in a terminal.",
+      zh: "最长文件：`src/cli/print.ts` 有 **5,594 行**（208KB）— 流式输出渲染器。亚军：`src/screens/REPL.tsx` 有 **5,005 行** — 主对话循环 UI。第三：`src/utils/messages.ts` 有 **5,512 行** — 消息创建和操作。最深的目录路径超过 100 个字符。有 346 个 React 组件在终端中渲染。"
+    },
+    encodingTitle: { en: "The Species Name Puzzle", zh: "物种名称之谜" },
+    encodingDesc: {
+      en: "In the buddy system, species names are encoded using `String.fromCharCode()` instead of plain strings. Why? One species name collides with an internal model codename that's checked by `excluded-strings.txt` in the build pipeline. The check greps build output, so runtime-constructing the name keeps the literal out of the bundle. The salt for companion generation is literally `'friend-2026-401'` — dated April 1st, 2026.",
+      zh: "在伙伴系统中，物种名称使用 `String.fromCharCode()` 编码而非普通字符串。为什么？一个物种名称与内部模型代号冲突，该代号被构建管线中的 `excluded-strings.txt` 检查。检查会 grep 构建输出，所以运行时构造名称可以避免字面值出现在包中。伙伴生成的盐值字面意思是 `'friend-2026-401'` — 日期是 2026 年 4 月 1 日。"
     },
   },
 } as const;
