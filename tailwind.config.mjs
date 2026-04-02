@@ -4,16 +4,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        'bg': '#0a0a0f',
-        'bg-card': '#14141f',
-        'bg-border': '#1e1e2e',
-        'text': '#e0e0e8',
-        'text-secondary': '#8888a0',
-        'accent-purple': '#6c63ff',
-        'accent-cyan': '#22d3ee',
-        'accent-amber': '#f59e0b',
-        'accent-emerald': '#10b981',
-        'accent-red': '#ef4444',
+        'bg': 'rgb(var(--color-bg) / <alpha-value>)',
+        'bg-card': 'rgb(var(--color-bg-card) / <alpha-value>)',
+        'bg-border': 'rgb(var(--color-bg-border) / <alpha-value>)',
+        'text': 'rgb(var(--color-text) / <alpha-value>)',
+        'text-secondary': 'rgb(var(--color-text-secondary) / <alpha-value>)',
+        'accent-purple': 'rgb(var(--color-accent-purple) / <alpha-value>)',
+        'accent-cyan': 'rgb(var(--color-accent-cyan) / <alpha-value>)',
+        'accent-amber': 'rgb(var(--color-accent-amber) / <alpha-value>)',
+        'accent-emerald': 'rgb(var(--color-accent-emerald) / <alpha-value>)',
+        'accent-red': 'rgb(var(--color-accent-red) / <alpha-value>)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

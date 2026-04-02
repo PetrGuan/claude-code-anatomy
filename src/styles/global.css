@@ -3,6 +3,34 @@
 @tailwind utilities;
 
 @layer base {
+  /* Dark theme (default) */
+  :root {
+    --color-bg: 10 10 15;
+    --color-bg-card: 20 20 31;
+    --color-bg-border: 30 30 46;
+    --color-text: 224 224 232;
+    --color-text-secondary: 136 136 160;
+    --color-accent-purple: 108 99 255;
+    --color-accent-cyan: 34 211 238;
+    --color-accent-amber: 245 158 11;
+    --color-accent-emerald: 16 185 129;
+    --color-accent-red: 239 68 68;
+  }
+
+  /* Light theme */
+  :root[data-theme="light"] {
+    --color-bg: 255 255 255;
+    --color-bg-card: 248 248 252;
+    --color-bg-border: 226 226 238;
+    --color-text: 26 26 46;
+    --color-text-secondary: 107 107 128;
+    --color-accent-purple: 91 82 224;
+    --color-accent-cyan: 8 145 178;
+    --color-accent-amber: 217 119 6;
+    --color-accent-emerald: 5 150 105;
+    --color-accent-red: 220 38 38;
+  }
+
   html {
     @apply bg-bg text-text font-sans;
     scroll-behavior: smooth;

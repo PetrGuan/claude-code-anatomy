@@ -1,0 +1,60 @@
+---
+import type { Locale } from "../../i18n/locales";
+
+interface Props {
+  locale?: Locale;
+}
+
+const { locale = "en" } = Astro.props;
+---
+
+<button
+  id="theme-toggle"
+  class="p-2 text-text-secondary hover:text-text transition-colors"
+  aria-label={locale === "zh" ? "切换主题" : "Toggle theme"}
+>
+  <!-- Sun icon (shown in dark mode) -->
+  <svg id="theme-icon-sun" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+  </svg>
+  <!-- Moon icon (shown in light mode) -->
+  <svg id="theme-icon-moon" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+  </svg>
+</button>
+
+<script>
+  function getTheme(): string {
+    if (typeof localStorage !== "undefined" && localStorage.getItem("theme")) {
+      return localStorage.getItem("theme")!;
+    }
+    return "dark"; // default to dark
+  }
+
+  function applyTheme(theme: string) {
+    const root = document.documentElement;
+    if (theme === "light") {
+      root.setAttribute("data-theme", "light");
+    } else {
+      root.removeAttribute("data-theme");
+    }
+    // Toggle icon visibility
+    const sun = document.getElementById("theme-icon-sun");
+    const moon = document.getElementById("theme-icon-moon");
+    if (sun && moon) {
+      sun.classList.toggle("hidden", theme === "light");
+      moon.classList.toggle("hidden", theme === "dark");
+    }
+  }
+
+  // Apply theme immediately on load
+  applyTheme(getTheme());
+
+  // Toggle button
+  document.getElementById("theme-toggle")?.addEventListener("click", () => {
+    const current = getTheme();
+    const next = current === "dark" ? "light" : "dark";
+    localStorage.setItem("theme", next);
+    applyTheme(next);
+  });
+</script>
