@@ -8,7 +8,7 @@ export interface PageDef {
   navKey: string;
   descKey: string;
   color: string;
-  group: "core" | "advanced" | "optional" | "reference";
+  group: "core" | "advanced" | "optional" | "reference" | "games";
   related?: string[];  // paths of related pages
 }
 
@@ -29,9 +29,11 @@ export const contentPages: PageDef[] = [
   // Reference
   { path: "/glossary", navKey: "nav.glossary", descKey: "glossary.subtitle", color: "#8888a0", group: "reference" },
   { path: "/easter-eggs", navKey: "nav.easterEggs", descKey: "easterEggs.subtitle", color: "#f59e0b", group: "reference" },
+  // Games
+  { path: "/games", navKey: "nav.games", descKey: "games.hubSubtitle", color: "#f59e0b", group: "games" },
 ];
 
-export const pageGroups = ["core", "advanced", "optional", "reference"] as const;
+export const pageGroups = ["core", "advanced", "optional", "reference", "games"] as const;
 
 /** Look up a page by path */
 export function getPage(path: string): PageDef | undefined {

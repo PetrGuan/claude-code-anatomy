@@ -1,0 +1,38 @@
+---
+import type { Locale } from "../i18n/locales";
+import { getLocalePath } from "../i18n/locales";
+import { t } from "../i18n/translations";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PermissionGuard from "../components/games/PermissionGuard.tsx";
+
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+---
+
+<BaseLayout title={t(locale, "games.pg.title")} locale={locale}>
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-8">
+      <a href={getLocalePath(locale, "/games")} class="text-sm text-text-secondary hover:text-accent-purple transition-colors">
+        ← {t(locale, "games.hubTitle")}
+      </a>
+    </div>
+
+    <PermissionGuard client:load locale={locale} />
+
+    <div class="mt-12 rounded-lg border border-bg-border bg-bg-card p-6">
+      <h3 class="text-sm font-bold text-text mb-3">{t(locale, "games.pg.howItWorks")}</h3>
+      <p class="text-xs text-text-secondary leading-relaxed">
+        {locale === "zh"
+          ? "Claude Code 使用三层权限系统：ML 分类器处理 ~80% 的常见情况（如 git status → 允许），规则引擎匹配你的自定义策略，最后才弹出确认对话框。这个游戏模拟的就是这个判断过程。"
+          : "Claude Code uses a three-layer permission system: ML classifier handles ~80% of common cases (e.g., git status → allow), rule engine matches your custom policies, and finally a confirmation dialog. This game simulates that decision process."
+        }
+      </p>
+      <a
+        href={getLocalePath(locale, "/permission-security")}
+        class="inline-block mt-3 text-xs text-accent-purple hover:underline"
+      >
+        {t(locale, "common.learnMore")}
+      </a>
+    </div>
+  </div>
+</BaseLayout>

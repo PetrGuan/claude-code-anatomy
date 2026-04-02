@@ -1,0 +1,73 @@
+---
+import type { Locale } from "../i18n/locales";
+import { getLocalePath } from "../i18n/locales";
+import { t } from "../i18n/translations";
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+
+const games = [
+  {
+    id: "permission-guard",
+    icon: "🛡️",
+    titleKey: "games.pg.title",
+    descKey: "games.pg.desc",
+    color: "#10b981",
+    ready: true,
+  },
+  {
+    id: "tool-scheduler",
+    icon: "🧩",
+    titleKey: "games.ts.title",
+    descKey: "games.ts.desc",
+    color: "#6c63ff",
+    ready: false,
+  },
+  {
+    id: "query-journey",
+    icon: "🚀",
+    titleKey: "games.qj.title",
+    descKey: "games.qj.desc",
+    color: "#22d3ee",
+    ready: false,
+  },
+];
+---
+
+<BaseLayout title={t(locale, "games.hubTitle")} locale={locale}>
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-16 text-center">
+      <p class="text-6xl mb-4">🎮</p>
+      <h1 class="text-4xl font-bold">{t(locale, "games.hubTitle")}</h1>
+      <p class="mt-4 text-xl text-text-secondary">{t(locale, "games.hubSubtitle")}</p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {games.map((game) => (
+        <div class="rounded-xl border border-bg-border bg-bg-card p-6 flex flex-col">
+          <p class="text-4xl mb-4">{game.icon}</p>
+          <h2 class="text-lg font-bold" style={`color: ${game.color}`}>
+            {t(locale, game.titleKey)}
+          </h2>
+          <p class="text-sm text-text-secondary mt-2 flex-1">
+            {t(locale, game.descKey)}
+          </p>
+          {game.ready ? (
+            <a
+              href={getLocalePath(locale, `/games/${game.id}`)}
+              class="mt-4 block text-center py-2 rounded-lg font-bold text-sm text-white transition-colors"
+              style={`background-color: ${game.color}`}
+            >
+              {t(locale, "games.playBtn")}
+            </a>
+          ) : (
+            <p class="mt-4 text-center py-2 rounded-lg text-sm text-text-secondary bg-bg border border-bg-border">
+              {t(locale, "games.ts.comingSoon")}
+            </p>
+          )}
+        </div>
+      ))}
+    </div>
+  </div>
+</BaseLayout>
