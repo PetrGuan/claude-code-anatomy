@@ -9,6 +9,8 @@ import SectionHeading from "../components/common/SectionHeading.astro";
 import StatCard from "../components/common/StatCard.tsx";
 import FlowDiagram from "../components/viz/FlowDiagram.tsx";
 import LayerToggleTerminalUI from "../components/common/LayerToggleTerminalUI.tsx";
+import DeepDiveSection from "../components/interactive/DeepDiveSection.tsx";
+import { deepDiveSnippets } from "../data/deepDiveCode";
 
 interface Props { locale: Locale; }
 const { locale } = Astro.props;
@@ -143,6 +145,14 @@ const highlights = [
         ))}
       </div>
     </div>
+
+    <DeepDiveSection client:visible locale={locale} items={[
+      { type: "code", titleKey: "deepDive.tuiReconciler", descKey: "deepDive.tuiReconcilerDesc", code: deepDiveSnippets.inkReconciler },
+      { type: "code", titleKey: "deepDive.tuiYoga", descKey: "deepDive.tuiYogaDesc", code: deepDiveSnippets.yogaLayout },
+      { type: "code", titleKey: "deepDive.tuiRender", descKey: "deepDive.tuiRenderDesc", code: deepDiveSnippets.ansiRender },
+      { type: "code", titleKey: "deepDive.tuiEvents", descKey: "deepDive.tuiEventsDesc", code: deepDiveSnippets.eventDispatcher },
+      { type: "design", titleKey: "deepDive.tuiWhyInk", descKey: "deepDive.tuiWhyInkDesc" },
+    ]} />
 
     <RelatedPages locale={locale} currentPath="/terminal-ui" />
     <PageNav locale={locale} currentPath="/terminal-ui" />

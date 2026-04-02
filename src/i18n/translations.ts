@@ -741,6 +741,32 @@ const translations = {
       en: "A single permission system would be either too strict (always ask → slow) or too loose (always allow → unsafe). The three-layer design optimizes for the common case:\n\n• **Layer 1 (ML Classifier)**: Handles ~80% of decisions instantly. `git status`? Allow. `rm -rf /`? Deny. No user interaction needed.\n• **Layer 2 (Rules)**: Handles user-specific policies. A data scientist might allow all `python` commands; a DevOps engineer might allow `kubectl` but deny `terraform destroy`.\n• **Layer 3 (User Dialog)**: The safety net for everything else. Only triggered for genuinely ambiguous cases.\n\nThe key insight: each layer reduces the load on the next. Without the classifier, every single tool call would hit the rule engine. Without rules, every non-obvious call would interrupt the user. The three layers together achieve both speed and safety.",
       zh: "单一权限系统要么太严格（总是询问 → 慢）要么太宽松（总是允许 → 不安全）。三层设计优化了常见情况：\n\n• **第一层（ML 分类器）**：即时处理约 80% 的决策。`git status`？允许。`rm -rf /`？拒绝。无需用户交互。\n• **第二层（规则）**：处理用户特定策略。数据科学家可能允许所有 `python` 命令；DevOps 工程师可能允许 `kubectl` 但拒绝 `terraform destroy`。\n• **第三层（用户对话框）**：其他所有情况的安全网。仅在真正模糊的情况下触发。\n\n关键洞察：每一层减少下一层的负载。没有分类器，每个工具调用都会命中规则引擎。没有规则，每个不明显的调用都会打断用户。三层配合实现了速度和安全的双赢。"
     },
+    // Terminal UI deep dive
+    tuiReconciler: { en: "The Ink Reconciler (src/ink/reconciler.ts)", zh: "Ink 协调器 (src/ink/reconciler.ts)" },
+    tuiReconcilerDesc: {
+      en: "React's reconciler API has three key callbacks: `createInstance` creates a terminal DOM node from a React element, `appendChild` attaches it to the tree, and `commitUpdate` diffs old/new props and applies only the changes. Props flow directly into Yoga layout nodes — there's no separate layout pass, it happens inline during commit.",
+      zh: "React 的协调器 API 有三个关键回调：`createInstance` 从 React 元素创建终端 DOM 节点，`appendChild` 将其附加到树中，`commitUpdate` 对比新旧 props 并只应用变化。Props 直接流入 Yoga 布局节点 — 没有单独的布局阶段，它在提交期间内联发生。"
+    },
+    tuiYoga: { en: "Yoga Layout Engine (src/ink/layout/yoga.ts)", zh: "Yoga 布局引擎 (src/ink/layout/yoga.ts)" },
+    tuiYogaDesc: {
+      en: "YogaLayoutNode wraps Facebook's Yoga WASM module. Every CSS Flexbox property (flex-direction, justify-content, align-items, etc.) maps to a Yoga setter. `calculateLayout()` runs the Flexbox solver synchronously — computing exact pixel positions for every element in the terminal grid. LTR direction is hardcoded since terminals don't support RTL.",
+      zh: "YogaLayoutNode 包装了 Facebook 的 Yoga WASM 模块。每个 CSS Flexbox 属性（flex-direction、justify-content、align-items 等）映射到一个 Yoga setter。`calculateLayout()` 同步运行 Flexbox 求解器 — 计算终端网格中每个元素的精确像素位置。LTR 方向是硬编码的，因为终端不支持 RTL。"
+    },
+    tuiRender: { en: "ANSI Rendering (src/ink/render-node-to-output.ts)", zh: "ANSI 渲染 (src/ink/render-node-to-output.ts)" },
+    tuiRenderDesc: {
+      en: "The renderer walks the layout tree, using Yoga's computed positions (left, top, width, height) accumulated via offsetX/offsetY. Smart caching avoids redrawing unchanged subtrees — if a node isn't dirty and hasn't moved, it blits from the previous screen buffer. This is why streaming output doesn't flicker.",
+      zh: "渲染器遍历布局树，使用 Yoga 计算的位置（left、top、width、height）通过 offsetX/offsetY 累积。智能缓存避免重绘未变化的子树 — 如果节点没有变脏且没有移动，就从上一个屏幕缓冲区 blit。这就是流式输出不闪烁的原因。"
+    },
+    tuiEvents: { en: "Event System (src/ink/events/dispatcher.ts)", zh: "事件系统 (src/ink/events/dispatcher.ts)" },
+    tuiEventsDesc: {
+      en: "The Dispatcher mirrors DOM event semantics in the terminal: capture phase (root → target), then bubble phase (target → root). `stopPropagation()` and `preventDefault()` work exactly like in browsers. Keyboard events from stdin are parsed into KeyboardEvent objects and dispatched through the tree with React's discrete update priority — ensuring UI updates are synchronous for user-initiated actions.",
+      zh: "Dispatcher 在终端中镜像 DOM 事件语义：捕获阶段（根 → 目标），然后冒泡阶段（目标 → 根）。`stopPropagation()` 和 `preventDefault()` 与浏览器中完全相同。来自 stdin 的键盘事件被解析为 KeyboardEvent 对象，并通过树以 React 的离散更新优先级派发 — 确保用户发起的操作的 UI 更新是同步的。"
+    },
+    tuiWhyInk: { en: "Why Build a Custom Reconciler?", zh: "为什么要构建自定义协调器？" },
+    tuiWhyInkDesc: {
+      en: "Claude Code could have used a simpler approach: just print text line by line. But a React reconciler gives three critical advantages:\n\n• **Component reuse**: The same React mental model (components, hooks, state) works for terminal UI. Developers don't learn a new framework.\n• **Incremental updates**: React's diffing ensures only changed parts of the screen are redrawn. During streaming output (tokens arriving one at a time), this prevents the entire screen from flickering on every token.\n• **Layout composition**: Yoga's Flexbox means UI elements can be composed declaratively. A status bar + main content + sidebar is just `<Box flexDirection='row'>` — no manual cursor positioning.\n\nThe tradeoff: ~19K lines of rendering infrastructure. But this investment pays off across 346 components that all benefit from the same rendering pipeline.",
+      zh: "Claude Code 可以用更简单的方式：逐行打印文本。但 React 协调器提供了三个关键优势：\n\n• **组件复用**：相同的 React 思维模型（组件、hooks、state）适用于终端 UI。开发者不需要学习新框架。\n• **增量更新**：React 的 diff 确保只重绘屏幕变化的部分。在流式输出（token 逐个到达）期间，这防止了每个 token 都导致整个屏幕闪烁。\n• **布局组合**：Yoga 的 Flexbox 意味着 UI 元素可以声明式组合。状态栏 + 主内容 + 侧边栏就是 `<Box flexDirection='row'>` — 无需手动光标定位。\n\n代价：约 19K 行渲染基础设施。但这项投资在 346 个组件中获得回报，它们都受益于同一渲染管线。"
+    },
   },
 } as const;
 

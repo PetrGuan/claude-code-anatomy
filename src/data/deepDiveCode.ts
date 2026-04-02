@@ -166,4 +166,142 @@ export function matchWildcardPattern(
   const regex = new RegExp('^' + regexPattern + '$', flags)
   return regex.test(command)
 }`,
+
+  inkReconciler: `// src/ink/reconciler.ts — Lines 331-400
+createInstance(
+  originalType: ElementNames,
+  newProps: Props,
+  _root: DOMElement,
+  hostContext: HostContext,
+): DOMElement {
+  if (hostContext.isInsideText && originalType === 'ink-box') {
+    throw new Error("<Box> can't be nested inside <Text>")
+  }
+  const type = originalType === 'ink-text' && hostContext.isInsideText
+    ? 'ink-virtual-text' : originalType
+  const node = createNode(type)
+  for (const [key, value] of Object.entries(newProps)) {
+    applyProp(node, key, value)
+  }
+  return node
+},
+
+commitUpdate(node, _type, oldProps, newProps): void {
+  const props = diff(oldProps, newProps)
+  const style = diff(oldProps['style'], newProps['style'])
+  if (props) {
+    for (const [key, value] of Object.entries(props)) {
+      if (key === 'style') { setStyle(node, value); continue }
+      if (EVENT_HANDLER_PROPS.has(key)) { setEventHandler(node, key, value); continue }
+      setAttribute(node, key, value)
+    }
+  }
+  if (style && node.yogaNode) {
+    applyStyles(node.yogaNode, style, newProps['style'])
+  }
+}`,
+
+  yogaLayout: `// src/ink/layout/yoga.ts — Lines 54-96
+export class YogaLayoutNode implements LayoutNode {
+  readonly yoga: YogaNode
+
+  constructor(yoga: YogaNode) {
+    this.yoga = yoga
+  }
+
+  setFlexDirection(dir: LayoutFlexDirection): void {
+    const map = {
+      row: FlexDirection.Row,
+      'row-reverse': FlexDirection.RowReverse,
+      column: FlexDirection.Column,
+      'column-reverse': FlexDirection.ColumnReverse,
+    }
+    this.yoga.setFlexDirection(map[dir]!)
+  }
+
+  setJustifyContent(justify: LayoutJustify): void {
+    const map = {
+      'flex-start': Justify.FlexStart,
+      center: Justify.Center,
+      'flex-end': Justify.FlexEnd,
+      'space-between': Justify.SpaceBetween,
+      'space-around': Justify.SpaceAround,
+    }
+    this.yoga.setJustifyContent(map[justify]!)
+  }
+
+  calculateLayout(width?: number): void {
+    this.yoga.calculateLayout(width, undefined, Direction.LTR)
+  }
+}`,
+
+  ansiRender: `// src/ink/render-node-to-output.ts — Lines 387-440
+function renderNodeToOutput(
+  node: DOMElement,
+  output: Output,
+  { offsetX = 0, offsetY = 0, prevScreen, skipSelfBlit = false }
+): void {
+  const { yogaNode } = node
+  if (!yogaNode) return
+  if (yogaNode.getDisplay() === LayoutDisplay.None) return
+
+  // Positions are relative to parent — accumulate offsets
+  const x = offsetX + yogaNode.getComputedLeft()
+  const y = offsetY + yogaNode.getComputedTop()
+  const width = yogaNode.getComputedWidth()
+  const height = yogaNode.getComputedHeight()
+
+  // Cache check: skip unchanged subtrees (blit from prev screen)
+  const cached = nodeCache.get(node)
+  if (!node.dirty && cached
+    && cached.x === x && cached.y === y
+    && cached.width === width && cached.height === height
+    && prevScreen) {
+    output.blit(prevScreen, Math.floor(x), Math.floor(y),
+      Math.floor(width), Math.floor(height))
+    return
+  }
+
+  // Render this node's content at computed position
+  renderContent(node, output, x, y, width, height)
+
+  // Recurse into children
+  for (const child of node.childNodes) {
+    renderNodeToOutput(child, output, { offsetX: x, offsetY: y, prevScreen })
+  }
+}`,
+
+  eventDispatcher: `// src/ink/events/dispatcher.ts — Lines 46-114
+// Collect listeners: capture (root→target) then bubble (target→root)
+function collectListeners(
+  target: EventTarget,
+  event: TerminalEvent,
+): DispatchListener[] {
+  const listeners: DispatchListener[] = []
+  let node: EventTarget | undefined = target
+
+  while (node) {
+    const isTarget = node === target
+    const captureHandler = getHandler(node, event.type, true)
+    const bubbleHandler = getHandler(node, event.type, false)
+
+    if (captureHandler) {
+      listeners.unshift({  // prepend → root fires first
+        node, handler: captureHandler,
+        phase: isTarget ? 'at_target' : 'capturing',
+      })
+    }
+    if (bubbleHandler && (event.bubbles || isTarget)) {
+      listeners.push({     // append → target fires first
+        node, handler: bubbleHandler,
+        phase: isTarget ? 'at_target' : 'bubbling',
+      })
+    }
+    node = node.parentNode
+  }
+  return listeners
+}
+
+// stdin → parsed key → KeyboardEvent → dispatch through tree
+// dispatcher.dispatchDiscrete(target, new KeyboardEvent(key))`,
 };
