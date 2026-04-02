@@ -156,13 +156,14 @@ export function matchWildcardPattern(
     processed += trimmedPattern[i]; i++
   }
   // Convert * → .* for wildcard, escape regex specials
-  const escaped = processed.replace(/[.+?^${}()|[\\]\\\\'"]/g, '\\\\$&')
+  const escaped = processed.replace(/[.+?^$\\{\\}()|[\\]'"]/g, '\\\\$&')
   let regexPattern = escaped.replace(/\\*/g, '.*')
   // "git *" matches both "git" and "git commit"
   const singleWildcard = (processed.match(/\\*/g) || []).length === 1
   if (regexPattern.endsWith(' .*') && singleWildcard) {
     regexPattern = regexPattern.slice(0, -3) + '( .*)?'
   }
-  return new RegExp(\`^\${regexPattern}$\`, flags).test(command)
+  const regex = new RegExp('^' + regexPattern + '$', flags)
+  return regex.test(command)
 }`,
 };
