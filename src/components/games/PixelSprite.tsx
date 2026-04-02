@@ -1,14 +1,28 @@
-import React from "react";
+import React, { useMemo } from "react";
 
 interface Props {
   sprite: (string | null)[][];
-  size?: number; // pixel size per cell
+  size?: number;
   className?: string;
 }
 
-export default function PixelSprite({ sprite, size = 3, className = "" }: Props) {
+// Renders pixel art using a single div with box-shadow — O(1) DOM nodes instead of O(width*height)
+function PixelSpriteInner({ sprite, size = 3, className = "" }: Props) {
   const height = sprite.length;
   const width = sprite[0]?.length || 0;
+
+  const boxShadow = useMemo(() => {
+    const shadows: string[] = [];
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const color = sprite[y][x];
+        if (color) {
+          shadows.push(`${x * size}px ${y * size}px 0 0 ${color}`);
+        }
+      }
+    }
+    return shadows.join(",");
+  }, [sprite, size, height, width]);
 
   return (
     <div
@@ -16,22 +30,21 @@ export default function PixelSprite({ sprite, size = 3, className = "" }: Props)
       style={{
         width: width * size,
         height: height * size,
-        display: "grid",
-        gridTemplateColumns: `repeat(${width}, ${size}px)`,
-        gridTemplateRows: `repeat(${height}, ${size}px)`,
-        imageRendering: "pixelated",
+        position: "relative",
       }}
     >
-      {sprite.flat().map((color, i) => (
-        <div
-          key={i}
-          style={{
-            backgroundColor: color || "transparent",
-            width: size,
-            height: size,
-          }}
-        />
-      ))}
+      <div
+        style={{
+          width: size,
+          height: size,
+          boxShadow,
+          position: "absolute",
+          top: 0,
+          left: 0,
+        }}
+      />
     </div>
   );
 }
+
+export default React.memo(PixelSpriteInner);
