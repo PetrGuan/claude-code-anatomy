@@ -29,6 +29,7 @@ const translations = {
     prevPage: { en: "Previous", zh: "上一篇" },
     nextPage: { en: "Next", zh: "下一篇" },
     relatedPages: { en: "Related Pages", zh: "相关页面" },
+    readingTime: { en: "min read", zh: "分钟阅读" },
   },
   footer: {
     description: {

@@ -1,6 +1,8 @@
 ---
 import Navbar from "../components/layout/Navbar.astro";
 import Footer from "../components/layout/Footer.astro";
+import ReadingProgress from "../components/layout/ReadingProgress.astro";
+import BackToTop from "../components/layout/BackToTop.astro";
 import "../styles/global.css";
 import type { Locale } from "../i18n/locales";
 
@@ -51,10 +53,28 @@ const metaDesc = description ?? defaultDesc;
     <meta name="twitter:description" content={metaDesc} />
   </head>
   <body class="min-h-screen">
+    <ReadingProgress />
     <Navbar locale={locale} />
     <main class="pt-16">
       <slot />
     </main>
     <Footer locale={locale} />
+    <BackToTop locale={locale} />
   </body>
+
+  <script>
+    document.addEventListener('keydown', (e) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      if (e.key === 'ArrowLeft') {
+        const prev = document.getElementById('page-nav-prev') as HTMLAnchorElement | null;
+        if (prev) { e.preventDefault(); window.location.href = prev.getAttribute('href') ?? ''; }
+      }
+      if (e.key === 'ArrowRight') {
+        const next = document.getElementById('page-nav-next') as HTMLAnchorElement | null;
+        if (next) { e.preventDefault(); window.location.href = next.getAttribute('href') ?? ''; }
+      }
+    });
+  </script>
 </html>

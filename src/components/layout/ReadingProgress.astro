@@ -1,0 +1,13 @@
+<div id="reading-progress" class="fixed top-0 left-0 h-[3px] bg-accent-purple z-[60] transition-[width] duration-150" style="width: 0%"></div>
+
+<script>
+  const bar = document.getElementById('reading-progress');
+  function updateProgress() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = docHeight > 0 ? Math.min((scrollTop / docHeight) * 100, 100) : 0;
+    if (bar) bar.style.width = progress + '%';
+  }
+  window.addEventListener('scroll', updateProgress, { passive: true });
+  updateProgress();
+</script>

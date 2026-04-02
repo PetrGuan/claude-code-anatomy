@@ -20,13 +20,13 @@ const next = currentIndex < readingOrder.length - 1 ? readingOrder[currentIndex 
   <div class="mt-24 border-t border-bg-border pt-8">
     <div class="flex items-stretch justify-between gap-4">
       {prev ? (
-        <a href={getLocalePath(locale, prev.path)} class="group flex-1 rounded-lg border border-bg-border p-4 hover:border-accent-purple/30 hover:bg-bg-card transition-colors">
+        <a id="page-nav-prev" href={getLocalePath(locale, prev.path)} class="group flex-1 rounded-lg border border-bg-border p-4 hover:border-accent-purple/30 hover:bg-bg-card transition-colors">
           <span class="text-xs text-text-secondary">{t(locale, "common.prevPage")}</span>
           <p class="mt-1 text-sm font-medium text-accent-purple group-hover:underline">{t(locale, prev.navKey)}</p>
         </a>
       ) : <div class="flex-1" />}
       {next ? (
-        <a href={getLocalePath(locale, next.path)} class="group flex-1 rounded-lg border border-bg-border p-4 hover:border-accent-purple/30 hover:bg-bg-card transition-colors text-right">
+        <a id="page-nav-next" href={getLocalePath(locale, next.path)} class="group flex-1 rounded-lg border border-bg-border p-4 hover:border-accent-purple/30 hover:bg-bg-card transition-colors text-right">
           <span class="text-xs text-text-secondary">{t(locale, "common.nextPage")}</span>
           <p class="mt-1 text-sm font-medium text-accent-purple group-hover:underline">{t(locale, next.navKey)}</p>
         </a>
