@@ -237,13 +237,14 @@ export default function QueryRunner({ locale = "en" as Locale }: Props) {
     return () => el.removeEventListener("keydown", handleKey);
   }, [handleKey]);
 
-  // ─── Game loop ───────────────────────────────────────
+  // ─── Game loop (only active when playing) ────────────
   useEffect(() => {
+    if (gameState !== "playing") return;
     let lastTime = 0;
 
     const loop = (time: number) => {
+      if (gameStateRef.current !== "playing") return; // stop loop when state changes
       animFrameRef.current = requestAnimationFrame(loop);
-      if (gameStateRef.current !== "playing") return;
       if (!lastTime) { lastTime = time; return; }
 
       const dt = Math.min(time - lastTime, 32); // cap at ~30fps worth of dt
@@ -310,7 +311,7 @@ export default function QueryRunner({ locale = "en" as Locale }: Props) {
 
     animFrameRef.current = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(animFrameRef.current);
-  }, []);
+  }, [gameState]);
 
   // ─── Derived render values ──────────────────────────
   const playerX = playerXRef.current;
@@ -333,6 +334,9 @@ export default function QueryRunner({ locale = "en" as Locale }: Props) {
   const visibleObjects = objectsRef.current.filter(
     obj => !obj.collected && !obj.hit && obj.x + obj.w > cameraX - 50 && obj.x < cameraX + GAME_W + 50
   );
+
+  // Auto-focus game container
+  useEffect(() => { containerRef.current?.focus(); }, [gameState]);
 
   // Zone intro banner
   const zoneStartX = currentZoneIdx * ZONE_LENGTH;
@@ -392,7 +396,7 @@ export default function QueryRunner({ locale = "en" as Locale }: Props) {
                   top: 0,
                   width: 2,
                   height: GAME_H,
-                  backgroundColor: zones[z]?.color + "40" || "#fff2",
+                  backgroundColor: (zones[z]?.color ?? "#fff") + "40",
                 }}
               />
             );
