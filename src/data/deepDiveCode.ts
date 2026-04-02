@@ -456,4 +456,134 @@ async function loadPluginsFromMarketplaces({ cacheOnly }) {
     })
   )
 }`,
+
+  autoCompactTrigger: `// src/services/compact/autoCompact.ts — Lines 62-65, 160-200
+// Buffer constants
+const AUTOCOMPACT_BUFFER_TOKENS = 13_000
+const WARNING_THRESHOLD_BUFFER_TOKENS = 20_000
+
+export async function shouldAutoCompact(
+  messages: Message[],
+  model: string,
+  querySource?: QuerySource,
+  snipTokensFreed = 0,
+): Promise<boolean> {
+  // Prevent infinite recursion: compact agents don't self-compact
+  if (querySource === 'session_memory' || querySource === 'compact') {
+    return false
+  }
+
+  const tokenCount = tokenCountWithEstimation(messages) - snipTokensFreed
+  const effectiveWindow = getEffectiveContextWindowSize(model)
+  const threshold = effectiveWindow - AUTOCOMPACT_BUFFER_TOKENS
+
+  logForDebugging(
+    'autocompact: tokens=' + tokenCount + ' threshold=' + threshold
+  )
+
+  return tokenCount > threshold
+}`,
+
+  compactAlgorithm: `// src/services/compact/compact.ts — Lines 387-429, 1136-1170
+export async function compactConversation(
+  messages: Message[],
+  context: ToolUseContext,
+  cacheSafeParams: CacheSafeParams,
+  isAutoCompact: boolean = false,
+): Promise<CompactionResult> {
+  const preCompactTokenCount = tokenCountWithEstimation(messages)
+
+  // Execute PreCompact hooks (plugins can inject instructions)
+  context.setSDKStatus?.('compacting')
+  const hookResult = await executePreCompactHooks({
+    trigger: isAutoCompact ? 'auto' : 'manual',
+  })
+
+  // Fork a separate Claude agent for summarization
+  const summary = await streamCompactSummary({
+    messages,
+    summaryRequest: buildSummaryPrompt(messages, hookResult),
+    context,
+    preCompactTokenCount,
+    cacheSafeParams,
+  })
+
+  // Send keep-alive signals during long summarizations
+  const activityInterval = setInterval(() => {
+    sendSessionActivitySignal()
+    context.setSDKStatus?.('compacting')
+  }, 30_000)
+
+  // Replace old messages with compact summary
+  return buildCompactResult(summary, preCompactTokenCount)
+}`,
+
+  reactiveCompact: `// src/query.ts — Lines 1065-1130 (simplified)
+// During streaming, a 413 "prompt too long" error arrives:
+const isWithheld413 =
+  lastMessage?.type === 'assistant' &&
+  lastMessage.isApiErrorMessage &&
+  isPromptTooLongMessage(lastMessage)
+
+if (isWithheld413) {
+  // Strategy 1: Try context collapse first (free, instant)
+  if (contextCollapse) {
+    const drained = contextCollapse.recoverFromOverflow(messages)
+    if (drained.committed > 0) {
+      state = { messages: drained.messages, transition: 'collapse_drain_retry' }
+      continue  // retry with collapsed context
+    }
+  }
+
+  // Strategy 2: Full reactive compact (expensive but precise)
+  if (reactiveCompact) {
+    // Parse exact token gap from error: "137500 > 135000" → need to free 2500
+    const compacted = await reactiveCompact.tryReactiveCompact({
+      messages, hasAttempted: false,
+    })
+    if (compacted) {
+      state = { messages: buildPostCompactMessages(compacted), transition: 'reactive_compact_retry' }
+      continue  // retry with compacted history
+    }
+  }
+
+  // No recovery possible — surface the error
+  yield lastMessage
+  return { reason: 'prompt_too_long' }
+}`,
+
+  tokenBudget: `// src/query/tokenBudget.ts — Lines 6-93
+type BudgetTracker = {
+  continuationCount: number
+  lastDeltaTokens: number
+  lastGlobalTurnTokens: number
+  startedAt: number
+}
+
+export function checkTokenBudget(
+  tracker: BudgetTracker,
+  budget: number | null,
+  globalTurnTokens: number,
+): TokenBudgetDecision {
+  if (budget === null || budget <= 0) return { action: 'stop' }
+
+  const pct = Math.round((globalTurnTokens / budget) * 100)
+  const delta = globalTurnTokens - tracker.lastGlobalTurnTokens
+
+  // Detect diminishing returns: 3+ turns with tiny progress
+  const isDiminishing =
+    tracker.continuationCount >= 3 &&
+    delta < DIMINISHING_THRESHOLD &&
+    tracker.lastDeltaTokens < DIMINISHING_THRESHOLD
+
+  // Continue if under budget and making progress
+  if (!isDiminishing && globalTurnTokens < budget * 0.9) {
+    tracker.continuationCount++
+    tracker.lastDeltaTokens = delta
+    return { action: 'continue', pct, nudgeMessage: '...' }
+  }
+
+  // Stop: either over budget or diminishing returns
+  return { action: 'stop', diminishingReturns: isDiminishing }
+}`,
 };

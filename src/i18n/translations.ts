@@ -793,6 +793,32 @@ const translations = {
       en: "Claude Code's plugin system is unusually comprehensive for a CLI tool. Most CLIs have simple plugin APIs (register a command, done). Claude Code's plugins can modify behavior at 11+ extension points. The key design decisions:\n\n• **Manifest-first**: Every plugin declares its capabilities upfront in plugin.json. The system knows what a plugin provides before loading any code. This enables fast startup (skip unused plugins) and security auditing.\n• **Fail-closed security**: Enterprise admins can whitelist/blacklist marketplaces. Unknown sources are blocked by default — the opposite of npm's 'install anything' model.\n• **Parallel everything**: Skill discovery, plugin loading, and hook matching all use Promise.all/allSettled. With potentially dozens of plugins and hundreds of skills, sequential loading would add seconds to startup.\n• **Hooks as async generators**: Rather than simple callbacks, hooks yield results progressively. This enables streaming feedback during long-running hooks and natural cancellation via AbortSignal.",
       zh: "Claude Code 的插件系统对于 CLI 工具来说异常全面。大多数 CLI 有简单的插件 API（注册一个命令就完了）。Claude Code 的插件可以在 11+ 个扩展点修改行为。关键设计决策：\n\n• **清单优先**：每个插件在 plugin.json 中预先声明其能力。系统在加载任何代码之前就知道插件提供什么。这实现了快速启动（跳过未使用的插件）和安全审计。\n• **失败关闭安全性**：企业管理员可以白名单/黑名单市场。未知来源默认被阻止 — 与 npm 的'安装任何东西'模式相反。\n• **全面并行**：技能发现、插件加载和钩子匹配都使用 Promise.all/allSettled。在可能有数十个插件和数百个技能的情况下，顺序加载会增加数秒的启动时间。\n• **钩子作为 async generator**：不是简单的回调，钩子逐步 yield 结果。这实现了长时间运行的钩子期间的流式反馈和通过 AbortSignal 的自然取消。"
     },
+    // Message Compaction deep dive
+    mcAutoTrigger: { en: "Auto-Compact Trigger (src/services/compact/autoCompact.ts)", zh: "自动压缩触发 (src/services/compact/autoCompact.ts)" },
+    mcAutoTriggerDesc: {
+      en: "Compaction triggers when token count exceeds (context window - 13,000 buffer tokens). The buffer ensures there's always room for Claude's response. The check runs before every API call. An env override (`CLAUDE_AUTOCOMPACT_PCT_OVERRIDE`) allows testing with lower thresholds. Recursive agents (session_memory, compact) skip the check to prevent infinite loops.",
+      zh: "当 token 数超过（上下文窗口 - 13,000 缓冲 token）时触发压缩。缓冲区确保 Claude 的响应始终有空间。检查在每次 API 调用前运行。环境变量覆盖（`CLAUDE_AUTOCOMPACT_PCT_OVERRIDE`）允许用更低的阈值测试。递归 Agent（session_memory、compact）跳过检查以防止无限循环。"
+    },
+    mcAlgorithm: { en: "Compaction Algorithm (src/services/compact/compact.ts)", zh: "压缩算法 (src/services/compact/compact.ts)" },
+    mcAlgorithmDesc: {
+      en: "Compaction forks a separate Claude agent specifically for summarization. The forked agent receives the conversation history and generates a compressed summary. PreCompact hooks run first (allowing plugins to inject custom instructions). The summary streams back while sending keep-alive signals to prevent WebSocket idle timeouts during long summarizations.",
+      zh: "压缩分叉出一个专门用于摘要的独立 Claude Agent。分叉的 Agent 接收对话历史并生成压缩摘要。PreCompact 钩子先运行（允许插件注入自定义指令）。摘要流式返回，同时发送保活信号以防止长时间摘要期间的 WebSocket 空闲超时。"
+    },
+    mcReactive: { en: "Reactive Compact (src/query.ts)", zh: "响应式压缩 (src/query.ts)" },
+    mcReactiveDesc: {
+      en: "When the API returns a 413 'prompt too long' error during streaming, the error is withheld (not shown to the user). The system first tries context collapse (cheap: just strip expanded blocks). If that's not enough, it triggers a full reactive compact — summarize and retry. The token gap from the error message tells the system exactly how many tokens to free, enabling precise rather than conservative compaction.",
+      zh: "当 API 在流式传输过程中返回 413 '提示过长' 错误时，错误被隐藏（不显示给用户）。系统首先尝试上下文折叠（便宜：只剥离展开的块）。如果不够，触发完整的响应式压缩 — 摘要并重试。错误消息中的 token 差距告诉系统确切需要释放多少 token，实现精确而非保守的压缩。"
+    },
+    mcTokenBudget: { en: "Token Budget Tracking (src/query/tokenBudget.ts)", zh: "Token 预算跟踪 (src/query/tokenBudget.ts)" },
+    mcTokenBudgetDesc: {
+      en: "The budget tracker monitors per-turn token usage. If usage is below 90% of budget and each turn is making progress (delta above threshold), the system continues automatically. If three consecutive turns show diminishing returns (tiny deltas), it stops — preventing infinite loops where Claude produces little useful output. This is separate from compaction: budget tracks output efficiency, compaction manages input size.",
+      zh: "预算跟踪器监控每轮 token 使用。如果使用量低于预算的 90% 且每轮都在取得进展（增量超过阈值），系统自动继续。如果三轮连续显示收益递减（微小增量），系统停止 — 防止 Claude 产生很少有用输出的无限循环。这与压缩是分开的：预算跟踪输出效率，压缩管理输入大小。"
+    },
+    mcWhyFourStrategies: { en: "Why Four Strategies Instead of One?", zh: "为什么是四种策略而不是一种？" },
+    mcWhyFourStrategiesDesc: {
+      en: "A single compaction strategy would either be too aggressive (losing important context) or too conservative (running out of space). The four strategies form a defense-in-depth:\n\n• **Auto-compact** (proactive): Runs before problems occur. Summarizes the oldest messages first, preserving recent context. Handles ~90% of cases — most conversations never hit a 413 error.\n• **Reactive compact** (recovery): Catches the remaining ~10% — conversations that grow too fast between auto-compact checks. Parses the exact token overage from the 413 error for precise trimming.\n• **Context collapse** (cheap): Before doing a full summarization, tries simply collapsing expanded content blocks. Zero API cost, instant.\n• **Micro-compact** (targeted): Summarizes individual oversized tool results inline rather than compacting the entire history. A single `cat large_file.ts` shouldn't force a full conversation summary.\n\nThe key insight: each strategy has different cost/precision tradeoffs. Collapse is free but coarse. Auto-compact is a full API call but planned. Reactive is expensive but precise. Micro is targeted but local. Together they handle every scenario efficiently.",
+      zh: "单一压缩策略要么太激进（丢失重要上下文）要么太保守（空间不足）。四种策略形成纵深防御：\n\n• **自动压缩**（主动）：在问题发生前运行。优先总结最旧的消息，保留最近的上下文。处理约 90% 的情况 — 大多数对话从不会遇到 413 错误。\n• **响应式压缩**（恢复）：捕获剩余约 10% — 在自动压缩检查之间增长过快的对话。从 413 错误中解析确切的 token 超额以进行精确修剪。\n• **上下文折叠**（廉价）：在进行完整摘要之前，尝试简单地折叠展开的内容块。零 API 成本，即时完成。\n• **微压缩**（定向）：对单个超大工具结果进行内联摘要，而不是压缩整个历史。一次 `cat large_file.ts` 不应该强制进行完整的对话摘要。\n\n关键洞察：每种策略有不同的成本/精度权衡。折叠是免费但粗糙的。自动压缩是完整的 API 调用但有计划的。响应式是昂贵但精确的。微压缩是定向但局部的。它们一起高效处理每种场景。"
+    },
   },
 } as const;
 

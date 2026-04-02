@@ -8,6 +8,8 @@ import Sidebar from "../components/layout/Sidebar.tsx";
 import SectionHeading from "../components/common/SectionHeading.astro";
 import LayerToggleCompaction from "../components/common/LayerToggleCompaction.tsx";
 import StatCard from "../components/common/StatCard.tsx";
+import DeepDiveSection from "../components/interactive/DeepDiveSection.tsx";
+import { deepDiveSnippets } from "../data/deepDiveCode";
 
 interface Props {
   locale: Locale;
@@ -125,6 +127,14 @@ const thresholdLabel = locale === "zh" ? "阈值" : "Threshold";
         </div>
       </div>
     </div>
+
+    <DeepDiveSection client:visible locale={locale} items={[
+      { type: "code", titleKey: "deepDive.mcAutoTrigger", descKey: "deepDive.mcAutoTriggerDesc", code: deepDiveSnippets.autoCompactTrigger },
+      { type: "code", titleKey: "deepDive.mcAlgorithm", descKey: "deepDive.mcAlgorithmDesc", code: deepDiveSnippets.compactAlgorithm },
+      { type: "code", titleKey: "deepDive.mcReactive", descKey: "deepDive.mcReactiveDesc", code: deepDiveSnippets.reactiveCompact },
+      { type: "code", titleKey: "deepDive.mcTokenBudget", descKey: "deepDive.mcTokenBudgetDesc", code: deepDiveSnippets.tokenBudget },
+      { type: "design", titleKey: "deepDive.mcWhyFourStrategies", descKey: "deepDive.mcWhyFourStrategiesDesc" },
+    ]} />
 
     <RelatedPages locale={locale} currentPath="/message-compaction" />
     <PageNav locale={locale} currentPath="/message-compaction" />
