@@ -337,8 +337,16 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
     return () => { if (el) el.removeEventListener("keydown", onKey); };
   }, [dialogue, handleMove, handleInteract, advanceDialogue]);
 
-  // Focus container on mount
+  // Keep focus on game container — refocus after any interaction
+  const refocusGame = useCallback(() => {
+    setTimeout(() => containerRef.current?.focus(), 10);
+  }, []);
+
   useEffect(() => { containerRef.current?.focus(); }, []);
+
+  // Refocus when dialogue closes or room changes
+  useEffect(() => { if (!dialogue) refocusGame(); }, [dialogue, refocusGame]);
+  useEffect(() => { refocusGame(); }, [roomIndex, refocusGame]);
 
   // Responsive scaling — shrink the game viewport to fit narrow containers
   useEffect(() => {
@@ -528,7 +536,7 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
               {currentLine.choices.map((choice, i) => (
                 <button
                   key={i}
-                  onClick={() => advanceDialogue(i)}
+                  onClick={() => { advanceDialogue(i); refocusGame(); }}
                   className="block w-full text-left px-3 py-2 rounded-lg border border-bg-border text-sm text-text-secondary hover:text-accent-purple hover:border-accent-purple transition-colors"
                 >
                   {String.fromCharCode(65 + i)}. {isZh ? choice.labelCn : choice.label}
@@ -537,7 +545,7 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
             </div>
           ) : (
             <button
-              onClick={() => advanceDialogue()}
+              onClick={() => { advanceDialogue(); refocusGame(); }}
               className="mt-3 text-xs text-text-secondary hover:text-accent-purple transition-colors"
             >
               {isZh ? "[空格键/点击继续]" : "[Space / Click to continue]"}
@@ -557,13 +565,13 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
       <div className="mt-3 flex justify-center lg:hidden">
         <div className="grid grid-cols-3 gap-1 w-32">
           <div />
-          <button onClick={() => handleMove(0, -1)} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">↑</button>
+          <button onClick={() => { handleMove(0, -1); refocusGame(); }} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">↑</button>
           <div />
-          <button onClick={() => handleMove(-1, 0)} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">←</button>
-          <button onClick={() => handleInteract()} className="p-3 rounded bg-bg-card border border-bg-border text-center text-xs text-accent-purple">ACT</button>
-          <button onClick={() => handleMove(1, 0)} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">→</button>
+          <button onClick={() => { handleMove(-1, 0); refocusGame(); }} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">←</button>
+          <button onClick={() => { handleInteract(); refocusGame(); }} className="p-3 rounded bg-bg-card border border-bg-border text-center text-xs text-accent-purple">ACT</button>
+          <button onClick={() => { handleMove(1, 0); refocusGame(); }} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">→</button>
           <div />
-          <button onClick={() => handleMove(0, 1)} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">↓</button>
+          <button onClick={() => { handleMove(0, 1); refocusGame(); }} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">↓</button>
           <div />
         </div>
       </div>
