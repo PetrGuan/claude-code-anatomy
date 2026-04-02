@@ -17,6 +17,10 @@ export default function BubbleChart({ locale = "en" as Locale }: { locale?: Loca
   const render = useCallback(() => {
     if (!svgRef.current || !containerRef.current) return;
 
+    const styles = getComputedStyle(document.documentElement);
+    const textColor = `rgb(${styles.getPropertyValue("--color-text").trim()})`;
+    const secondaryColor = `rgb(${styles.getPropertyValue("--color-text-secondary").trim()})`;
+
     const width = containerRef.current.clientWidth;
     const height = 420;
     const svg = select(svgRef.current).attr("width", width).attr("height", height);
@@ -53,7 +57,7 @@ export default function BubbleChart({ locale = "en" as Locale }: { locale?: Loca
       .append("text")
       .attr("text-anchor", "middle")
       .attr("dy", "-0.2em")
-      .attr("fill", "#e0e0e8")
+      .attr("fill", textColor)
       .attr("font-size", (d) => Math.min(d.r / 3, 13))
       .text((d) => moduleName(d.data, locale));
 
@@ -61,7 +65,7 @@ export default function BubbleChart({ locale = "en" as Locale }: { locale?: Loca
       .append("text")
       .attr("text-anchor", "middle")
       .attr("dy", "1.2em")
-      .attr("fill", "#8888a0")
+      .attr("fill", secondaryColor)
       .attr("font-size", (d) => Math.min(d.r / 4, 10))
       .text((d) => `${(d.data.lines / 1000).toFixed(0)}${locale === "zh" ? "K 行" : "K LOC"}`);
 
@@ -78,9 +82,11 @@ export default function BubbleChart({ locale = "en" as Locale }: { locale?: Loca
 
   useEffect(() => {
     render();
-    const observer = new ResizeObserver(() => render());
-    if (containerRef.current) observer.observe(containerRef.current);
-    return () => observer.disconnect();
+    const resizeObserver = new ResizeObserver(() => render());
+    if (containerRef.current) resizeObserver.observe(containerRef.current);
+    const themeObserver = new MutationObserver(() => render());
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => { resizeObserver.disconnect(); themeObserver.disconnect(); };
   }, [render]);
 
   return (

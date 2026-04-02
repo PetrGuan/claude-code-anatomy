@@ -14,6 +14,12 @@ export default function ArchitectureMap({ locale = "en" as Locale }: { locale?: 
   const render = useCallback(() => {
     if (!svgRef.current || !containerRef.current) return;
 
+    // Read current theme colors from CSS variables
+    const styles = getComputedStyle(document.documentElement);
+    const textColor = `rgb(${styles.getPropertyValue("--color-text").trim()})`;
+    const borderColor = `rgb(${styles.getPropertyValue("--color-bg-border").trim()})`;
+    const secondaryColor = `rgb(${styles.getPropertyValue("--color-text-secondary").trim()})`;
+
     const width = containerRef.current.clientWidth;
     const baseHeight = 500;
     const height = Math.max(300, Math.min(baseHeight, width * 0.8));
@@ -65,7 +71,7 @@ export default function ArchitectureMap({ locale = "en" as Locale }: { locale?: 
       .attr("y1", (d) => nodeMap.get(d.source)?.y ?? 0)
       .attr("x2", (d) => nodeMap.get(d.target)?.x ?? 0)
       .attr("y2", (d) => nodeMap.get(d.target)?.y ?? 0)
-      .attr("stroke", "#1e1e2e").attr("stroke-width", 1.5).attr("opacity", 0.6);
+      .attr("stroke", borderColor).attr("stroke-width", 1.5).attr("opacity", 0.6);
 
     const nodeGroups = g.selectAll("g.node")
       .data(positionedNodes).enter().append("g")
@@ -82,7 +88,7 @@ export default function ArchitectureMap({ locale = "en" as Locale }: { locale?: 
 
     nodeGroups.append("text")
       .attr("y", 34 * s).attr("text-anchor", "middle")
-      .attr("fill", "#e0e0e8").attr("font-size", Math.max(8, 11 * s))
+      .attr("fill", textColor).attr("font-size", Math.max(8, 11 * s))
       .text((d) => nodeLabel(d, locale));
 
     // Click navigation
@@ -112,9 +118,12 @@ export default function ArchitectureMap({ locale = "en" as Locale }: { locale?: 
 
   useEffect(() => {
     render();
-    const observer = new ResizeObserver(() => render());
-    if (containerRef.current) observer.observe(containerRef.current);
-    return () => observer.disconnect();
+    const resizeObserver = new ResizeObserver(() => render());
+    if (containerRef.current) resizeObserver.observe(containerRef.current);
+    // Re-render when theme changes
+    const themeObserver = new MutationObserver(() => render());
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => { resizeObserver.disconnect(); themeObserver.disconnect(); };
   }, [render]);
 
   return (
