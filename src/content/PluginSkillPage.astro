@@ -10,6 +10,8 @@ import LayerTogglePluginSkill from "../components/common/LayerTogglePluginSkill.
 import StatCard from "../components/common/StatCard.tsx";
 import FlowDiagram from "../components/viz/FlowDiagram.tsx";
 import TreeExplorer from "../components/viz/TreeExplorer.tsx";
+import DeepDiveSection from "../components/interactive/DeepDiveSection.tsx";
+import { deepDiveSnippets } from "../data/deepDiveCode";
 
 interface Props {
   locale: Locale;
@@ -113,6 +115,14 @@ const hookTypes = [
         ))}
       </div>
     </div>
+
+    <DeepDiveSection client:visible locale={locale} items={[
+      { type: "type", titleKey: "deepDive.psManifest", descKey: "deepDive.psManifestDesc", code: deepDiveSnippets.pluginManifest },
+      { type: "code", titleKey: "deepDive.psSkillLoading", descKey: "deepDive.psSkillLoadingDesc", code: deepDiveSnippets.skillDiscovery },
+      { type: "code", titleKey: "deepDive.psHookExec", descKey: "deepDive.psHookExecDesc", code: deepDiveSnippets.hookExecution },
+      { type: "code", titleKey: "deepDive.psPluginLoader", descKey: "deepDive.psPluginLoaderDesc", code: deepDiveSnippets.pluginLoading },
+      { type: "design", titleKey: "deepDive.psWhyPlugins", descKey: "deepDive.psWhyPluginsDesc" },
+    ]} />
 
     <RelatedPages locale={locale} currentPath="/plugin-skill" />
     <PageNav locale={locale} currentPath="/plugin-skill" />

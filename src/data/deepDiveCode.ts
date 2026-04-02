@@ -304,4 +304,156 @@ function collectListeners(
 
 // stdin → parsed key → KeyboardEvent → dispatch through tree
 // dispatcher.dispatchDiscrete(target, new KeyboardEvent(key))`,
+
+  pluginManifest: `// src/utils/plugins/schemas.ts — Lines 274-319, 884-898
+const PluginManifestMetadataSchema = lazySchema(() =>
+  z.object({
+    name: z.string().min(1, 'Plugin name cannot be empty')
+      .refine(name => !name.includes(' '), {
+        message: 'Use kebab-case (e.g., "my-plugin")',
+      }),
+    version: z.string().optional(),
+    description: z.string().optional(),
+    author: PluginAuthorSchema().optional(),
+    homepage: z.string().url().optional(),
+    repository: z.string().optional(),
+    license: z.string().optional(),
+    keywords: z.array(z.string()).optional(),
+    dependencies: z.array(DependencyRefSchema()).optional(),
+  }),
+)
+
+// Full manifest composes 11 sub-schemas — all optional except metadata
+export const PluginManifestSchema = lazySchema(() =>
+  z.object({
+    ...PluginManifestMetadataSchema().shape,
+    ...PluginManifestHooksSchema().partial().shape,
+    ...PluginManifestCommandsSchema().partial().shape,
+    ...PluginManifestAgentsSchema().partial().shape,
+    ...PluginManifestSkillsSchema().partial().shape,
+    ...PluginManifestOutputStylesSchema().partial().shape,
+    ...PluginManifestChannelsSchema().partial().shape,
+    ...PluginManifestMcpServerSchema().partial().shape,
+    ...PluginManifestLspServerSchema().partial().shape,
+    ...PluginManifestSettingsSchema().partial().shape,
+    ...PluginManifestUserConfigSchema().partial().shape,
+  }),
+)`,
+
+  skillDiscovery: `// src/skills/loadSkillsDir.ts — Lines 638-700
+export const getSkillDirCommands = memoize(
+  async (cwd: string): Promise<Command[]> => {
+    const userSkillsDir = join(getClaudeConfigHomeDir(), 'skills')
+    const managedSkillsDir = join(getManagedFilePath(), '.claude', 'skills')
+    const projectSkillsDirs = getProjectDirsUpToHome('skills', cwd)
+
+    // Load from 5 sources in parallel
+    const [
+      managedSkills,
+      userSkills,
+      projectSkillsNested,
+      additionalSkillsNested,
+      legacyCommands,
+    ] = await Promise.all([
+      loadSkillsFromSkillsDir(managedSkillsDir, 'policySettings'),
+      isSettingSourceEnabled('userSettings')
+        ? loadSkillsFromSkillsDir(userSkillsDir, 'userSettings')
+        : Promise.resolve([]),
+      Promise.all(
+        projectSkillsDirs.map(dir =>
+          loadSkillsFromSkillsDir(dir, 'projectSettings')
+        ),
+      ),
+      Promise.all(
+        additionalDirs.map(dir =>
+          loadSkillsFromSkillsDir(join(dir, '.claude', 'skills'), 'projectSettings')
+        ),
+      ),
+      loadSkillsFromCommandsDir(cwd),
+    ])
+
+    // Flatten, combine, deduplicate by file identity
+    const allSkills = [
+      ...managedSkills, ...userSkills,
+      ...projectSkillsNested.flat(),
+      ...additionalSkillsNested.flat(),
+      ...legacyCommands,
+    ]
+    return deduplicateByFileIdentity(allSkills)
+  }
+)`,
+
+  hookExecution: `// src/utils/hooks.ts — Lines 1952-2020
+async function* executeHooks({
+  hookInput, toolUseID, matchQuery,
+  signal, timeoutMs, toolUseContext,
+}): AsyncGenerator<AggregatedHookResult> {
+  // Security gate: ALL hooks require workspace trust
+  if (shouldDisableAllHooksIncludingManaged()) return
+  if (shouldSkipHookDueToTrust()) return
+
+  const hookEvent = hookInput.hook_event_name
+  const matchingHooks = await getMatchingHooks(
+    appState, sessionId, hookEvent, hookInput
+  )
+  if (matchingHooks.length === 0) return
+  if (signal?.aborted) return
+
+  // Execute matching hooks and yield results progressively
+  for (const hook of matchingHooks) {
+    const result = await executeHookWithTimeout(hook, hookInput, timeoutMs)
+    yield { hook, result }
+  }
+}
+
+// Public wrapper for PreToolUse lifecycle
+export async function* executePreToolHooks(
+  toolName: string, toolUseID: string,
+  toolInput: unknown, toolUseContext: ToolUseContext,
+): AsyncGenerator<AggregatedHookResult> {
+  const hookInput: PreToolUseHookInput = {
+    hook_event_name: 'PreToolUse',
+    tool_name: toolName,
+    tool_input: toolInput,
+  }
+  yield* executeHooks({ hookInput, matchQuery: toolName, ... })
+}`,
+
+  pluginLoading: `// src/utils/plugins/pluginLoader.ts — Lines 1888-1960
+async function loadPluginsFromMarketplaces({ cacheOnly }) {
+  const enabledPlugins = {
+    ...getAddDirEnabledPlugins(),
+    ...settings.enabledPlugins,
+  }
+
+  // Filter to plugin@marketplace format
+  const marketplaceEntries = Object.entries(enabledPlugins)
+    .filter(([key]) => PluginIdSchema().safeParse(key).success)
+
+  // Pre-load marketplace catalogs once per marketplace
+  const uniqueMarketplaces = new Set(
+    marketplaceEntries.map(([id]) => parsePluginIdentifier(id).marketplace)
+  )
+  await Promise.all(
+    [...uniqueMarketplaces].map(name =>
+      marketplaceCatalogs.set(name, await getMarketplaceCacheOnly(name))
+    )
+  )
+
+  // Fail-closed enterprise policy check
+  const strictAllowlist = getStrictKnownMarketplaces()
+  const blocklist = getBlockedMarketplaces()
+
+  // Load all plugins in parallel
+  const results = await Promise.allSettled(
+    marketplaceEntries.map(async ([pluginId]) => {
+      const { marketplace } = parsePluginIdentifier(pluginId)
+      // Block unknown marketplaces if enterprise policy active
+      if (!marketplaceConfig && hasEnterprisePolicy) {
+        throw new PluginError('blocked_marketplace', pluginId)
+      }
+      return loadPluginFromMarketplace(pluginId, cacheOnly)
+    })
+  )
+}`,
 };

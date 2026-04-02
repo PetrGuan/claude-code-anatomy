@@ -767,6 +767,32 @@ const translations = {
       en: "Claude Code could have used a simpler approach: just print text line by line. But a React reconciler gives three critical advantages:\n\n• **Component reuse**: The same React mental model (components, hooks, state) works for terminal UI. Developers don't learn a new framework.\n• **Incremental updates**: React's diffing ensures only changed parts of the screen are redrawn. During streaming output (tokens arriving one at a time), this prevents the entire screen from flickering on every token.\n• **Layout composition**: Yoga's Flexbox means UI elements can be composed declaratively. A status bar + main content + sidebar is just `<Box flexDirection='row'>` — no manual cursor positioning.\n\nThe tradeoff: ~19K lines of rendering infrastructure. But this investment pays off across 346 components that all benefit from the same rendering pipeline.",
       zh: "Claude Code 可以用更简单的方式：逐行打印文本。但 React 协调器提供了三个关键优势：\n\n• **组件复用**：相同的 React 思维模型（组件、hooks、state）适用于终端 UI。开发者不需要学习新框架。\n• **增量更新**：React 的 diff 确保只重绘屏幕变化的部分。在流式输出（token 逐个到达）期间，这防止了每个 token 都导致整个屏幕闪烁。\n• **布局组合**：Yoga 的 Flexbox 意味着 UI 元素可以声明式组合。状态栏 + 主内容 + 侧边栏就是 `<Box flexDirection='row'>` — 无需手动光标定位。\n\n代价：约 19K 行渲染基础设施。但这项投资在 346 个组件中获得回报，它们都受益于同一渲染管线。"
     },
+    // Plugin & Skill System deep dive
+    psManifest: { en: "Plugin Manifest Schema (src/utils/plugins/schemas.ts)", zh: "插件清单模式 (src/utils/plugins/schemas.ts)" },
+    psManifestDesc: {
+      en: "Plugin manifests are fully typed via composable Zod schemas. The PluginManifestSchema composes 11 sub-schemas (metadata, hooks, commands, agents, skills, output-styles, channels, MCP/LSP servers, settings, user config) — all optional except name. This gives plugins a well-defined contract while remaining maximally flexible.",
+      zh: "插件清单通过可组合的 Zod 模式完全类型化。PluginManifestSchema 组合了 11 个子模式（元数据、钩子、命令、代理、技能、输出样式、通道、MCP/LSP 服务器、设置、用户配置）— 除了 name 其余都是可选的。这给插件提供了明确的契约，同时保持最大的灵活性。"
+    },
+    psSkillLoading: { en: "Skill Discovery (src/skills/loadSkillsDir.ts)", zh: "技能发现 (src/skills/loadSkillsDir.ts)" },
+    psSkillLoadingDesc: {
+      en: "Skills load from 5 sources in parallel: managed policy skills, user skills (~/.claude/skills), project skills (.claude/skills up to home), additional --add-dir skills, and legacy /commands/ files. Deduplication uses file identity checks (handling symlinks). The entire function is memoized for performance.",
+      zh: "技能从 5 个来源并行加载：管理策略技能、用户技能（~/.claude/skills）、项目技能（.claude/skills 向上到 home）、额外 --add-dir 技能和旧版 /commands/ 文件。去重使用文件身份检查（处理符号链接）。整个函数被 memoize 以提高性能。"
+    },
+    psHookExec: { en: "Hook Execution Engine (src/utils/hooks.ts)", zh: "钩子执行引擎 (src/utils/hooks.ts)" },
+    psHookExecDesc: {
+      en: "Hooks execute as async generators yielding results progressively. Every hook execution first checks workspace trust (security gate), then finds matching hooks via pattern matching against the event name. PreToolUse hooks can modify tool input or deny execution entirely. The system supports AbortSignal for cancellation and configurable timeouts.",
+      zh: "钩子作为 async generator 执行，逐步 yield 结果。每次钩子执行首先检查工作区信任（安全门控），然后通过事件名称的模式匹配找到匹配的钩子。PreToolUse 钩子可以修改工具输入或完全拒绝执行。系统支持 AbortSignal 取消和可配置的超时。"
+    },
+    psPluginLoader: { en: "Plugin Loading Pipeline (src/utils/plugins/pluginLoader.ts)", zh: "插件加载管线 (src/utils/plugins/pluginLoader.ts)" },
+    psPluginLoaderDesc: {
+      en: "Plugin discovery filters by `plugin@marketplace` format, pre-loads marketplace catalogs once for efficiency, and loads all plugins in parallel via `Promise.allSettled()`. Enterprise policy is enforced with fail-closed semantics — if a marketplace can't be verified, the plugin is blocked rather than silently allowed. Auto-detection discovers component directories (commands/, agents/, skills/, output-styles/) via parallel path checks.",
+      zh: "插件发现按 `plugin@marketplace` 格式过滤，预加载市场目录一次以提高效率，通过 `Promise.allSettled()` 并行加载所有插件。企业策略采用失败关闭语义 — 如果无法验证市场，插件被阻止而非静默允许。自动检测通过并行路径检查发现组件目录（commands/、agents/、skills/、output-styles/）。"
+    },
+    psWhyPlugins: { en: "Why This Plugin Architecture?", zh: "为什么选择这种插件架构？" },
+    psWhyPluginsDesc: {
+      en: "Claude Code's plugin system is unusually comprehensive for a CLI tool. Most CLIs have simple plugin APIs (register a command, done). Claude Code's plugins can modify behavior at 11+ extension points. The key design decisions:\n\n• **Manifest-first**: Every plugin declares its capabilities upfront in plugin.json. The system knows what a plugin provides before loading any code. This enables fast startup (skip unused plugins) and security auditing.\n• **Fail-closed security**: Enterprise admins can whitelist/blacklist marketplaces. Unknown sources are blocked by default — the opposite of npm's 'install anything' model.\n• **Parallel everything**: Skill discovery, plugin loading, and hook matching all use Promise.all/allSettled. With potentially dozens of plugins and hundreds of skills, sequential loading would add seconds to startup.\n• **Hooks as async generators**: Rather than simple callbacks, hooks yield results progressively. This enables streaming feedback during long-running hooks and natural cancellation via AbortSignal.",
+      zh: "Claude Code 的插件系统对于 CLI 工具来说异常全面。大多数 CLI 有简单的插件 API（注册一个命令就完了）。Claude Code 的插件可以在 11+ 个扩展点修改行为。关键设计决策：\n\n• **清单优先**：每个插件在 plugin.json 中预先声明其能力。系统在加载任何代码之前就知道插件提供什么。这实现了快速启动（跳过未使用的插件）和安全审计。\n• **失败关闭安全性**：企业管理员可以白名单/黑名单市场。未知来源默认被阻止 — 与 npm 的'安装任何东西'模式相反。\n• **全面并行**：技能发现、插件加载和钩子匹配都使用 Promise.all/allSettled。在可能有数十个插件和数百个技能的情况下，顺序加载会增加数秒的启动时间。\n• **钩子作为 async generator**：不是简单的回调，钩子逐步 yield 结果。这实现了长时间运行的钩子期间的流式反馈和通过 AbortSignal 的自然取消。"
+    },
   },
 } as const;
 
