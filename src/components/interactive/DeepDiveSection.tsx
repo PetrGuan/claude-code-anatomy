@@ -30,12 +30,13 @@ export default function DeepDiveSection({ locale = "en" as Locale, items }: Prop
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-6 py-4 flex items-center justify-between bg-bg-card hover:bg-bg-card/80 transition-colors text-left focus:outline-none focus:ring-2 focus:ring-accent-purple focus:ring-inset"
         aria-expanded={isOpen}
+        aria-controls="deep-dive-content"
       >
         <div>
           <h2 className="text-xl font-bold text-accent-purple">{t(locale, "deepDive.title")}</h2>
           <p className="text-sm text-text-secondary mt-1">{t(locale, "deepDive.subtitle")}</p>
         </div>
-        <span className="text-sm text-text-secondary whitespace-nowrap ml-4">
+        <span className="text-sm text-text-secondary whitespace-nowrap ml-4" aria-hidden="true">
           {isOpen ? t(locale, "deepDive.hideMore") : t(locale, "deepDive.showMore")}
         </span>
       </button>
@@ -43,6 +44,7 @@ export default function DeepDiveSection({ locale = "en" as Locale, items }: Prop
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            id="deep-dive-content"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}

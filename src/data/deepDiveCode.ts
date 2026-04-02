@@ -40,7 +40,7 @@ async *submitMessage(
     agents = [], setSDKStatus,
     orphanedPermission,
   } = this.config
-  // ... 25+ config options destructured
+  // All 25+ config options shown above
 }`,
 
   systemPrompt: `// src/utils/systemPrompt.ts — Lines 41-75
@@ -156,9 +156,10 @@ export function matchWildcardPattern(
     processed += trimmedPattern[i]; i++
   }
   // Convert * → .* for wildcard, escape regex specials
-  const escaped = processed.replace(/[.+?^\${}()|[\\]\\\\'"]/g, '\\\\$&')
-  const withWildcards = escaped.replace(/\\*/g, '.*')
+  const escaped = processed.replace(/[.+?^${}()|[\\]\\\\'"]/g, '\\\\$&')
+  let regexPattern = escaped.replace(/\\*/g, '.*')
   // "git *" matches both "git" and "git commit"
+  const singleWildcard = (processed.match(/\\*/g) || []).length === 1
   if (regexPattern.endsWith(' .*') && singleWildcard) {
     regexPattern = regexPattern.slice(0, -3) + '( .*)?'
   }
