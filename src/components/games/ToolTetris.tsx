@@ -734,7 +734,7 @@ export default function ToolTetris({ locale = "en" as Locale }: Props) {
 
   const isZh = locale === "zh";
 
-  const tutorialSteps = [
+  const tutorialSteps = useMemo(() => [
     {
       title: isZh ? "基础操作" : "Basic Controls",
       desc: isZh ? "← → 移动方块\n↑ 旋转\n↓ 加速下落\n空格 直接落底\n\n填满一行即可消除！" : "← → Move piece\n↑ Rotate\n↓ Soft drop\nSpace Hard drop\n\nComplete a row to clear it!",
@@ -765,7 +765,7 @@ export default function ToolTetris({ locale = "en" as Locale }: Props) {
       desc: isZh ? "每得 200 分获得 1 次 Agent 充能。\n按 A 键 → AI 自动最优放置当前方块！\n\n准备好了吗？" : "Earn 1 Agent charge every 200 points.\nPress A → AI auto-places current piece!\n\nReady to play?",
       visual: "agent",
     },
-  ];
+  ], [isZh]);
 
   return (
     <div ref={containerRef} tabIndex={0} className="outline-none" style={{ cursor: "default" }}>
