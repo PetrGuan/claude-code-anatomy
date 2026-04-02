@@ -25,6 +25,12 @@ const { locale } = Astro.props;
         <p class="mt-6 text-lg text-text-secondary max-w-2xl mx-auto px-4">
           {t(locale, "home.subtitle")}
         </p>
+        <a
+          href={getLocalePath(locale, "/games")}
+          class="inline-flex items-center gap-2 mt-6 px-5 py-2.5 rounded-full bg-accent-amber/10 border border-accent-amber/30 text-accent-amber text-sm font-medium hover:bg-accent-amber/20 transition-colors"
+        >
+          🎮 {t(locale, "games.hubTitle")} →
+        </a>
       </div>
 
       <div class="mt-16 grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -82,22 +88,4 @@ const { locale } = Astro.props;
     </div>
   </section>
 
-  {/* Zone 4: Games CTA */}
-  <section class="py-24 border-t border-bg-border">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="text-center">
-        <p class="text-4xl mb-4">🎮</p>
-        <h2 class="text-3xl font-bold">{t(locale, "games.hubTitle")}</h2>
-        <p class="mt-4 text-text-secondary max-w-xl mx-auto">
-          {t(locale, "games.hubSubtitle")}
-        </p>
-        <a
-          href={getLocalePath(locale, "/games")}
-          class="inline-block mt-8 px-8 py-3 rounded-lg bg-accent-purple text-white font-bold hover:bg-accent-purple/80 transition-colors"
-        >
-          {t(locale, "games.playBtn")} →
-        </a>
-      </div>
-    </div>
-  </section>
 </BaseLayout>
