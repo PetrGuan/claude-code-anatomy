@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { t } from "../../i18n/translations";
 import type { Locale } from "../../i18n/locales";
 
