@@ -32,5 +32,8 @@ const next = currentIndex < readingOrder.length - 1 ? readingOrder[currentIndex 
         </a>
       ) : <div class="flex-1" />}
     </div>
+    <p class="text-center text-xs text-text-secondary/40 mt-3">
+      {locale === "zh" ? "← → 键盘切换页面" : "← → arrow keys to navigate"}
+    </p>
   </div>
 )}

@@ -34,10 +34,23 @@ const lightHtml = await codeToHtml(code, { lang, theme: "github-light-default" }
 </div>
 
 <script>
-  document.querySelectorAll('.copy-btn').forEach(btn => {
+  // Only attach to buttons that haven't been initialized yet
+  document.querySelectorAll('.copy-btn:not([data-initialized])').forEach(btn => {
+    btn.setAttribute('data-initialized', 'true');
     btn.addEventListener('click', async () => {
       const code = btn.getAttribute('data-code') || '';
-      await navigator.clipboard.writeText(code);
+      try {
+        await navigator.clipboard.writeText(code);
+      } catch {
+        const textarea = document.createElement('textarea');
+        textarea.value = code;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
       const original = btn.textContent;
       btn.textContent = 'Copied!';
       setTimeout(() => { btn.textContent = original; }, 1500);
