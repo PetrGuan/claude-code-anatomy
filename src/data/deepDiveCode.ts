@@ -799,9 +799,6 @@ export const connectToServer = memoize(
   async (name: string, serverRef: ScopedMcpServerConfig) => {
     let transport
 
-    // Check for bridge-mode routing first
-    const sessionIngressToken = getSessionIngressAuthToken()
-
     if (serverRef.type === 'sse') {
       // Remote HTTP server with OAuth auth
       const authProvider = new ClaudeAuthProvider(name, serverRef)
@@ -857,7 +854,7 @@ export const fetchToolsForClient = memoizeWithLRU(
         inputSchema: tool.inputSchema,
         // MCP tools use the MCPTool wrapper for execution
         call: (args, context) => callMCPTool({
-          client, tool: tool.name, args, ...
+          client, tool: tool.name, args, /* context */
         }),
         isReadOnly: () => false,  // Can't know — assume write
         isConcurrencySafe: () => false,
