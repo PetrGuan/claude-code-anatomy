@@ -9,6 +9,8 @@ import SectionHeading from "../components/common/SectionHeading.astro";
 import LayerToggleAgentSystem from "../components/common/LayerToggleAgentSystem.tsx";
 import StatCard from "../components/common/StatCard.tsx";
 import FlowDiagram from "../components/viz/FlowDiagram.tsx";
+import DeepDiveSection from "../components/interactive/DeepDiveSection.tsx";
+import { deepDiveSnippets } from "../data/deepDiveCode";
 
 interface Props {
   locale: Locale;
@@ -155,6 +157,14 @@ const spawningEdges = [
         </div>
       </div>
     </div>
+
+    <DeepDiveSection client:visible locale={locale} items={[
+      { type: "code", titleKey: "deepDive.asSpawning", descKey: "deepDive.asSpawningDesc", code: deepDiveSnippets.agentSpawning },
+      { type: "code", titleKey: "deepDive.asIsolation", descKey: "deepDive.asIsolationDesc", code: deepDiveSnippets.agentIsolation },
+      { type: "code", titleKey: "deepDive.asMessaging", descKey: "deepDive.asMessagingDesc", code: deepDiveSnippets.agentMessaging },
+      { type: "code", titleKey: "deepDive.asNotification", descKey: "deepDive.asNotificationDesc", code: deepDiveSnippets.agentNotification },
+      { type: "design", titleKey: "deepDive.asWhyArchitecture", descKey: "deepDive.asWhyArchitectureDesc" },
+    ]} />
 
     <RelatedPages locale={locale} currentPath="/agent-system" />
     <PageNav locale={locale} currentPath="/agent-system" />

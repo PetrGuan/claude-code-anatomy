@@ -552,6 +552,157 @@ if (isWithheld413) {
   return { reason: 'prompt_too_long' }
 }`,
 
+  agentSpawning: `// src/tools/AgentTool/AgentTool.tsx — Lines 688-730
+// Register async agent task with independent lifecycle
+const agentBackgroundTask = registerAsyncAgent({
+  agentId: asyncAgentId,
+  description,
+  prompt,
+  selectedAgent,
+  setAppState: rootSetAppState,
+  // Background agents survive user ESC — killed explicitly
+  toolUseId: toolUseContext.toolUseId
+})
+
+// Register name for SendMessage routing
+if (name) {
+  rootSetAppState(prev => {
+    const next = new Map(prev.agentNameRegistry)
+    next.set(name, asAgentId(asyncAgentId))
+    return { ...prev, agentNameRegistry: next }
+  })
+}
+
+// Fire and forget — void means no await, decoupled from parent
+void runWithAgentContext(asyncAgentContext, () =>
+  runAsyncAgentLifecycle({
+    taskId: agentBackgroundTask.agentId,
+    abortController: agentBackgroundTask.abortController!,
+    makeStream: onCacheSafeParams => runAgent({
+      ...runAgentParams,
+      override: {
+        agentId: asAgentId(agentBackgroundTask.agentId),
+        abortController: agentBackgroundTask.abortController!
+      },
+    }),
+    metadata, description, toolUseContext,
+  })
+)`,
+
+  agentIsolation: `// src/utils/forkedAgent.ts — Lines 345-420
+export function createSubagentContext(
+  parentContext: ToolUseContext,
+  overrides?: SubagentContextOverrides,
+): ToolUseContext {
+  // Independent abort: child doesn't die with parent
+  const abortController = overrides?.abortController
+    ?? createChildAbortController(parentContext.abortController)
+
+  // Suppress permission prompts for non-interactive agents
+  const getAppState = () => {
+    const state = parentContext.getAppState()
+    return {
+      ...state,
+      toolPermissionContext: {
+        ...state.toolPermissionContext,
+        shouldAvoidPermissionPrompts: true,
+      },
+    }
+  }
+
+  return {
+    // Cloned: each agent has its own file cache
+    readFileState: cloneFileStateCache(parentContext.readFileState),
+    contentReplacementState: cloneContentReplacementState(...),
+    // Fresh: per-agent tracking
+    nestedMemoryAttachmentTriggers: new Set(),
+    discoveredSkillNames: new Set(),
+    // Isolated: async agents can't modify parent UI
+    setAppState: () => {},  // no-op!
+    // Exception: task registration must reach root
+    setAppStateForTasks: parentContext.setAppState,
+    // Independent denial tracking
+    localDenialTracking: createDenialTrackingState(),
+    abortController,
+    getAppState,
+  }
+}`,
+
+  agentMessaging: `// src/tools/SendMessageTool/SendMessageTool.ts — Lines 149-189, 738-780
+async function handleMessage(
+  recipientName: string,
+  content: string,
+  context: ToolUseContext,
+): Promise<MessageOutput> {
+  const senderName = getAgentName() || TEAM_LEAD_NAME
+
+  // Write to mailbox for swarm coordination
+  await writeToMailbox(recipientName, {
+    from: senderName,
+    text: content,
+    timestamp: new Date().toISOString(),
+  })
+
+  return { success: true, message: 'Message sent to ' + recipientName }
+}
+
+// In-process routing: direct delivery or auto-resume
+const registered = appState.agentNameRegistry.get(input.to)
+const agentId = registered ?? toAgentId(input.to)
+const task = appState.tasks[agentId]
+
+if (task?.status === 'running') {
+  // Agent is active — queue message for next tool round
+  queuePendingMessage(agentId, input.message, context.setAppStateForTasks)
+} else if (task) {
+  // Agent stopped — wake it up with the message
+  await resumeAgentBackground({
+    agentId,
+    prompt: input.message,
+    toolUseContext: context,
+  })
+}`,
+
+  agentNotification: `// src/tasks/LocalAgentTask/LocalAgentTask.tsx — Lines 466-515, 197-262
+export function registerAsyncAgent({ agentId, description, ... }) {
+  const abortController = parentAbortController
+    ? createChildAbortController(parentAbortController)
+    : createAbortController()
+
+  const taskState: LocalAgentTaskState = {
+    type: 'local_agent',
+    status: 'running',
+    agentId,
+    description,
+    abortController,
+    isBackgrounded: true,
+    pendingMessages: [],
+  }
+  registerTask(taskState, setAppState)
+  return taskState
+}
+
+// On completion: queue notification for parent
+export function enqueueAgentNotification({ taskId, status, ... }) {
+  // Atomic flag: prevent duplicate notifications
+  let shouldEnqueue = false
+  updateTaskState(taskId, setAppState, task => {
+    if (task.notified) return task
+    shouldEnqueue = true
+    return { ...task, notified: true }
+  })
+  if (!shouldEnqueue) return
+
+  // Abort any active speculation — state changed
+  abortSpeculation(setAppState)
+
+  // Queue XML notification for async delivery
+  enqueuePendingNotification({
+    value: '<task-notification>...' + taskId + status + '</task-notification>',
+    mode: 'task-notification'
+  })
+}`,
+
   tokenBudget: `// src/query/tokenBudget.ts — Lines 6-93
 type BudgetTracker = {
   continuationCount: number
