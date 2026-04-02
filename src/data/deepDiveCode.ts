@@ -435,14 +435,14 @@ async function loadPluginsFromMarketplaces({ cacheOnly }) {
     marketplaceEntries.map(([id]) => parsePluginIdentifier(id).marketplace)
   )
   await Promise.all(
-    [...uniqueMarketplaces].map(name =>
-      marketplaceCatalogs.set(name, await getMarketplaceCacheOnly(name))
-    )
+    [...uniqueMarketplaces].map(async (name) => {
+      const catalog = await getMarketplaceCacheOnly(name)
+      marketplaceCatalogs.set(name, catalog)
+    })
   )
 
-  // Fail-closed enterprise policy check
-  const strictAllowlist = getStrictKnownMarketplaces()
-  const blocklist = getBlockedMarketplaces()
+  // Fail-closed: enterprise policy blocks unknown marketplaces
+  const hasEnterprisePolicy = getStrictKnownMarketplaces() !== null
 
   // Load all plugins in parallel
   const results = await Promise.allSettled(
