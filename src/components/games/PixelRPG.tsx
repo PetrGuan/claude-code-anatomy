@@ -96,6 +96,9 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
   // Room 4: gate judgment
   const [currentCommand, setCurrentCommand] = useState(0);
 
+  // Narrative message (shown below the game viewport)
+  const [narrative, setNarrative] = useState<string>("");
+
   const room = roomMeta[roomIndex];
 
   // Room completion checks
@@ -122,6 +125,7 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
   }, [room.walls]);
 
   // Reset room-specific state when entering a new room
+  const introKeys = ["games.pg.room1Intro", "games.pg.room2Intro", "games.pg.room3Intro", "games.pg.room4Intro"];
   const enterRoom = useCallback((ri: number, fromLeft: boolean) => {
     setRoomIndex(ri);
     setPlayerPos({ x: fromLeft ? 1 : ROOM_W - 2, y: 3 });
@@ -141,7 +145,11 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
     if (ri === 3) {
       setCurrentCommand(0);
     }
-  }, []);
+    setNarrative(t(locale, introKeys[ri]));
+  }, [locale]);
+
+  // Set initial narrative
+  useEffect(() => { setNarrative(t(locale, "games.pg.room1Intro")); }, [locale]);
 
   // Handle movement
   const handleMove = useCallback((dx: number, dy: number) => {
@@ -177,6 +185,7 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
         doFlash("green", t(locale, "games.pg.correctGate"));
         setCurrentCommand(c => c + 1);
         if (currentCommand + 1 >= 3) {
+          setTimeout(() => setNarrative(t(locale, "games.pg.gateComplete")), 500);
           // game complete after short delay
           setTimeout(() => setGameComplete(true), 800);
         }
@@ -192,8 +201,19 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
     if (ri === 0) {
       const item = collectibles.find(c => c.pos.x === nx && c.pos.y === ny && !inventory.includes(c.id));
       if (item) {
-        setInventory(prev => [...prev, item.id]);
+        const newInventory = [...inventory, item.id];
+        setInventory(newInventory);
         doFlash("green");
+        // Narrative feedback
+        const pickupKeys: Record<string, string> = {
+          prompt: "games.pg.gotPrompt",
+          rules: "games.pg.gotRules",
+          memory: "games.pg.gotMemory",
+        };
+        setNarrative(t(locale, pickupKeys[item.id]));
+        if (newInventory.length >= 3) {
+          setTimeout(() => setNarrative(t(locale, "games.pg.allCollected")), 1500);
+        }
       }
     }
 
@@ -202,8 +222,13 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
       const caught = tokens.find(tk => tk.x === nx && tk.y === ny);
       if (caught) {
         setTokens(prev => prev.filter(tk => tk.id !== caught.id));
-        setTokensCaught(c => c + 1);
+        const newCount = tokensCaught + 1;
+        setTokensCaught(newCount);
         doFlash("green");
+        setNarrative(t(locale, "games.pg.tokenProgress"));
+        if (newCount >= 8) {
+          setTimeout(() => setNarrative(t(locale, "games.pg.tokensComplete")), 500);
+        }
       }
     }
 
@@ -228,13 +253,17 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
           const correct = (toolDef!.type === "read" && zone === "parallel") ||
                           (toolDef!.type === "write" && zone === "serial");
           if (correct) {
-            setSortedTools(prev => [...prev, carrying!]);
+            const newSorted = [...sortedTools, carrying!];
+            setSortedTools(newSorted);
             setToolPositions(prev => {
               const next = new Map(prev);
               next.set(carrying!, { x: nx, y: ny });
               return next;
             });
             doFlash("green", t(locale, "games.pg.correctSort"));
+            if (newSorted.length >= 6) {
+              setTimeout(() => setNarrative(t(locale, "games.pg.sortComplete")), 500);
+            }
           } else {
             // Return tool to original position
             const orig = initialTools.find(t => t.name === carrying)!;
@@ -251,7 +280,7 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
     }
 
     setPlayerPos({ x: nx, y: ny });
-  }, [playerPos, roomIndex, isWall, isRoomComplete, enterRoom, inventory, tokens, carrying, toolPositions, sortedTools, currentCommand, doFlash, isZh]);
+  }, [playerPos, roomIndex, isWall, isRoomComplete, enterRoom, inventory, tokens, carrying, toolPositions, sortedTools, currentCommand, doFlash, isZh, locale]);
 
   // Room 2: token spawning
   useEffect(() => {
@@ -400,9 +429,6 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
     }
   };
 
-  // Room hint
-  const hintKeys = ["games.pg.collectHint", "games.pg.tokenHint", "games.pg.sortHint", "games.pg.gateHint"];
-
   // Is the exit on the right unlocked?
   const exitUnlocked = isRoomComplete(roomIndex);
 
@@ -429,9 +455,8 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
         </div>
       </div>
 
-      {/* Hint + HUD */}
-      <div className="flex items-center justify-between mb-2 px-1">
-        <span className="text-xs text-text-secondary italic">{t(locale, hintKeys[roomIndex])}</span>
+      {/* HUD */}
+      <div className="flex items-center justify-end mb-2 px-1">
         {renderHUD()}
       </div>
 
@@ -635,6 +660,13 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
         </div>
       </div>
       </div>
+
+      {/* Narrative text */}
+      {narrative && (
+        <div className="mt-3 rounded-lg border border-bg-border bg-bg-card px-4 py-3">
+          <p className="text-sm text-text-secondary leading-relaxed">{narrative}</p>
+        </div>
+      )}
 
       {/* Controls hint */}
       <p className="mt-3 text-center text-xs text-text-secondary/50 hidden lg:block">
