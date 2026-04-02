@@ -213,6 +213,7 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
   const [completedRooms, setCompletedRooms] = useState<Set<string>>(new Set());
   const [gameComplete, setGameComplete] = useState(false);
   const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [scale, setScale] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const room = rooms[roomIndex];
@@ -287,7 +288,11 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
       }
     }
 
-    // Advance to next line or close
+    // Advance to next line or close.
+    // When a choice jumps to a feedback line (e.g. next: 2 or next: 3), that
+    // feedback line has no choices. So the "no choices" branch below correctly
+    // closes the dialogue and marks the room complete after one more click.
+    // This is intentional — show feedback, one click to close.
     const nextIndex = lineIndex + 1;
     if (nextIndex < npc.dialogue.length && !npc.dialogue[nextIndex - 1]?.choices) {
       setDialogue({ npc, lineIndex: nextIndex });
@@ -297,7 +302,8 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
     }
   }, [dialogue, room.id]);
 
-  // Keyboard handler
+  // Keyboard handler — attached to the game container (not window) so it only
+  // fires when the game is focused, preventing arrow-key hijacking of page scroll.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -319,12 +325,28 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
         case " ": case "Enter": e.preventDefault(); handleInteract(); break;
       }
     }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    const el = containerRef.current;
+    if (el) el.addEventListener("keydown", onKey);
+    return () => { if (el) el.removeEventListener("keydown", onKey); };
   }, [dialogue, handleMove, handleInteract, advanceDialogue]);
 
   // Focus container on mount
   useEffect(() => { containerRef.current?.focus(); }, []);
+
+  // Responsive scaling — shrink the game viewport to fit narrow containers
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => {
+      const containerWidth = el.clientWidth;
+      const gameWidth = room.width * TILE;
+      setScale(Math.min(1, containerWidth / gameWidth));
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [room.width]);
 
   const currentLine = dialogue ? dialogue.npc.dialogue[dialogue.lineIndex] : null;
 
@@ -377,15 +399,17 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
         </div>
       </div>
 
-      {/* Game viewport */}
+      {/* Game viewport — wrapped to maintain scaled height in document flow */}
+      <div style={{ height: `${room.height * TILE * scale}px`, overflow: "hidden" }}>
       <div
         className="relative rounded-xl border-2 overflow-hidden bg-bg"
         style={{
           borderColor: room.color,
           width: `${room.width * TILE}px`,
           height: `${room.height * TILE}px`,
-          maxWidth: "100%",
           imageRendering: "pixelated",
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
         }}
       >
         {/* Floor grid */}
@@ -465,6 +489,14 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
             {tooltip}
           </div>
         )}
+
+        {/* I8: Mission complete hint — security room has no exit, so prompt player to press Space */}
+        {room.id === "security" && completedRooms.has("security") && !dialogue && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span className="text-2xl animate-bounce">🏁</span>
+          </div>
+        )}
+      </div>
       </div>
 
       {/* Dialogue box */}
@@ -499,12 +531,27 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
         </div>
       )}
 
-      {/* Controls hint */}
+      {/* Controls hint — keyboard only, hidden on mobile */}
       {!dialogue && (
-        <p className="mt-3 text-center text-xs text-text-secondary/50">
+        <p className="mt-3 text-center text-xs text-text-secondary/50 hidden lg:block">
           {isZh ? "方向键/WASD 移动 · 空格键互动" : "Arrow keys / WASD to move · Space to interact"}
         </p>
       )}
+
+      {/* Touch D-pad for mobile */}
+      <div className="mt-3 flex justify-center lg:hidden">
+        <div className="grid grid-cols-3 gap-1 w-32">
+          <div />
+          <button onClick={() => handleMove(0, -1)} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">↑</button>
+          <div />
+          <button onClick={() => handleMove(-1, 0)} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">←</button>
+          <button onClick={() => handleInteract()} className="p-3 rounded bg-bg-card border border-bg-border text-center text-xs text-accent-purple">ACT</button>
+          <button onClick={() => handleMove(1, 0)} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">→</button>
+          <div />
+          <button onClick={() => handleMove(0, 1)} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">↓</button>
+          <div />
+        </div>
+      </div>
     </div>
   );
 }
