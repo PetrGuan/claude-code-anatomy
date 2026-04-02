@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { t } from "../../i18n/translations";
 import type { Locale } from "../../i18n/locales";
@@ -18,11 +18,12 @@ interface Props {
 export default function DeepDiveSection({ locale = "en" as Locale, items }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedCode, setHighlightedCode] = useState<Map<number, string>>(new Map());
+  const hasHighlighted = useRef(false);
 
   // Load Shiki when the section is opened for the first time
   useEffect(() => {
     if (!isOpen) return;
-    if (highlightedCode.size > 0) return; // already highlighted
+    if (hasHighlighted.current) return;
 
     let cancelled = false;
     async function highlight() {
@@ -47,14 +48,17 @@ export default function DeepDiveSection({ locale = "en" as Locale, items }: Prop
         }
 
         highlighter.dispose();
-        if (!cancelled) setHighlightedCode(result);
+        if (!cancelled) {
+          hasHighlighted.current = true;
+          setHighlightedCode(result);
+        }
       } catch (e) {
         console.warn("Shiki failed to load for DeepDive", e);
       }
     }
     highlight();
     return () => { cancelled = true; };
-  }, [isOpen, items, highlightedCode.size]);
+  }, [isOpen, items]);
 
   const typeLabels: Record<string, string> = {
     code: t(locale, "deepDive.realCode"),
