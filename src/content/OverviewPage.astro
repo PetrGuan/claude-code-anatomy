@@ -79,12 +79,12 @@ const directoryTree = {
 };
 
 const techStack = [
-  { name: "Bun", desc: t(locale, "techStack.bunDesc"), color: "#f5f5f5" },
+  { name: "Bun", desc: t(locale, "techStack.bunDesc"), color: "#cbae6b" },
   { name: "TypeScript", desc: t(locale, "techStack.tsDesc"), color: "#3178c6" },
-  { name: "React + Ink", desc: t(locale, "techStack.reactInkDesc"), color: "#61dafb" },
-  { name: "Yoga", desc: t(locale, "techStack.yogaDesc"), color: "#a78bfa" },
+  { name: "React + Ink", desc: t(locale, "techStack.reactInkDesc"), color: "#0891b2" },
+  { name: "Yoga", desc: t(locale, "techStack.yogaDesc"), color: "#7c3aed" },
   { name: "Zod", desc: t(locale, "techStack.zodDesc"), color: "#3068b7" },
-  { name: "tree-sitter", desc: t(locale, "techStack.treeSitterDesc"), color: "#f59e0b" },
+  { name: "tree-sitter", desc: t(locale, "techStack.treeSitterDesc"), color: "#b45309" },
 ];
 
 const highlights = [
@@ -139,7 +139,10 @@ const highlights = [
       <div class="grid sm:grid-cols-2 gap-4">
         {techStack.map((tech) => (
           <div class="rounded-lg border border-bg-border bg-bg-card p-4">
-            <p class="font-semibold" style={`color: ${tech.color}`}>{tech.name}</p>
+            <p class="font-semibold text-text flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style={`background-color: ${tech.color}`}></span>
+              {tech.name}
+            </p>
             <p class="text-sm text-text-secondary mt-1">{tech.desc}</p>
           </div>
         ))}
