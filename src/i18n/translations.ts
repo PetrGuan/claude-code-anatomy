@@ -634,6 +634,68 @@ const translations = {
     title: { en: "Glossary", zh: "术语表" },
     subtitle: { en: "Key technical terms explained for all readers", zh: "为所有读者解释的关键技术术语" },
   },
+  deepDive: {
+    title: { en: "Deep Dive", zh: "深度剖析" },
+    subtitle: { en: "Real source code and design decisions", zh: "真实源码与设计决策" },
+    showMore: { en: "Show Deep Dive ▼", zh: "展开深度剖析 ▼" },
+    hideMore: { en: "Hide Deep Dive ▲", zh: "收起深度剖析 ▲" },
+    realCode: { en: "Real Source Code", zh: "真实源码" },
+    typeDefinitions: { en: "Type Definitions", zh: "类型定义" },
+    designDecisions: { en: "Design Decisions", zh: "设计决策" },
+    // Query Pipeline deep dive
+    qpToolInterface: { en: "The Tool Interface (src/Tool.ts)", zh: "Tool 接口定义 (src/Tool.ts)" },
+    qpToolInterfaceDesc: {
+      en: "Every tool in Claude Code implements this interface. Key methods: `call()` executes the tool, `isReadOnly()` determines scheduling, `isConcurrencySafe()` enables parallel execution, `inputSchema` (Zod) validates inputs at runtime.",
+      zh: "Claude Code 中的每个工具都实现此接口。关键方法：`call()` 执行工具，`isReadOnly()` 决定调度方式，`isConcurrencySafe()` 启用并行执行，`inputSchema`（Zod）在运行时验证输入。"
+    },
+    qpSubmitMessage: { en: "submitMessage() Entry Point (src/QueryEngine.ts)", zh: "submitMessage() 入口 (src/QueryEngine.ts)" },
+    qpSubmitMessageDesc: {
+      en: "The actual function signature reveals the complexity hidden behind the simple concept: 25+ configuration options, from model selection and token budgets to permission callbacks and agent coordination. This is the nerve center of Claude Code.",
+      zh: "实际函数签名揭示了简单概念背后隐藏的复杂性：25+ 个配置选项，从模型选择和 token 预算到权限回调和 Agent 协调。这是 Claude Code 的神经中枢。"
+    },
+    qpSystemPrompt: { en: "System Prompt Assembly (src/utils/systemPrompt.ts)", zh: "系统提示构建 (src/utils/systemPrompt.ts)" },
+    qpSystemPromptDesc: {
+      en: "The prompt assembly has a priority hierarchy: override prompt > coordinator mode > agent definition > default + custom + append. This layering enables Claude Code to adapt its behavior for different contexts (IDE, CLI, agent, coordinator) without duplicating prompt logic.",
+      zh: "提示构建有优先级层次：覆盖提示 > 协调器模式 > Agent 定义 > 默认 + 自定义 + 追加。这种分层使 Claude Code 能够为不同上下文（IDE、CLI、Agent、协调器）调整行为，而无需重复提示逻辑。"
+    },
+    qpWhyAsyncGen: { en: "Why Async Generators?", zh: "为什么选择 Async Generator？" },
+    qpWhyAsyncGenDesc: {
+      en: "Claude Code chose async generators over callbacks, Observables, or event emitters for the streaming pipeline. The key tradeoffs:\n\n• **vs Callbacks**: Generators compose naturally with `yield*` — a tool that calls sub-tools just yields their results. Callbacks require manual propagation.\n• **vs Observables (RxJS)**: Generators are native to JavaScript — no library needed. They also support natural backpressure: the consumer controls the pace by pulling values.\n• **vs Event Emitters**: Generators maintain execution context between yields. The same function can do setup, yield streaming results, then do cleanup — impossible with fire-and-forget events.\n\nThe `yield*` delegation pattern is particularly elegant: `submitMessage()` yields tool results from `runTools()` which yields from individual tool executions, creating a transparent streaming pipeline without manual message forwarding.",
+      zh: "Claude Code 在流式管线中选择了 async generator 而非回调、Observable 或事件发射器。关键权衡：\n\n• **对比回调**：Generator 通过 `yield*` 自然组合 — 调用子工具的工具直接 yield 它们的结果。回调需要手动传播。\n• **对比 Observable (RxJS)**：Generator 是 JavaScript 原生特性 — 不需要库。它们还支持自然的背压：消费者通过拉取值来控制节奏。\n• **对比事件发射器**：Generator 在 yield 之间保持执行上下文。同一个函数可以做初始化、yield 流式结果、然后做清理 — 这对于即发即弃的事件来说是不可能的。\n\n`yield*` 委托模式特别优雅：`submitMessage()` 从 `runTools()` yield 工具结果，`runTools()` 又从各个工具执行中 yield，创建了一个透明的流式管线，无需手动消息转发。"
+    },
+    // Tool System deep dive
+    tsRegistration: { en: "Tool Registration (src/tools.ts)", zh: "工具注册 (src/tools.ts)" },
+    tsRegistrationDesc: {
+      en: "Tools are registered in a single array with feature gates. `feature('X')` checks are evaluated at bundle time — disabled tools are completely removed from the production bundle by Bun's dead-code elimination. `process.env.USER_TYPE` gates are runtime checks for internal-only tools.",
+      zh: "工具在单个数组中注册并带有特性开关。`feature('X')` 检查在打包时求值 — 禁用的工具会被 Bun 的死代码消除完全从生产包中移除。`process.env.USER_TYPE` 开关是仅限内部工具的运行时检查。"
+    },
+    tsPartitioning: { en: "Batch Partitioning (src/services/tools/toolOrchestration.ts)", zh: "批处理分区 (src/services/tools/toolOrchestration.ts)" },
+    tsPartitioningDesc: {
+      en: "The partitioning algorithm uses a greedy approach: it accumulates consecutive concurrency-safe tool calls into a single batch. When a non-safe call is encountered, it starts a new batch. This means `[Read, Read, Write, Read, Read]` becomes `[[Read, Read], [Write], [Read, Read]]` — 3 batches, 2 concurrent + 1 serial. The `isConcurrencySafe` check is defensive: if it throws, the tool is treated as non-concurrent.",
+      zh: "分区算法使用贪心策略：将连续的并发安全工具调用累积到单个批次中。遇到非安全调用时，开始新批次。这意味着 `[Read, Read, Write, Read, Read]` 变成 `[[Read, Read], [Write], [Read, Read]]` — 3 个批次，2 个并发 + 1 个串行。`isConcurrencySafe` 检查是防御性的：如果抛出异常，工具被视为非并发安全。"
+    },
+    tsWhyNotQueue: { en: "Why Not a Task Queue?", zh: "为什么不用任务队列？" },
+    tsWhyNotQueueDesc: {
+      en: "Many systems use a centralized task queue (like Bull or a thread pool) for concurrent work. Claude Code instead uses a simpler batch partition model. The reason: tool calls within a single API response are a bounded, small set (typically 1-5). A task queue adds complexity (priorities, retries, dead letters) that isn't needed. The batch model is:\n\n• **Predictable**: execution order matches API response order\n• **Debuggable**: no hidden queue state to inspect\n• **Low overhead**: just `Promise.all` vs. queue management\n\nThe tradeoff is that there's no cross-turn parallelism — each API response's tools must complete before the next turn starts. This is intentional: Claude needs to see ALL tool results before deciding the next action.",
+      zh: "许多系统使用集中式任务队列（如 Bull 或线程池）处理并发工作。Claude Code 使用更简单的批分区模型。原因：单个 API 响应中的工具调用是有界的小集合（通常 1-5 个）。任务队列增加了不必要的复杂性（优先级、重试、死信）。批模型的优势：\n\n• **可预测**：执行顺序与 API 响应顺序一致\n• **可调试**：没有隐藏的队列状态需要检查\n• **低开销**：只需 `Promise.all` 对比队列管理\n\n代价是没有跨轮次并行 — 每个 API 响应的工具必须全部完成才能开始下一轮。这是故意的：Claude 需要看到所有工具结果后才能决定下一步操作。"
+    },
+    // Permission deep dive
+    psPermissionMode: { en: "Permission Modes (src/types/permissions.ts)", zh: "权限模式 (src/types/permissions.ts)" },
+    psPermissionModeDesc: {
+      en: "Five external modes + two internal-only modes. `default` shows confirmation dialogs. `acceptEdits` auto-allows file edits but asks for shell commands. `bypassPermissions` allows everything (dangerous). `plan` restricts to read-only. `dontAsk` silently denies anything that would prompt. `auto` (internal) uses the ML classifier. `bubble` (internal) delegates to parent agent.",
+      zh: "五种外部模式 + 两种仅限内部的模式。`default` 显示确认对话框。`acceptEdits` 自动允许文件编辑但询问 Shell 命令。`bypassPermissions` 允许所有操作（危险）。`plan` 限制为只读。`dontAsk` 静默拒绝任何需要提示的操作。`auto`（内部）使用 ML 分类器。`bubble`（内部）委托给父 Agent。"
+    },
+    psRuleMatching: { en: "Rule Matching Engine (src/utils/permissions/shellRuleMatching.ts)", zh: "规则匹配引擎 (src/utils/permissions/shellRuleMatching.ts)" },
+    psRuleMatchingDesc: {
+      en: "The rule matcher converts user-defined patterns (like `git *` or `npm test`) into regex. Key features: `*` becomes `.*` for wildcard matching. `\\*` becomes a literal asterisk. Trailing ` *` is made optional — so `git *` matches both `git` and `git commit -m 'fix'`. Case-insensitive matching is supported. This seemingly simple system handles the vast majority of real-world permission rules.",
+      zh: "规则匹配器将用户定义的模式（如 `git *` 或 `npm test`）转换为正则表达式。关键特性：`*` 变成 `.*` 用于通配符匹配。`\\*` 变成字面星号。尾部的 ` *` 变为可选 — 所以 `git *` 同时匹配 `git` 和 `git commit -m 'fix'`。支持大小写不敏感匹配。这个看似简单的系统处理了绝大多数真实的权限规则。"
+    },
+    psWhyThreeLayers: { en: "Why Three Layers, Not One?", zh: "为什么是三层而不是一层？" },
+    psWhyThreeLayersDesc: {
+      en: "A single permission system would be either too strict (always ask → slow) or too loose (always allow → unsafe). The three-layer design optimizes for the common case:\n\n• **Layer 1 (ML Classifier)**: Handles ~80% of decisions instantly. `git status`? Allow. `rm -rf /`? Deny. No user interaction needed.\n• **Layer 2 (Rules)**: Handles user-specific policies. A data scientist might allow all `python` commands; a DevOps engineer might allow `kubectl` but deny `terraform destroy`.\n• **Layer 3 (User Dialog)**: The safety net for everything else. Only triggered for genuinely ambiguous cases.\n\nThe key insight: each layer reduces the load on the next. Without the classifier, every single tool call would hit the rule engine. Without rules, every non-obvious call would interrupt the user. The three layers together achieve both speed and safety.",
+      zh: "单一权限系统要么太严格（总是询问 → 慢）要么太宽松（总是允许 → 不安全）。三层设计优化了常见情况：\n\n• **第一层（ML 分类器）**：即时处理约 80% 的决策。`git status`？允许。`rm -rf /`？拒绝。无需用户交互。\n• **第二层（规则）**：处理用户特定策略。数据科学家可能允许所有 `python` 命令；DevOps 工程师可能允许 `kubectl` 但拒绝 `terraform destroy`。\n• **第三层（用户对话框）**：其他所有情况的安全网。仅在真正模糊的情况下触发。\n\n关键洞察：每一层减少下一层的负载。没有分类器，每个工具调用都会命中规则引擎。没有规则，每个不明显的调用都会打断用户。三层配合实现了速度和安全的双赢。"
+    },
+  },
 } as const;
 
 type TranslationValue = { en: string; zh: string };

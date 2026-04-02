@@ -11,6 +11,8 @@ import LayerToggleQueryStreaming from "../components/common/LayerToggleQueryStre
 import StatCard from "../components/common/StatCard.tsx";
 import FlowDiagram from "../components/viz/FlowDiagram.tsx";
 import CodeTracer from "../components/interactive/CodeTracer.tsx";
+import DeepDiveSection from "../components/interactive/DeepDiveSection.tsx";
+import { deepDiveSnippets } from "../data/deepDiveCode";
 
 interface Props {
   locale: Locale;
@@ -129,6 +131,13 @@ const toolLoopSteps = [
       <SectionHeading id="code" title={t(locale, "codeTracer.title")} subtitle={t(locale, "codeTracer.subtitle")} />
       <CodeTracer client:visible locale={locale} />
     </div>
+
+    <DeepDiveSection client:visible locale={locale} items={[
+      { type: "code", titleKey: "deepDive.qpToolInterface", descKey: "deepDive.qpToolInterfaceDesc", code: deepDiveSnippets.toolInterface },
+      { type: "code", titleKey: "deepDive.qpSubmitMessage", descKey: "deepDive.qpSubmitMessageDesc", code: deepDiveSnippets.submitMessage },
+      { type: "code", titleKey: "deepDive.qpSystemPrompt", descKey: "deepDive.qpSystemPromptDesc", code: deepDiveSnippets.systemPrompt },
+      { type: "design", titleKey: "deepDive.qpWhyAsyncGen", descKey: "deepDive.qpWhyAsyncGenDesc" },
+    ]} />
 
     <RelatedPages locale={locale} currentPath="/query-pipeline" />
     <PageNav locale={locale} currentPath="/query-pipeline" />

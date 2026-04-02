@@ -10,6 +10,8 @@ import LayerToggleToolSystem from "../components/common/LayerToggleToolSystem.ts
 import StatCard from "../components/common/StatCard.tsx";
 import FlowDiagram from "../components/viz/FlowDiagram.tsx";
 import ToolOrchestrationDemo from "../components/interactive/ToolOrchestrationDemo.tsx";
+import DeepDiveSection from "../components/interactive/DeepDiveSection.tsx";
+import { deepDiveSnippets } from "../data/deepDiveCode";
 import { toolCategories, categoryName, toolDesc } from "../data/tools";
 import { snippets, snippetTitle, snippetAnnotations } from "../data/codeSnippets";
 import CodeBlock from "../components/common/CodeBlock.astro";
@@ -113,6 +115,12 @@ const executionEdges = [
         ))}
       </div>
     </div>
+
+    <DeepDiveSection client:visible locale={locale} items={[
+      { type: "code", titleKey: "deepDive.tsRegistration", descKey: "deepDive.tsRegistrationDesc", code: deepDiveSnippets.toolRegistry },
+      { type: "code", titleKey: "deepDive.tsPartitioning", descKey: "deepDive.tsPartitioningDesc", code: deepDiveSnippets.partitioning },
+      { type: "design", titleKey: "deepDive.tsWhyNotQueue", descKey: "deepDive.tsWhyNotQueueDesc" },
+    ]} />
 
     <RelatedPages locale={locale} currentPath="/tool-system" />
     <PageNav locale={locale} currentPath="/tool-system" />

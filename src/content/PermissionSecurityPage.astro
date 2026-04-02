@@ -11,6 +11,8 @@ import LayerTogglePermissionBash from "../components/common/LayerTogglePermissio
 import StatCard from "../components/common/StatCard.tsx";
 import FlowDiagram from "../components/viz/FlowDiagram.tsx";
 import PermissionSimulator from "../components/interactive/PermissionSimulator.tsx";
+import DeepDiveSection from "../components/interactive/DeepDiveSection.tsx";
+import { deepDiveSnippets } from "../data/deepDiveCode";
 import { snippets, snippetTitle, snippetAnnotations } from "../data/codeSnippets";
 import CodeBlock from "../components/common/CodeBlock.astro";
 
@@ -111,6 +113,12 @@ const ruleExamples = [
         ))}
       </div>
     </div>
+
+    <DeepDiveSection client:visible locale={locale} items={[
+      { type: "type", titleKey: "deepDive.psPermissionMode", descKey: "deepDive.psPermissionModeDesc", code: deepDiveSnippets.permissionMode },
+      { type: "code", titleKey: "deepDive.psRuleMatching", descKey: "deepDive.psRuleMatchingDesc", code: deepDiveSnippets.ruleMatching },
+      { type: "design", titleKey: "deepDive.psWhyThreeLayers", descKey: "deepDive.psWhyThreeLayersDesc" },
+    ]} />
 
     <RelatedPages locale={locale} currentPath="/permission-security" />
     <PageNav locale={locale} currentPath="/permission-security" />
