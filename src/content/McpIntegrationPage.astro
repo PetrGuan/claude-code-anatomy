@@ -9,6 +9,8 @@ import SectionHeading from "../components/common/SectionHeading.astro";
 import LayerToggleMcpIntegration from "../components/common/LayerToggleMcpIntegration.tsx";
 import StatCard from "../components/common/StatCard.tsx";
 import FlowDiagram from "../components/viz/FlowDiagram.tsx";
+import DeepDiveSection from "../components/interactive/DeepDiveSection.tsx";
+import { deepDiveSnippets } from "../data/deepDiveCode";
 
 interface Props {
   locale: Locale;
@@ -149,6 +151,13 @@ const mcpTools = [
         </p>
       </div>
     </div>
+
+    <DeepDiveSection client:visible locale={locale} items={[
+      { type: "code", titleKey: "deepDive.mcpConnection", descKey: "deepDive.mcpConnectionDesc", code: deepDiveSnippets.mcpConnection },
+      { type: "code", titleKey: "deepDive.mcpDiscovery", descKey: "deepDive.mcpDiscoveryDesc", code: deepDiveSnippets.mcpToolDiscovery },
+      { type: "code", titleKey: "deepDive.mcpExecution", descKey: "deepDive.mcpExecutionDesc", code: deepDiveSnippets.mcpExecution },
+      { type: "design", titleKey: "deepDive.mcpWhyProtocol", descKey: "deepDive.mcpWhyProtocolDesc" },
+    ]} />
 
     <RelatedPages locale={locale} currentPath="/mcp-integration" />
     <PageNav locale={locale} currentPath="/mcp-integration" />

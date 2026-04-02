@@ -794,6 +794,115 @@ type PermissionRequest = {
 // POST /v1/sessions/{sessionId}/events
 // Body: { events: [{ type: 'control_response', response: { ... } }] }`,
 
+  mcpConnection: `// src/services/mcp/client.ts — Lines 595-634
+export const connectToServer = memoize(
+  async (name: string, serverRef: ScopedMcpServerConfig) => {
+    let transport
+
+    // Check for bridge-mode routing first
+    const sessionIngressToken = getSessionIngressAuthToken()
+
+    if (serverRef.type === 'sse') {
+      // Remote HTTP server with OAuth auth
+      const authProvider = new ClaudeAuthProvider(name, serverRef)
+      const combinedHeaders = await getMcpServerHeaders(name, serverRef)
+      transport = new SSEClientTransport(new URL(serverRef.url), {
+        authProvider,
+        requestInit: { headers: combinedHeaders },
+        fetch: wrapFetchWithTimeout(
+          wrapFetchWithStepUpDetection(createFetchWithInit(), authProvider)
+        ),
+      })
+    } else if (serverRef.type === 'stdio') {
+      // Local process: spawn command with args
+      transport = new StdioClientTransport({
+        command: serverRef.command,
+        args: serverRef.args,
+        env: { ...process.env, ...serverRef.env },
+      })
+    } else if (serverRef.type === 'streamable-http') {
+      // Newer streaming HTTP protocol
+      transport = new StreamableHTTPClientTransport(new URL(serverRef.url))
+    }
+
+    // Connect MCP client via selected transport
+    const client = new Client({ name, version: '1.0.0' })
+    await client.connect(transport)
+    return { client, name, config: serverRef, type: 'connected' }
+  }
+)`,
+
+  mcpToolDiscovery: `// src/services/mcp/client.ts — Lines 1743-1790
+export const fetchToolsForClient = memoizeWithLRU(
+  async (client: MCPServerConnection): Promise<Tool[]> => {
+    if (client.type !== 'connected') return []
+    if (!client.capabilities?.tools) return []
+
+    // RPC: ask server "what tools do you have?"
+    const result = await client.client.request(
+      { method: 'tools/list' },
+      ListToolsResultSchema,
+    )
+
+    // Sanitize Unicode from untrusted server response
+    const tools = recursivelySanitizeUnicode(result.tools)
+
+    // Convert MCP tools to Claude Code's internal Tool format
+    return tools.map((tool) => {
+      const name = buildMcpToolName(client.name, tool.name)
+      // e.g., "mcp__github__create_issue"
+      return {
+        name,
+        description: tool.description,
+        inputSchema: tool.inputSchema,
+        // MCP tools use the MCPTool wrapper for execution
+        call: (args, context) => callMCPTool({
+          client, tool: tool.name, args, ...
+        }),
+        isReadOnly: () => false,  // Can't know — assume write
+        isConcurrencySafe: () => false,
+      }
+    })
+  }
+)`,
+
+  mcpExecution: `// src/services/mcp/client.ts — Lines 3029-3080
+async function callMCPTool({
+  client: { client, name },
+  tool, args, meta, signal, onProgress,
+}) {
+  const toolStartTime = Date.now()
+
+  // Log progress every 30s for long-running tools
+  const progressInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - toolStartTime) / 1000)
+    logMCPDebug(name, tool + ' still running (' + elapsed + 's)')
+  }, 30000)
+
+  // SDK timeout can fail on broken SSE — use our own
+  const timeoutMs = getMcpToolTimeoutMs()
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error(
+      'MCP server "' + name + '" tool "' + tool + '" timed out'
+    )), timeoutMs)
+  })
+
+  try {
+    // Race: actual call vs our timeout guard
+    const result = await Promise.race([
+      client.callTool(
+        { name: tool, arguments: args, _meta: meta },
+        CallToolResultSchema,
+        { signal, timeout: timeoutMs }
+      ),
+      timeoutPromise,
+    ])
+    return result
+  } finally {
+    clearInterval(progressInterval)
+  }
+}`,
+
   tokenBudget: `// src/query/tokenBudget.ts — Lines 6-93
 type BudgetTracker = {
   continuationCount: number
