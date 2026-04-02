@@ -8,18 +8,6 @@ import SectionHeading from "../components/common/SectionHeading.astro";
 interface Props { locale: Locale; }
 const { locale } = Astro.props;
 
-const sidebarItems = [
-  { id: "buddy", label: locale === "zh" ? "伙伴精灵" : "Companion Sprite", level: 1 },
-  { id: "vim", label: "Vim Mode", level: 1 },
-  { id: "voice", label: locale === "zh" ? "语音输入" : "Voice Input", level: 1 },
-  { id: "names", label: locale === "zh" ? "最长类名" : "Longest Name", level: 1 },
-  { id: "codenames", label: locale === "zh" ? "内部代号" : "Codenames", level: 1 },
-  { id: "undercover", label: locale === "zh" ? "卧底模式" : "Undercover", level: 1 },
-  { id: "cost", label: locale === "zh" ? "成本追踪" : "Cost Tracker", level: 1 },
-  { id: "extreme", label: locale === "zh" ? "极端文件" : "Extreme Files", level: 1 },
-  { id: "encoding", label: locale === "zh" ? "物种之谜" : "Species Puzzle", level: 1 },
-];
-
 const items = [
   { id: "buddy", titleKey: "easterEggs.buddyTitle", descKey: "easterEggs.buddyDesc", icon: "🦆", color: "#f59e0b" },
   { id: "vim", titleKey: "easterEggs.vimTitle", descKey: "easterEggs.vimDesc", icon: "⌨️", color: "#10b981" },
@@ -31,6 +19,12 @@ const items = [
   { id: "extreme", titleKey: "easterEggs.extremeTitle", descKey: "easterEggs.extremeDesc", icon: "📊", color: "#f472b6" },
   { id: "encoding", titleKey: "easterEggs.encodingTitle", descKey: "easterEggs.encodingDesc", icon: "🧩", color: "#fb923c" },
 ];
+
+const sidebarItems = items.map(item => ({
+  id: item.id,
+  label: t(locale, item.titleKey),
+  level: 1,
+}));
 ---
 
 <BaseLayout title={t(locale, "easterEggs.title")} locale={locale}>
