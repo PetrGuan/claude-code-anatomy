@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { t } from "../../i18n/translations";
 import type { Locale } from "../../i18n/locales";
+import PixelSprite from "./PixelSprite";
+import { playerSprite, npcSprites, objectSprites } from "./sprites";
 
 // Types
 interface Position { x: number; y: number; }
@@ -452,18 +454,26 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
         {room.objects.map((obj, i) => (
           <div
             key={`o${i}`}
-            className="absolute flex items-center justify-center text-lg"
+            className="absolute flex items-center justify-center"
             style={{ left: obj.pos.x * TILE, top: obj.pos.y * TILE, width: TILE, height: TILE }}
           >
-            {obj.emoji}
+            {objectSprites[obj.emoji] ? (
+              <PixelSprite sprite={objectSprites[obj.emoji]} size={4} />
+            ) : (
+              <span className="text-lg">{obj.emoji}</span>
+            )}
           </div>
         ))}
 
         {/* NPCs */}
         {room.npcs.map(npc => (
-          <div key={npc.id} className="absolute flex flex-col items-center" style={{ left: npc.pos.x * TILE, top: npc.pos.y * TILE - 8, width: TILE }}>
+          <div key={npc.id} className="absolute flex flex-col items-center" style={{ left: npc.pos.x * TILE, top: npc.pos.y * TILE - 12, width: TILE }}>
             <span className="text-[10px] font-mono text-text-secondary whitespace-nowrap">{isZh ? npc.nameCn : npc.name}</span>
-            <span className="text-xl">{npc.emoji}</span>
+            {npcSprites[npc.id] ? (
+              <PixelSprite sprite={npcSprites[npc.id]} size={3} />
+            ) : (
+              <span className="text-xl">{npc.emoji}</span>
+            )}
             {!completedRooms.has(room.id) && (
               <span className="text-yellow-400 text-xs animate-bounce">!</span>
             )}
@@ -472,7 +482,7 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
 
         {/* Player */}
         <div
-          className="absolute transition-all duration-100 flex items-center justify-center text-xl"
+          className="absolute transition-all duration-100 flex items-center justify-center"
           style={{
             left: playerPos.x * TILE,
             top: playerPos.y * TILE,
@@ -480,7 +490,7 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
             height: TILE,
           }}
         >
-          ✉️
+          <PixelSprite sprite={playerSprite} size={3} />
         </div>
 
         {/* Tooltip */}
