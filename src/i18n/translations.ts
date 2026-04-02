@@ -1005,6 +1005,13 @@ const translations = {
       // Token catching messages
       tokenProgress: { en: "Tokens caught! Each one is a piece of Claude's streaming response.", zh: "接住了 token！每一个都是 Claude 流式响应的一部分。" },
       tokensComplete: { en: "Response assembled! All tokens caught. Claude's reply is ready. Head to the exit →", zh: "响应组装完成！所有 token 已接住。Claude 的回复准备好了。走向出口 →" },
+      // Tool pickup messages
+      toolRead: { en: "Picked up Read — reads file contents. Read-only, safe to run in parallel! → Blue zone", zh: "拿起 Read — 读取文件内容。只读操作，可以安全并行！→ 蓝色区域" },
+      toolGlob: { en: "Picked up Glob — finds files by name pattern. Read-only, safe to run in parallel! → Blue zone", zh: "拿起 Glob — 按文件名模式查找文件。只读操作，可以安全并行！→ 蓝色区域" },
+      toolGrep: { en: "Picked up Grep — searches file contents with regex. Read-only, safe to run in parallel! → Blue zone", zh: "拿起 Grep — 用正则搜索文件内容。只读操作，可以安全并行！→ 蓝色区域" },
+      toolEdit: { en: "Picked up Edit — modifies files by find-and-replace. WRITE tool, must run serially! → Orange zone", zh: "拿起 Edit — 通过查找替换修改文件。写工具，必须串行运行！→ 橙色区域" },
+      toolWrite: { en: "Picked up Write — creates or overwrites files. WRITE tool, must run serially! → Orange zone", zh: "拿起 Write — 创建或覆盖文件。写工具，必须串行运行！→ 橙色区域" },
+      toolBash: { en: "Picked up Bash — executes shell commands. WRITE tool (can modify system), must run serially! → Orange zone", zh: "拿起 Bash — 执行 Shell 命令。写工具（可修改系统），必须串行运行！→ 橙色区域" },
       // Sort messages
       sortComplete: { en: "All tools sorted! Read ops run in parallel, Write ops run serially. Head to the exit →", zh: "所有工具已分拣！读操作并行运行，写操作串行运行。走向出口 →" },
       // Gate messages

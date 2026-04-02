@@ -243,6 +243,9 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
           if (pos.x === nx && pos.y === ny && !sortedTools.includes(name)) {
             setCarrying(name);
             doFlash("green");
+            // Explain what this tool does
+            const toolPickupKey = `games.pg.tool${name}`;
+            setNarrative(t(locale, toolPickupKey));
             break;
           }
         }
