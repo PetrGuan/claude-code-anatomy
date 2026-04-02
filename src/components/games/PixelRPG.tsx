@@ -339,7 +339,7 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
 
   // Keep focus on game container — refocus after any interaction
   const refocusGame = useCallback(() => {
-    setTimeout(() => containerRef.current?.focus(), 10);
+    requestAnimationFrame(() => containerRef.current?.focus());
   }, []);
 
   useEffect(() => { containerRef.current?.focus(); }, []);
@@ -565,13 +565,13 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
       <div className="mt-3 flex justify-center lg:hidden">
         <div className="grid grid-cols-3 gap-1 w-32">
           <div />
-          <button onClick={() => { handleMove(0, -1); refocusGame(); }} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">↑</button>
+          <button onMouseDown={e => e.preventDefault()} onClick={() => { handleMove(0, -1); refocusGame(); }} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">↑</button>
           <div />
-          <button onClick={() => { handleMove(-1, 0); refocusGame(); }} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">←</button>
-          <button onClick={() => { handleInteract(); refocusGame(); }} className="p-3 rounded bg-bg-card border border-bg-border text-center text-xs text-accent-purple">ACT</button>
-          <button onClick={() => { handleMove(1, 0); refocusGame(); }} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">→</button>
+          <button onMouseDown={e => e.preventDefault()} onClick={() => { handleMove(-1, 0); refocusGame(); }} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">←</button>
+          <button onMouseDown={e => e.preventDefault()} onClick={() => { handleInteract(); refocusGame(); }} className="p-3 rounded bg-bg-card border border-bg-border text-center text-xs text-accent-purple">ACT</button>
+          <button onMouseDown={e => e.preventDefault()} onClick={() => { handleMove(1, 0); refocusGame(); }} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">→</button>
           <div />
-          <button onClick={() => { handleMove(0, 1); refocusGame(); }} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">↓</button>
+          <button onMouseDown={e => e.preventDefault()} onClick={() => { handleMove(0, 1); refocusGame(); }} className="p-3 rounded bg-bg-card border border-bg-border text-center text-sm">↓</button>
           <div />
         </div>
       </div>
