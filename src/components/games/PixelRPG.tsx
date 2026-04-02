@@ -174,14 +174,14 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
 
       const correct = securityCommands[currentCommand].answer === gate;
       if (correct) {
-        doFlash("green", isZh ? "正确！" : "Correct!");
+        doFlash("green", t(locale, "games.pg.correctGate"));
         setCurrentCommand(c => c + 1);
         if (currentCommand + 1 >= 3) {
           // game complete after short delay
           setTimeout(() => setGameComplete(true), 800);
         }
       } else {
-        doFlash("red", isZh ? "走错了！" : "Wrong gate!");
+        doFlash("red", t(locale, "games.pg.wrongGate"));
       }
       return; // don't move into the wall
     }
@@ -234,7 +234,7 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
               next.set(carrying!, { x: nx, y: ny });
               return next;
             });
-            doFlash("green", isZh ? "正确！" : "Correct!");
+            doFlash("green", t(locale, "games.pg.correctSort"));
           } else {
             // Return tool to original position
             const orig = initialTools.find(t => t.name === carrying)!;
@@ -243,7 +243,7 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
               next.set(carrying!, { ...orig.pos });
               return next;
             });
-            doFlash("red", isZh ? "放错了！" : "Wrong lane!");
+            doFlash("red", t(locale, "games.pg.wrongSort"));
           }
           setCarrying(null);
         }
