@@ -232,8 +232,13 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
     const nx = playerPos.x + dx;
     const ny = playerPos.y + dy;
 
-    // Check room transitions
+    // Check room transitions — must complete current room's NPC dialogue first
     if (room.exitRight && nx === room.exitRight.x + 1 && (ny === room.exitRight.y || ny === room.exitRight.y + 1)) {
+      if (!completedRooms.has(room.id)) {
+        // Show hint: must talk to NPC first
+        setTooltip(isZh ? "⚠️ 先和 NPC 对话完成任务！" : "⚠️ Talk to the NPC first to proceed!");
+        return;
+      }
       if (roomIndex < rooms.length - 1) {
         setRoomIndex(r => r + 1);
         setPlayerPos({ x: 1, y: 3 });
@@ -259,7 +264,7 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
       Math.abs(o.pos.x - nx) <= 1 && Math.abs(o.pos.y - ny) <= 1
     );
     setTooltip(nearObj ? (isZh ? nearObj.tooltipCn : nearObj.tooltip) : null);
-  }, [dialogue, playerPos, room, roomIndex, isWall, isZh]);
+  }, [dialogue, playerPos, room, roomIndex, isWall, isZh, completedRooms]);
 
   const handleInteract = useCallback(() => {
     if (dialogue) return;
@@ -432,13 +437,13 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
           />
         ))}
 
-        {/* Exit indicators */}
+        {/* Exit indicators — locked until room completed */}
         {room.exitRight && (
           <div
-            className="absolute flex items-center justify-center text-xs animate-pulse"
-            style={{ left: room.exitRight.x * TILE, top: room.exitRight.y * TILE, width: TILE, height: TILE * 2, color: room.color }}
+            className={`absolute flex items-center justify-center text-sm ${completedRooms.has(room.id) ? "animate-pulse" : ""}`}
+            style={{ left: room.exitRight.x * TILE, top: room.exitRight.y * TILE, width: TILE, height: TILE * 2, color: completedRooms.has(room.id) ? room.color : "#ef4444" }}
           >
-            →
+            {completedRooms.has(room.id) ? "→" : "🔒"}
           </div>
         )}
         {room.exitLeft && (
