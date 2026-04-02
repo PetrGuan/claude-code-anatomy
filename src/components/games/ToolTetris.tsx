@@ -418,31 +418,46 @@ export default function ToolTetris({ locale = "en" as Locale }: Props) {
     setAgentCharges(agentChargesRef.current);
     showMsg(t(locale, "games.ts.agentDeployed"));
 
-    // Simple AI: try each position and rotation for the CURRENT piece
+    // Simple AI: try each position and rotation, find placement with fewest holes
     const board = boardRef.current;
     let bestX = current.x;
     let bestRot = current.shape;
     let bestScore = Infinity;
+    let bestY = current.y;
 
     let shape = current.shape;
     for (let rot = 0; rot < 4; rot++) {
-      for (let x = -1; x < COLS; x++) {
-        let y = 0;
-        while (!collides(shape, x, y + 1)) y++;
+      const w = shape[0]?.length || 0;
+      const h = shape.length;
+      // Try each X position (allow negative for pieces wider than visible)
+      for (let x = -2; x <= COLS; x++) {
+        // Drop from top: start at y = -h (piece above screen) and drop down
+        let y = -h;
+        while (!collides(shape, x, y + 1)) {
+          y++;
+          if (y > ROWS) break; // safety
+        }
+        // Check if this final position is valid
         if (collides(shape, x, y)) continue;
+        // Must have at least some part on the board
+        if (y + h <= 0) continue;
 
+        // Simulate placing on a test board
         const testBoard = board.map(r => [...r]);
-        for (let r = 0; r < shape.length; r++) {
-          for (let c = 0; c < shape[r].length; c++) {
+        let validPlacement = true;
+        for (let r = 0; r < h; r++) {
+          for (let c = 0; c < (shape[r]?.length || 0); c++) {
             if (!shape[r][c]) continue;
             const ny = y + r;
             const nx = x + c;
-            if (ny >= 0 && ny < ROWS && nx >= 0 && nx < COLS) {
-              testBoard[ny][nx] = { type: current.type, toolName: current.toolName };
-            }
+            if (ny < 0 || ny >= ROWS || nx < 0 || nx >= COLS) { validPlacement = false; break; }
+            testBoard[ny][nx] = { type: current.type, toolName: current.toolName };
           }
+          if (!validPlacement) break;
         }
+        if (!validPlacement) continue;
 
+        // Evaluate: count holes + penalize height
         let holes = 0;
         for (let c = 0; c < COLS; c++) {
           let foundBlock = false;
@@ -451,27 +466,30 @@ export default function ToolTetris({ locale = "en" as Locale }: Props) {
             else if (foundBlock) holes++;
           }
         }
+        // Count complete rows (reward them)
+        let completeRows = 0;
+        for (let r = 0; r < ROWS; r++) {
+          if (testBoard[r].every(c => c !== null)) completeRows++;
+        }
         let maxH = 0;
         for (let c = 0; c < COLS; c++) {
           for (let r = 0; r < ROWS; r++) {
             if (testBoard[r][c]) { maxH = Math.max(maxH, ROWS - r); break; }
           }
         }
-        const evalScore = holes * 3 + maxH;
+        const evalScore = holes * 4 + maxH - completeRows * 6;
         if (evalScore < bestScore) {
           bestScore = evalScore;
           bestX = x;
+          bestY = y;
           bestRot = shape.map(r => [...r]);
         }
       }
       shape = rotateMatrix(shape);
     }
 
-    // Auto-place the current piece at the best position
-    pieceRef.current = { ...current, shape: bestRot, x: bestX, y: 0 };
-    let dropY = 0;
-    while (!collides(bestRot, bestX, dropY + 1)) dropY++;
-    pieceRef.current.y = dropY;
+    // Place the piece at the best position found
+    pieceRef.current = { ...current, shape: bestRot, x: bestX, y: bestY };
     lockAndCheck();
   }, [locale, collides, lockAndCheck, showMsg]);
 
