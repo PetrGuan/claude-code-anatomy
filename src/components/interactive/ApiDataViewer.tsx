@@ -113,7 +113,7 @@ const toolResult = `// Sent back to API as the next user message:
     {
       "type": "tool_result",
       "tool_use_id": "toolu_01ABC123",
-      "content": "1\\texport function add(a: number, b: number): number {\\n2\\t  return a + b;\\n3\\t}\\n4\\t\\n5\\texport function multiply(a: number, b: number): number {\\n6\\t  return a * b; // BUG: should be a * b\\n7\\t}\\n"
+      "content": "1\\texport function add(a: number, b: number): number {\\n2\\t  return a + b;\\n3\\t}\\n4\\t\\n5\\texport function multiply(a: number, b: number): number {\\n6\\t  return a + b; // BUG: should be a * b\\n7\\t}\\n"
     }
   ]
 }
