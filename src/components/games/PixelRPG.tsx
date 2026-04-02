@@ -8,6 +8,7 @@ import { playerSprite, npcSprites, objectSprites } from "./sprites";
 interface Position { x: number; y: number; }
 
 const TILE = 40;
+const INTRO_KEYS = ["games.pg.room1Intro", "games.pg.room2Intro", "games.pg.room3Intro", "games.pg.room4Intro"] as const;
 const ROOM_W = 12;
 const ROOM_H = 8;
 
@@ -125,7 +126,6 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
   }, [room.walls]);
 
   // Reset room-specific state when entering a new room
-  const introKeys = ["games.pg.room1Intro", "games.pg.room2Intro", "games.pg.room3Intro", "games.pg.room4Intro"];
   const enterRoom = useCallback((ri: number, fromLeft: boolean) => {
     setRoomIndex(ri);
     setPlayerPos({ x: fromLeft ? 1 : ROOM_W - 2, y: 3 });
@@ -145,7 +145,7 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
     if (ri === 3) {
       setCurrentCommand(0);
     }
-    setNarrative(t(locale, introKeys[ri]));
+    setNarrative(t(locale, INTRO_KEYS[ri]));
   }, [locale]);
 
   // Set initial narrative
@@ -201,19 +201,20 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
     if (ri === 0) {
       const item = collectibles.find(c => c.pos.x === nx && c.pos.y === ny && !inventory.includes(c.id));
       if (item) {
-        const newInventory = [...inventory, item.id];
-        setInventory(newInventory);
-        doFlash("green");
-        // Narrative feedback
         const pickupKeys: Record<string, string> = {
           prompt: "games.pg.gotPrompt",
           rules: "games.pg.gotRules",
           memory: "games.pg.gotMemory",
         };
+        setInventory(prev => {
+          const next = [...prev, item.id];
+          if (next.length >= 3) {
+            setTimeout(() => setNarrative(t(locale, "games.pg.allCollected")), 1500);
+          }
+          return next;
+        });
+        doFlash("green");
         setNarrative(t(locale, pickupKeys[item.id]));
-        if (newInventory.length >= 3) {
-          setTimeout(() => setNarrative(t(locale, "games.pg.allCollected")), 1500);
-        }
       }
     }
 
@@ -222,13 +223,15 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
       const caught = tokens.find(tk => tk.x === nx && tk.y === ny);
       if (caught) {
         setTokens(prev => prev.filter(tk => tk.id !== caught.id));
-        const newCount = tokensCaught + 1;
-        setTokensCaught(newCount);
+        setTokensCaught(prev => {
+          const newCount = prev + 1;
+          if (newCount >= 8) {
+            setTimeout(() => setNarrative(t(locale, "games.pg.tokensComplete")), 500);
+          }
+          return newCount;
+        });
         doFlash("green");
         setNarrative(t(locale, "games.pg.tokenProgress"));
-        if (newCount >= 8) {
-          setTimeout(() => setNarrative(t(locale, "games.pg.tokensComplete")), 500);
-        }
       }
     }
 
