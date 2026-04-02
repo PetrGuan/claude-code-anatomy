@@ -652,6 +652,30 @@ const translations = {
     psStep5Title: { en: "User Dialog", zh: "用户对话框" },
     psStep5Annotation: { en: "If no rule matches and the classifier is uncertain, the REPL shows a confirmation dialog. The user sees the exact command and can allow once, always allow this pattern, or deny. Their choice can be saved as a new rule for future sessions.", zh: "如果没有规则匹配且分类器不确定，REPL 显示确认对话框。用户看到确切的命令，可以允许一次、总是允许此模式或拒绝。他们的选择可以保存为新规则供未来会话使用。" },
   },
+  apiData: {
+    title: { en: "What the API Actually Sees", zh: "API 实际看到的数据" },
+    subtitle: { en: "Real request and response structures from Claude Code", zh: "Claude Code 的真实请求和响应结构" },
+    tabRequest: { en: "API Request", zh: "API 请求" },
+    tabResponse: { en: "Stream Response", zh: "流式响应" },
+    tabToolCall: { en: "Tool Call", zh: "工具调用" },
+    tabToolResult: { en: "Tool Result", zh: "工具结果" },
+    requestDesc: {
+      en: "This is what Claude Code sends to the Anthropic API. The system prompt, conversation history, and all 45+ tool definitions are packed into a single streaming request.",
+      zh: "这是 Claude Code 发送给 Anthropic API 的内容。系统提示、对话历史和所有 45+ 工具定义被打包到一个流式请求中。"
+    },
+    responseDesc: {
+      en: "The response streams back as a series of Server-Sent Events. Each event carries a small piece: a text token, the start of a tool call, or a JSON input fragment.",
+      zh: "响应以一系列服务器推送事件流式返回。每个事件携带一小块：一个文本 token、工具调用的开始或 JSON 输入片段。"
+    },
+    toolCallDesc: {
+      en: "When Claude decides to use a tool, it emits a tool_use content block. The tool name and input are streamed incrementally — the input JSON arrives character by character via input_json_delta events.",
+      zh: "当 Claude 决定使用工具时，它发出 tool_use 内容块。工具名称和输入增量流式传输 — 输入 JSON 通过 input_json_delta 事件逐字符到达。"
+    },
+    toolResultDesc: {
+      en: "After the tool executes, its result is sent back as a user message with type 'tool_result'. The tool_use_id links it to the original call. Claude sees this result and decides what to do next.",
+      zh: "工具执行后，结果作为 user 消息发回，类型为 'tool_result'。tool_use_id 将其与原始调用关联。Claude 看到此结果后决定下一步操作。"
+    },
+  },
   glossary: {
     title: { en: "Glossary", zh: "术语表" },
     subtitle: { en: "Key technical terms explained for all readers", zh: "为所有读者解释的关键技术术语" },

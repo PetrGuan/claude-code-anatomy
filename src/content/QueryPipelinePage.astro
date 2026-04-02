@@ -12,6 +12,7 @@ import StatCard from "../components/common/StatCard.tsx";
 import FlowDiagram from "../components/viz/FlowDiagram.tsx";
 import CodeTracer from "../components/interactive/CodeTracer.tsx";
 import DeepDiveSection from "../components/interactive/DeepDiveSection.tsx";
+import ApiDataViewer from "../components/interactive/ApiDataViewer.tsx";
 import { deepDiveSnippets } from "../data/deepDiveCode";
 
 interface Props {
@@ -24,6 +25,7 @@ const sidebarItems = [
   { id: "what", label: t(locale, "queryPipeline.whatTitle"), level: 1 },
   { id: "flow", label: t(locale, "queryPipeline.flowTitle"), level: 1 },
   { id: "system-prompt", label: t(locale, "queryPipeline.systemPromptTitle"), level: 1 },
+  { id: "api-data", label: t(locale, "apiData.title"), level: 1 },
   { id: "streaming", label: t(locale, "queryPipeline.streamingTitle"), level: 1 },
   { id: "tool-loop", label: t(locale, "queryPipeline.toolLoopTitle"), level: 1 },
   { id: "code", label: t(locale, "codeTracer.title"), level: 1 },
@@ -103,6 +105,11 @@ const toolLoopSteps = [
           </div>
         ))}
       </div>
+    </div>
+
+    <div class="mt-24">
+      <SectionHeading id="api-data" title={t(locale, "apiData.title")} subtitle={t(locale, "apiData.subtitle")} />
+      <ApiDataViewer client:visible locale={locale} />
     </div>
 
     <div class="mt-24">
