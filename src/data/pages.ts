@@ -40,5 +40,5 @@ export function getPage(path: string): PageDef | undefined {
   return contentPages.find(p => p.path === path);
 }
 
-/** Reading order (excludes glossary) */
-export const readingOrder = contentPages.filter(p => p.group !== "reference");
+/** Reading order (excludes reference pages and games) */
+export const readingOrder = contentPages.filter(p => p.group !== "reference" && p.group !== "games");
