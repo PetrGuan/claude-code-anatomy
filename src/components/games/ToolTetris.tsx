@@ -248,7 +248,8 @@ export default function ToolTetris({ locale = "en" as Locale }: Props) {
         setScore(scoreRef.current);
         showMsg(t(locale, "games.ts.parallelClear") + ` +${pts}`);
 
-        for (const r of blueRows) {
+        // Sort descending to avoid index corruption during splice
+        for (const r of [...blueRows].sort((a, b) => b - a)) {
           board.splice(r, 1);
           board.unshift(Array(COLS).fill(null));
         }
@@ -261,15 +262,17 @@ export default function ToolTetris({ locale = "en" as Locale }: Props) {
         serialClearingRef.current = true;
         showMsg(t(locale, "games.ts.serialClear"), 1000);
 
+        // Capture the actual row contents to match later (indices may shift)
+        const orangeRowContents = orangeRows.map(r => board[r]);
         setTimeout(() => {
           const pts = orangeRows.length * 50 * levelRef.current;
           scoreRef.current += pts;
           setScore(scoreRef.current);
-          // Re-identify the rows (indices may have shifted if blue rows cleared first)
+          // Find the original orange rows by content reference (not index, since blue rows may have shifted things)
           const currentBoard = boardRef.current;
           const toRemove: number[] = [];
           for (let r = 0; r < ROWS; r++) {
-            if (currentBoard[r].every(c => c !== null)) toRemove.push(r);
+            if (orangeRowContents.includes(currentBoard[r])) toRemove.push(r);
           }
           for (const r of toRemove.sort((a, b) => b - a)) {
             currentBoard.splice(r, 1);
@@ -407,29 +410,26 @@ export default function ToolTetris({ locale = "en" as Locale }: Props) {
       showMsg(t(locale, "games.ts.noAgent"));
       return;
     }
-    const next = nextPieceRef.current;
-    if (!next) return;
+    const current = pieceRef.current;
+    if (!current) return;
 
     agentChargesRef.current -= 1;
     setAgentCharges(agentChargesRef.current);
     showMsg(t(locale, "games.ts.agentDeployed"));
 
-    // Simple AI: try each position and rotation, pick the one with fewest holes
+    // Simple AI: try each position and rotation for the CURRENT piece
     const board = boardRef.current;
-    let bestX = 0;
-    let bestRot = next.shape;
+    let bestX = current.x;
+    let bestRot = current.shape;
     let bestScore = Infinity;
 
-    let shape = next.shape;
+    let shape = current.shape;
     for (let rot = 0; rot < 4; rot++) {
-      const w = shape[0].length;
       for (let x = -1; x < COLS; x++) {
-        // Drop piece
         let y = 0;
         while (!collides(shape, x, y + 1)) y++;
         if (collides(shape, x, y)) continue;
 
-        // Count holes after placing
         const testBoard = board.map(r => [...r]);
         for (let r = 0; r < shape.length; r++) {
           for (let c = 0; c < shape[r].length; c++) {
@@ -437,12 +437,11 @@ export default function ToolTetris({ locale = "en" as Locale }: Props) {
             const ny = y + r;
             const nx = x + c;
             if (ny >= 0 && ny < ROWS && nx >= 0 && nx < COLS) {
-              testBoard[ny][nx] = { type: next.type, toolName: next.toolName };
+              testBoard[ny][nx] = { type: current.type, toolName: current.toolName };
             }
           }
         }
 
-        // Count holes (empty cells with a filled cell above)
         let holes = 0;
         for (let c = 0; c < COLS; c++) {
           let foundBlock = false;
@@ -451,7 +450,6 @@ export default function ToolTetris({ locale = "en" as Locale }: Props) {
             else if (foundBlock) holes++;
           }
         }
-        // Also penalize height
         let maxH = 0;
         for (let c = 0; c < COLS; c++) {
           for (let r = 0; r < ROWS; r++) {
@@ -468,12 +466,11 @@ export default function ToolTetris({ locale = "en" as Locale }: Props) {
       shape = rotateMatrix(shape);
     }
 
-    // Place the next piece directly
-    const placePiece: Piece = { shape: bestRot, x: bestX, y: 0, type: next.type, toolName: next.toolName };
+    // Auto-place the current piece at the best position
+    pieceRef.current = { ...current, shape: bestRot, x: bestX, y: 0 };
     let dropY = 0;
-    while (!collides(placePiece.shape, placePiece.x, dropY + 1)) dropY++;
-    placePiece.y = dropY;
-    pieceRef.current = placePiece;
+    while (!collides(bestRot, bestX, dropY + 1)) dropY++;
+    pieceRef.current.y = dropY;
     lockAndCheck();
   }, [locale, collides, lockAndCheck, showMsg]);
 
