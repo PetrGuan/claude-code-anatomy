@@ -511,35 +511,38 @@ export async function classifyBashCommand(
       id: "ps-rules",
       file: "src/utils/permissions/shellRuleMatching.ts",
       title: t(locale, "codeTracer.psStep4Title"),
-      code: "// src/utils/permissions/shellRuleMatching.ts\n" +
-"export function matchWildcardPattern(\n" +
-"  pattern: string,\n" +
-"  command: string\n" +
-"): boolean {\n" +
-"  // Convert wildcard pattern to regex\n" +
-'  // "git *"  \u2192 /^git .*$/\n' +
-'  // "npm\\\\*" \u2192 /^npm\\*$/  (escaped literal)\n' +
-"  const escaped = pattern\n" +
-'    .replace(/([.+^${}()|[\\\\]\\\\\\\\])/g, "\\\\\\\\$1")\n' +
-'    .replace(/(?<!\\\\\\\\)\\\\*/g, ".*");\n' +
-"\n" +
-'  // Trailing " *" becomes optional \u2014 "git *" matches "git"\n' +
-"  const regex = toRegex(escaped);\n" +
-"  return regex.test(command);\n" +
-"}\n" +
-"\n" +
-"export function matchRules(\n" +
-"  tool: Tool,\n" +
-"  input: ToolInput,\n" +
-"  rules: PermissionRule[]\n" +
-"): PermissionDecision | null {\n" +
-"  for (const rule of rules) {\n" +
-"    if (matchWildcardPattern(rule.pattern, input.command)) {\n" +
-'      return { allowed: rule.type === "allow" };\n' +
-"    }\n" +
-"  }\n" +
-"  return null; // no rule matched\n" +
+      code: [
+"// src/utils/permissions/shellRuleMatching.ts",
+"export function matchWildcardPattern(",
+"  pattern: string,",
+"  command: string",
+"): boolean {",
+"  // Convert wildcard pattern to regex",
+'  // "git *"  -> /^git .*$/',
+'  // "npm\\*" -> /^npm\\*$/  (escaped literal)',
+"  const escaped = pattern",
+"    .replace(/[.+^${}()|[\\]]/g, '\\\\$&')",
+"    .replace(/\\*/g, '.*');",
+"",
+'  // Trailing " *" becomes optional',
+'  // so "git *" matches both "git" and "git commit"',
+"  const regex = toRegex(escaped);",
+"  return regex.test(command);",
 "}",
+"",
+"export function matchRules(",
+"  tool: Tool,",
+"  input: ToolInput,",
+"  rules: PermissionRule[]",
+"): PermissionDecision | null {",
+"  for (const rule of rules) {",
+"    if (matchWildcardPattern(rule.pattern, input.command)) {",
+'      return { allowed: rule.type === "allow" };',
+"    }",
+"  }",
+"  return null; // no rule matched",
+"}",
+      ].join("\n"),
       highlightLines: [2, 3, 4, 5],
       annotation: t(locale, "codeTracer.psStep4Annotation"),
       clickableRefs: [],
