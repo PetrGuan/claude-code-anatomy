@@ -235,8 +235,8 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
     // Check room transitions — must complete current room's NPC dialogue first
     if (room.exitRight && nx === room.exitRight.x + 1 && (ny === room.exitRight.y || ny === room.exitRight.y + 1)) {
       if (!completedRooms.has(room.id)) {
-        // Show hint: must talk to NPC first
         setTooltip(isZh ? "⚠️ 先和 NPC 对话完成任务！" : "⚠️ Talk to the NPC first to proceed!");
+        setTimeout(() => setTooltip(null), 2000);
         return;
       }
       if (roomIndex < rooms.length - 1) {
