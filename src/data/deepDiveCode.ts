@@ -703,6 +703,97 @@ export function enqueueAgentNotification({ taskId, status, ... }) {
   })
 }`,
 
+  bridgeConnection: `// src/cli/transports/WebSocketTransport.ts — Lines 135-193
+public async connect(): Promise<void> {
+  this.state = 'reconnecting'
+  const headers = { ...this.headers }
+
+  // Replay header: server resends missed messages after reconnect
+  if (this.lastSentId) {
+    headers['X-Last-Request-Id'] = this.lastSentId
+  }
+
+  if (typeof Bun !== 'undefined') {
+    // Bun-native WebSocket with proxy/TLS support
+    const ws = new globalThis.WebSocket(this.url.href, {
+      headers,
+      proxy: getWebSocketProxyUrl(this.url.href),
+      tls: getWebSocketTLSOptions(),
+    })
+    ws.addEventListener('open', this.onBunOpen)
+    ws.addEventListener('message', this.onBunMessage)
+    ws.addEventListener('close', this.onBunClose)
+  } else {
+    // Node.js ws library fallback
+    const { default: WS } = await import('ws')
+    const ws = new WS(this.url.href, { headers, ... })
+    ws.on('open', this.onNodeOpen)
+    ws.on('message', this.onNodeMessage)
+  }
+}
+
+// On connect: start health checks + proxy keep-alive
+private handleOpenEvent(): void {
+  this.reconnectAttempts = 0
+  this.state = 'connected'
+  this.startPingInterval()      // detect dead connections
+  this.startKeepaliveInterval() // reset proxy idle timers
+}`,
+
+  bridgeSessions: `// src/bridge/bridgeMain.ts — Lines 163-194
+// Parallel session tracking — all indexed by sessionId
+const activeSessions = new Map<string, SessionHandle>()
+const sessionStartTimes = new Map<string, number>()
+const sessionWorkIds = new Map<string, string>()    // heartbeat auth
+const sessionIngressTokens = new Map<string, string>() // JWT auth
+const sessionCompatIds = new Map<string, string>()
+const sessionTimers = new Map<string, ReturnType<typeof setTimeout>>()
+const completedWorkIds = new Set<string>()
+const sessionWorktrees = new Map<string, {
+  worktreePath: string; worktreeBranch?: string
+}>()
+const timedOutSessions = new Set<string>()
+
+// Capacity gate: wake early when a session completes
+const capacityWake = createCapacityWake(loopSignal)
+
+// On session spawn:
+activeSessions.set(sessionId, handle)
+sessionWorkIds.set(sessionId, work.id)
+sessionIngressTokens.set(sessionId, secret.session_ingress_token)
+sessionStartTimes.set(sessionId, Date.now())`,
+
+  bridgePermission: `// src/bridge/sessionRunner.ts — Lines 407-430
+// Child CLI emits NDJSON to stdout, bridge captures:
+let parsed = jsonParse(line)
+if (parsed?.type === 'control_request') {
+  const request = parsed.request
+  if (request?.subtype === 'can_use_tool' && deps.onPermissionRequest) {
+    // Forward to VS Code via bridge API
+    deps.onPermissionRequest(
+      opts.sessionId,
+      parsed as PermissionRequest,
+      opts.accessToken,
+    )
+  }
+}
+
+// Permission request structure (child → bridge):
+type PermissionRequest = {
+  type: 'control_request'
+  request_id: string
+  request: {
+    subtype: 'can_use_tool'
+    tool_name: string
+    input: Record<string, unknown>
+    tool_use_id: string
+  }
+}
+
+// Bridge forwards to server:
+// POST /v1/sessions/{sessionId}/events
+// Body: { events: [{ type: 'control_response', response: { ... } }] }`,
+
   tokenBudget: `// src/query/tokenBudget.ts — Lines 6-93
 type BudgetTracker = {
   continuationCount: number

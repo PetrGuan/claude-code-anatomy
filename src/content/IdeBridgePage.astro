@@ -9,6 +9,8 @@ import SectionHeading from "../components/common/SectionHeading.astro";
 import LayerToggleIdeBridge from "../components/common/LayerToggleIdeBridge.tsx";
 import StatCard from "../components/common/StatCard.tsx";
 import FlowDiagram from "../components/viz/FlowDiagram.tsx";
+import DeepDiveSection from "../components/interactive/DeepDiveSection.tsx";
+import { deepDiveSnippets } from "../data/deepDiveCode";
 
 interface Props {
   locale: Locale;
@@ -100,6 +102,13 @@ const bridgeEdges = [
         </div>
       </div>
     </div>
+
+    <DeepDiveSection client:visible locale={locale} items={[
+      { type: "code", titleKey: "deepDive.ibConnection", descKey: "deepDive.ibConnectionDesc", code: deepDiveSnippets.bridgeConnection },
+      { type: "code", titleKey: "deepDive.ibSessions", descKey: "deepDive.ibSessionsDesc", code: deepDiveSnippets.bridgeSessions },
+      { type: "code", titleKey: "deepDive.ibPermission", descKey: "deepDive.ibPermissionDesc", code: deepDiveSnippets.bridgePermission },
+      { type: "design", titleKey: "deepDive.ibWhyBridge", descKey: "deepDive.ibWhyBridgeDesc" },
+    ]} />
 
     <RelatedPages locale={locale} currentPath="/ide-bridge" />
     <PageNav locale={locale} currentPath="/ide-bridge" />
