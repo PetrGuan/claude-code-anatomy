@@ -10,6 +10,8 @@ import { t } from "../i18n/translations";
 import type { Locale } from "../i18n/locales";
 import RelatedPages from "../components/layout/RelatedPages.astro";
 import PageNav from "../components/layout/PageNav.astro";
+import DeepDiveSection from "../components/interactive/DeepDiveSection.tsx";
+import { deepDiveSnippets } from "../data/deepDiveCode";
 
 interface Props {
   locale: Locale;
@@ -165,6 +167,14 @@ const highlights = [
         ))}
       </div>
     </div>
+
+    <DeepDiveSection client:visible locale={locale} items={[
+      { type: "code", titleKey: "deepDive.ovStartup", descKey: "deepDive.ovStartupDesc", code: deepDiveSnippets.mainEntry },
+      { type: "code", titleKey: "deepDive.ovStore", descKey: "deepDive.ovStoreDesc", code: deepDiveSnippets.appStateStore },
+      { type: "code", titleKey: "deepDive.ovFeatureFlags", descKey: "deepDive.ovFeatureFlagsDesc", code: deepDiveSnippets.featureFlags },
+      { type: "code", titleKey: "deepDive.ovErrors", descKey: "deepDive.ovErrorsDesc", code: deepDiveSnippets.errorTypes },
+      { type: "design", titleKey: "deepDive.ovWhyArchitecture", descKey: "deepDive.ovWhyArchitectureDesc" },
+    ]} />
 
     <RelatedPages locale={locale} currentPath="/overview" />
     <PageNav locale={locale} currentPath="/overview" />

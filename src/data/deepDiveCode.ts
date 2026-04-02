@@ -900,6 +900,122 @@ async function callMCPTool({
   }
 }`,
 
+  mainEntry: `// src/main.tsx — Lines 1-21
+// Side-effects BEFORE heavy imports — parallel I/O while modules load
+import { profileCheckpoint } from './utils/startupProfiler.js'
+profileCheckpoint('main_tsx_entry')
+
+// Fire MDM subprocess (plutil/reg query) — runs during imports
+import { startMdmRawRead } from './utils/settings/mdm/rawRead.js'
+startMdmRawRead()
+
+// Fire macOS keychain reads in parallel — saves ~65ms on macOS
+import { startKeychainPrefetch } from './utils/secureStorage/keychainPrefetch.js'
+startKeychainPrefetch()
+
+// NOW load the heavy stuff (~135ms of module evaluation)
+import { feature } from 'bun:bundle'
+import { Command as CommanderCommand } from '@commander-js/extra-typings'
+import chalk from 'chalk'
+// ... 50+ more imports follow`,
+
+  appStateStore: `// src/state/store.ts — The entire store implementation
+export type Store<T> = {
+  getState: () => T
+  setState: (updater: (prev: T) => T) => void
+  subscribe: (listener: Listener) => () => void
+}
+
+export function createStore<T>(
+  initialState: T,
+  onChange?: OnChange<T>,
+): Store<T> {
+  let state = initialState
+  const listeners = new Set<Listener>()
+
+  return {
+    getState: () => state,
+    setState: (updater: (prev: T) => T) => {
+      const prev = state
+      const next = updater(prev)
+      if (Object.is(next, prev)) return  // Skip no-op updates
+      state = next
+      onChange?.({ newState: next, oldState: prev })
+      for (const listener of listeners) listener()
+    },
+    subscribe: (listener: Listener) => {
+      listeners.add(listener)
+      return () => listeners.delete(listener)
+    },
+  }
+}
+// That's it. 30 lines. No middleware. No devtools. No time-travel.
+// React subscribes via useSyncExternalStore(store.subscribe, store.getState)`,
+
+  featureFlags: `// src/main.tsx — Build-time dead code elimination
+import { feature } from 'bun:bundle'
+
+// These are compile-time constants, NOT runtime checks.
+// When false, the entire branch is removed from the bundle.
+
+// Internal-only: coordinator mode for multi-agent orchestration
+const coordinatorModule = feature('COORDINATOR_MODE')
+  ? require('./coordinator/coordinatorMode.js')
+  : null  // ← This entire branch is GONE in the public npm package
+
+// Internal-only: assistant/Kairos mode
+const assistantModule = feature('KAIROS')
+  ? require('./assistant/index.js')
+  : null
+
+// Runtime feature flags (evaluated at startup, not build time):
+if (feature('TRANSCRIPT_CLASSIFIER')) {
+  // ML-based permission classifier — only in ant builds
+}
+if (feature('VOICE_MODE')) {
+  // Voice input/output — behind feature gate
+}
+if (feature('WEB_BROWSER_TOOL')) {
+  // Headless browser tool — experimental
+}`,
+
+  errorTypes: `// src/utils/errors.ts — Domain-specific error classification
+export class AbortError extends Error {
+  constructor(message?: string) {
+    super(message)
+    this.name = 'AbortError'
+  }
+}
+
+// Handles 3 different abort sources
+export function isAbortError(e: unknown): boolean {
+  return (
+    e instanceof AbortError ||
+    e instanceof APIUserAbortError ||  // Anthropic SDK
+    (e instanceof Error && e.name === 'AbortError')  // Native
+  )
+}
+
+export class ShellError extends Error {
+  constructor(
+    public readonly stdout: string,
+    public readonly stderr: string,
+    public readonly code: number,
+    public readonly interrupted: boolean,
+  ) { super('Shell command failed') }
+}
+
+// Separates user-facing message from PII-scrubbed telemetry
+export class TelemetrySafeError extends Error {
+  readonly telemetryMessage: string
+  constructor(message: string, telemetryMessage?: string) {
+    super(message)
+    // message: shown to user (may contain file paths)
+    // telemetryMessage: sent to analytics (PII-scrubbed)
+    this.telemetryMessage = telemetryMessage ?? message
+  }
+}`,
+
   tokenBudget: `// src/query/tokenBudget.ts — Lines 6-93
 type BudgetTracker = {
   continuationCount: number
