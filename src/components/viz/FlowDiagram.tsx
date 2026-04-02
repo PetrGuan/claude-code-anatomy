@@ -46,7 +46,7 @@ export default function FlowDiagram({ nodes, edges, direction = "horizontal" }: 
               <motion.div
                 className="relative cursor-pointer rounded-lg border-2 px-4 py-3 text-center min-w-[120px]"
                 style={{
-                  borderColor: activeNode === node.id ? node.color : "#1e1e2e",
+                  borderColor: activeNode === node.id ? node.color : "rgb(var(--color-bg-border))",
                   backgroundColor: activeNode === node.id ? `${node.color}15` : "transparent",
                 }}
                 whileHover={{ scale: 1.05 }}
