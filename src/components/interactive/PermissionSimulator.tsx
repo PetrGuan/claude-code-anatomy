@@ -28,8 +28,8 @@ export default function PermissionSimulator({ locale = "en" as Locale }: Props) 
       description: t(locale, "permissionSimulator.scenario1Desc"),
       layers: [
         { layer: t(locale, "permissionSimulator.mlClassifier"), decision: "allow" as const, reason: t(locale, "permissionSimulator.s1l1Reason"), color: "#10b981" },
-        { layer: t(locale, "permissionSimulator.ruleEngine"), decision: "pass" as const, reason: t(locale, "permissionSimulator.s1l2Reason"), color: "#8888a0" },
-        { layer: t(locale, "permissionSimulator.userConfirm"), decision: "pass" as const, reason: t(locale, "permissionSimulator.s1l3Reason"), color: "#8888a0" },
+        { layer: t(locale, "permissionSimulator.ruleEngine"), decision: "pass" as const, reason: t(locale, "permissionSimulator.s1l2Reason"), color: "#7c829d" },
+        { layer: t(locale, "permissionSimulator.userConfirm"), decision: "pass" as const, reason: t(locale, "permissionSimulator.s1l3Reason"), color: "#7c829d" },
       ],
       finalDecision: "allow" as const,
     },
@@ -38,8 +38,8 @@ export default function PermissionSimulator({ locale = "en" as Locale }: Props) 
       description: t(locale, "permissionSimulator.scenario2Desc"),
       layers: [
         { layer: t(locale, "permissionSimulator.mlClassifier"), decision: "deny" as const, reason: t(locale, "permissionSimulator.s2l1Reason"), color: "#ef4444" },
-        { layer: t(locale, "permissionSimulator.ruleEngine"), decision: "pass" as const, reason: t(locale, "permissionSimulator.s2l2Reason"), color: "#8888a0" },
-        { layer: t(locale, "permissionSimulator.userConfirm"), decision: "pass" as const, reason: t(locale, "permissionSimulator.s2l3Reason"), color: "#8888a0" },
+        { layer: t(locale, "permissionSimulator.ruleEngine"), decision: "pass" as const, reason: t(locale, "permissionSimulator.s2l2Reason"), color: "#7c829d" },
+        { layer: t(locale, "permissionSimulator.userConfirm"), decision: "pass" as const, reason: t(locale, "permissionSimulator.s2l3Reason"), color: "#7c829d" },
       ],
       finalDecision: "deny" as const,
     },
@@ -58,8 +58,8 @@ export default function PermissionSimulator({ locale = "en" as Locale }: Props) 
       description: t(locale, "permissionSimulator.scenario4Desc"),
       layers: [
         { layer: t(locale, "permissionSimulator.mlClassifier"), decision: "allow" as const, reason: t(locale, "permissionSimulator.s4l1Reason"), color: "#10b981" },
-        { layer: t(locale, "permissionSimulator.ruleEngine"), decision: "pass" as const, reason: t(locale, "permissionSimulator.s4l2Reason"), color: "#8888a0" },
-        { layer: t(locale, "permissionSimulator.userConfirm"), decision: "pass" as const, reason: t(locale, "permissionSimulator.s4l3Reason"), color: "#8888a0" },
+        { layer: t(locale, "permissionSimulator.ruleEngine"), decision: "pass" as const, reason: t(locale, "permissionSimulator.s4l2Reason"), color: "#7c829d" },
+        { layer: t(locale, "permissionSimulator.userConfirm"), decision: "pass" as const, reason: t(locale, "permissionSimulator.s4l3Reason"), color: "#7c829d" },
       ],
       finalDecision: "allow" as const,
     },

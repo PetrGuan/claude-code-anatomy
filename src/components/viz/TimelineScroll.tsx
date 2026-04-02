@@ -18,7 +18,7 @@ interface Props {
 
 export default function TimelineScroll({ basePath = "/claude-code-anatomy", locale = "en" as Locale }: Props) {
   const steps: TimelineStep[] = [
-    { icon: "⌨️", title: t(locale, "timeline.step1Title"), description: t(locale, "timeline.step1Desc"), color: "#e0e0e8" },
+    { icon: "⌨️", title: t(locale, "timeline.step1Title"), description: t(locale, "timeline.step1Desc"), color: "#64748b" },
     { icon: "🛡️", title: t(locale, "timeline.step2Title"), description: t(locale, "timeline.step2Desc"), color: "#f59e0b", link: "/permission-security" },
     { icon: "📋", title: t(locale, "timeline.step3Title"), description: t(locale, "timeline.step3Desc"), color: "#22d3ee", link: "/query-pipeline" },
     { icon: "🌊", title: t(locale, "timeline.step4Title"), description: t(locale, "timeline.step4Desc"), color: "#6c63ff", link: "/query-pipeline" },
