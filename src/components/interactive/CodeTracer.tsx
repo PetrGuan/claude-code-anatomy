@@ -19,25 +19,36 @@ export default function CodeTracer({ locale = "en" as Locale, chain = "query-pip
   const [history, setHistory] = useState<number[]>([0]);
 
   const [highlightedSteps, setHighlightedSteps] = useState<Map<string, HighlightedLine[]>>(new Map());
+  const [currentTheme, setCurrentTheme] = useState<string>("dark");
+
+  // Track theme changes
+  useEffect(() => {
+    const getTheme = () => document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+    setCurrentTheme(getTheme());
+    const observer = new MutationObserver(() => setCurrentTheme(getTheme()));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
 
   // Load Shiki and highlight all steps
   useEffect(() => {
     let cancelled = false;
+    const shikiTheme = currentTheme === "light" ? "github-light-default" : "github-dark-default";
     async function loadShiki() {
       try {
         const { createHighlighter } = await import('shiki');
         const highlighter = await createHighlighter({
-          themes: ['github-dark-default'],
+          themes: [shikiTheme],
           langs: ['typescript'],
         });
 
-        if (cancelled) return;
+        if (cancelled) { highlighter.dispose(); return; }
 
         const highlighted = new Map<string, HighlightedLine[]>();
         for (const step of steps) {
           const result = highlighter.codeToTokens(step.code, {
             lang: 'typescript',
-            theme: 'github-dark-default',
+            theme: shikiTheme,
           });
           highlighted.set(step.id, result.tokens.map(line => ({
             tokens: line.map(token => ({
@@ -48,7 +59,6 @@ export default function CodeTracer({ locale = "en" as Locale, chain = "query-pip
         }
 
         highlighter.dispose();
-
         if (!cancelled) {
           setHighlightedSteps(highlighted);
         }
@@ -58,7 +68,7 @@ export default function CodeTracer({ locale = "en" as Locale, chain = "query-pip
     }
     loadShiki();
     return () => { cancelled = true; };
-  }, [steps]);
+  }, [steps, currentTheme]);
 
   const current = steps[currentIndex];
 

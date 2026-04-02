@@ -9,10 +9,8 @@ interface Props {
 
 const { code, lang = "typescript", title } = Astro.props;
 
-const html = await codeToHtml(code, {
-  lang,
-  theme: "github-dark-default",
-});
+const darkHtml = await codeToHtml(code, { lang, theme: "github-dark-default" });
+const lightHtml = await codeToHtml(code, { lang, theme: "github-light-default" });
 ---
 
 <div class="rounded-lg border border-bg-border bg-bg-card overflow-hidden">
@@ -21,5 +19,8 @@ const html = await codeToHtml(code, {
       <p class="text-xs text-text-secondary font-mono">{title}</p>
     </div>
   )}
-  <div class="p-4 overflow-x-auto text-sm [&_pre]:!bg-transparent [&_pre]:!m-0 [&_code]:!text-sm [&_code]:!leading-relaxed" set:html={html} />
+  <div class="p-4 overflow-x-auto text-sm [&_pre]:!bg-transparent [&_pre]:!m-0 [&_code]:!text-sm [&_code]:!leading-relaxed">
+    <div class="shiki-dark" set:html={darkHtml} />
+    <div class="shiki-light" set:html={lightHtml} />
+  </div>
 </div>

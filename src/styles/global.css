@@ -68,3 +68,9 @@
     @apply outline-none ring-2 ring-accent-purple ring-offset-2 ring-offset-bg;
   }
 }
+
+/* Shiki theme switching */
+.shiki-light { display: none; }
+.shiki-dark { display: block; }
+:root[data-theme="light"] .shiki-light { display: block; }
+:root[data-theme="light"] .shiki-dark { display: none; }

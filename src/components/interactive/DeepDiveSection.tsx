@@ -18,38 +18,40 @@ interface Props {
 export default function DeepDiveSection({ locale = "en" as Locale, items }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedCode, setHighlightedCode] = useState<Map<number, string>>(new Map());
-  const hasHighlighted = useRef(false);
+  const [currentTheme, setCurrentTheme] = useState<string>("dark");
+  const lastHighlightedTheme = useRef<string>("");
 
-  // Load Shiki when the section is opened for the first time
+  // Track theme changes
+  useEffect(() => {
+    const getTheme = () => document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+    setCurrentTheme(getTheme());
+    const observer = new MutationObserver(() => setCurrentTheme(getTheme()));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
+
+  // Load Shiki when the section is opened or theme changes
   useEffect(() => {
     if (!isOpen) return;
-    if (hasHighlighted.current) return;
+    if (lastHighlightedTheme.current === currentTheme) return;
 
     let cancelled = false;
+    const shikiTheme = currentTheme === "light" ? "github-light-default" : "github-dark-default";
     async function highlight() {
       try {
         const { createHighlighter } = await import("shiki");
-        const highlighter = await createHighlighter({
-          themes: ["github-dark-default"],
-          langs: ["typescript"],
-        });
-
+        const highlighter = await createHighlighter({ themes: [shikiTheme], langs: ["typescript"] });
         if (cancelled) { highlighter.dispose(); return; }
 
         const result = new Map<number, string>();
         for (let i = 0; i < items.length; i++) {
           if (items[i].code) {
-            const html = highlighter.codeToHtml(items[i].code!, {
-              lang: "typescript",
-              theme: "github-dark-default",
-            });
-            result.set(i, html);
+            result.set(i, highlighter.codeToHtml(items[i].code!, { lang: "typescript", theme: shikiTheme }));
           }
         }
-
         highlighter.dispose();
         if (!cancelled) {
-          hasHighlighted.current = true;
+          lastHighlightedTheme.current = currentTheme;
           setHighlightedCode(result);
         }
       } catch (e) {
@@ -58,7 +60,7 @@ export default function DeepDiveSection({ locale = "en" as Locale, items }: Prop
     }
     highlight();
     return () => { cancelled = true; };
-  }, [isOpen, items]);
+  }, [isOpen, items, currentTheme]);
 
   const typeLabels: Record<string, string> = {
     code: t(locale, "deepDive.realCode"),
