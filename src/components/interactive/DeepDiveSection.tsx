@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { t } from "../../i18n/translations";
 import type { Locale } from "../../i18n/locales";
@@ -17,6 +17,44 @@ interface Props {
 
 export default function DeepDiveSection({ locale = "en" as Locale, items }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const [highlightedCode, setHighlightedCode] = useState<Map<number, string>>(new Map());
+
+  // Load Shiki when the section is opened for the first time
+  useEffect(() => {
+    if (!isOpen) return;
+    if (highlightedCode.size > 0) return; // already highlighted
+
+    let cancelled = false;
+    async function highlight() {
+      try {
+        const { createHighlighter } = await import("shiki");
+        const highlighter = await createHighlighter({
+          themes: ["github-dark-default"],
+          langs: ["typescript"],
+        });
+
+        if (cancelled) { highlighter.dispose(); return; }
+
+        const result = new Map<number, string>();
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].code) {
+            const html = highlighter.codeToHtml(items[i].code!, {
+              lang: "typescript",
+              theme: "github-dark-default",
+            });
+            result.set(i, html);
+          }
+        }
+
+        highlighter.dispose();
+        if (!cancelled) setHighlightedCode(result);
+      } catch (e) {
+        console.warn("Shiki failed to load for DeepDive", e);
+      }
+    }
+    highlight();
+    return () => { cancelled = true; };
+  }, [isOpen, items, highlightedCode.size]);
 
   const typeLabels: Record<string, string> = {
     code: t(locale, "deepDive.realCode"),
@@ -67,7 +105,16 @@ export default function DeepDiveSection({ locale = "en" as Locale, items }: Prop
                   </p>
                   {item.code && (
                     <div className="rounded-lg bg-bg border border-bg-border overflow-x-auto">
-                      <pre className="p-4 text-xs sm:text-sm font-mono leading-relaxed text-text"><code>{item.code}</code></pre>
+                      {highlightedCode.has(i) ? (
+                        <div
+                          className="p-4 text-xs sm:text-sm [&_pre]:!bg-transparent [&_pre]:!m-0 [&_code]:!text-xs sm:[&_code]:!text-sm [&_code]:!leading-relaxed"
+                          dangerouslySetInnerHTML={{ __html: highlightedCode.get(i)! }}
+                        />
+                      ) : (
+                        <pre className="p-4 text-xs sm:text-sm font-mono leading-relaxed text-text">
+                          <code>{item.code}</code>
+                        </pre>
+                      )}
                     </div>
                   )}
                 </div>
