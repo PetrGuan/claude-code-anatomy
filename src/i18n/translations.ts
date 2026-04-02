@@ -1043,8 +1043,16 @@ const translations = {
     },
     qj: {
       title: { en: "Query Journey", zh: "查询之旅" },
-      desc: { en: "Guide a message through the query pipeline", zh: "引导消息穿越查询管线" },
-      comingSoon: { en: "Coming Soon", zh: "即将推出" },
+      desc: { en: "Run through the query pipeline! Jump to dodge obstacles and collect tokens.", zh: "跑过查询管线！跳跃躲避障碍，收集 token。" },
+      start: { en: "Press Space to Start", zh: "按空格键开始" },
+      tapStart: { en: "Tap to Start", zh: "点击开始" },
+      gameOver: { en: "Game Over", zh: "游戏结束" },
+      victory: { en: "Pipeline Complete!", zh: "管线完成！" },
+      playAgain: { en: "Play Again", zh: "再来一次" },
+      score: { en: "Score", zh: "分数" },
+      lives: { en: "Lives", zh: "生命" },
+      zone: { en: "Zone", zh: "区域" },
+      jumpHint: { en: "Space / ↑ to jump", zh: "空格 / ↑ 跳跃" },
     },
   },
 } as const;

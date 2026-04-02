@@ -1,0 +1,22 @@
+---
+import type { Locale } from "../i18n/locales";
+import { getLocalePath } from "../i18n/locales";
+import { t } from "../i18n/translations";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import QueryRunner from "../components/games/QueryRunner.tsx";
+
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+---
+
+<BaseLayout title={t(locale, "games.qj.title")} locale={locale}>
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-8">
+      <a href={getLocalePath(locale, "/games")} class="text-sm text-text-secondary hover:text-accent-purple transition-colors">
+        &larr; {t(locale, "games.hubTitle")}
+      </a>
+    </div>
+
+    <QueryRunner client:only="react" locale={locale} />
+  </div>
+</BaseLayout>
