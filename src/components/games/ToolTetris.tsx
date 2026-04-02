@@ -24,7 +24,7 @@ interface Piece {
   toolName: string;
 }
 
-type GameState = "start" | "playing" | "paused" | "over";
+type GameState = "tutorial" | "start" | "playing" | "paused" | "over";
 
 // Standard Tetris shapes (each rotation is a 2D array)
 const SHAPES: number[][][] = [
@@ -90,7 +90,8 @@ export default function ToolTetris({ locale = "en" as Locale }: Props) {
   const [level, setLevel] = useState(1);
   const [lines, setLines] = useState(0);
   const [combo, setCombo] = useState(0);
-  const [gameState, setGameState] = useState<GameState>("start");
+  const [gameState, setGameState] = useState<GameState>("tutorial");
+  const [tutorialStep, setTutorialStep] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
   const [activeEffects, setActiveEffects] = useState<string[]>([]);
   const [agentCharges, setAgentCharges] = useState(0);
@@ -101,7 +102,7 @@ export default function ToolTetris({ locale = "en" as Locale }: Props) {
   const levelRef = useRef(1);
   const linesRef = useRef(0);
   const comboRef = useRef(0);
-  const gameStateRef = useRef<GameState>("start");
+  const gameStateRef = useRef<GameState>("tutorial");
   const animFrameRef = useRef(0);
   const lastDropRef = useRef(0);
   const gameStartRef = useRef(0);
@@ -731,6 +732,41 @@ export default function ToolTetris({ locale = "en" as Locale }: Props) {
     }
   };
 
+  const isZh = locale === "zh";
+
+  const tutorialSteps = [
+    {
+      title: isZh ? "基础操作" : "Basic Controls",
+      desc: isZh ? "← → 移动方块\n↑ 旋转\n↓ 加速下落\n空格 直接落底\n\n填满一行即可消除！" : "← → Move piece\n↑ Rotate\n↓ Soft drop\nSpace Hard drop\n\nComplete a row to clear it!",
+      visual: "controls",
+    },
+    {
+      title: isZh ? "🔵 蓝色 = 只读工具" : "🔵 Blue = Read-Only Tools",
+      desc: isZh ? "蓝色方块代表只读工具（Read、Glob、Grep）。\n\n整行全是蓝色？\n→ 瞬间并行消除！⚡" : "Blue blocks are read-only tools (Read, Glob, Grep).\n\nA row that's ALL blue?\n→ Instant parallel clear! ⚡",
+      visual: "blue",
+    },
+    {
+      title: isZh ? "🟠 橙色 = 写工具" : "🟠 Orange = Write Tools",
+      desc: isZh ? "橙色方块代表写工具（Edit、Write、Bash）。\n\n行中有橙色？\n→ 串行消除（1秒延迟）🐌\n→ 打断连击 combo" : "Orange blocks are write tools (Edit, Write, Bash).\n\nRow contains orange?\n→ Serial clear (1s delay) 🐌\n→ Breaks combo streak",
+      visual: "orange",
+    },
+    {
+      title: isZh ? "🔴 危险块 — 按 X 拒绝！" : "🔴 Danger Block — Press X!",
+      desc: isZh ? "红色的 \"rm -rf\" 块偶尔出现。\n\n在它落地前按 X 键拒绝 → +50 分 ✅\n没拒绝？它会爆炸💥 炸掉周围 3×3 格！" : "Red \"rm -rf\" blocks appear occasionally.\n\nPress X before it lands → +50 pts ✅\nMissed? It explodes 💥 destroying a 3×3 area!",
+      visual: "danger",
+    },
+    {
+      title: isZh ? "⭐ 道具 & 🗜️ 压缩" : "⭐ Power-ups & 🗜️ Compression",
+      desc: isZh ? "⭐ 消除含星星的行 → 随机特效\n  · 减速 10 秒\n  · 清除一整列\n  · 所有橙色变蓝色\n\n🗜️ 棋盘满到 80% → 自动压缩底部行" : "⭐ Clear a row with a star → random effect\n  · Slow mode 10s\n  · Clear entire column\n  · All orange → blue\n\n🗜️ Board 80% full → auto-compress bottom rows",
+      visual: "star",
+    },
+    {
+      title: isZh ? "🤖 Agent 助手" : "🤖 Agent Helper",
+      desc: isZh ? "每得 200 分获得 1 次 Agent 充能。\n按 A 键 → AI 自动最优放置当前方块！\n\n准备好了吗？" : "Earn 1 Agent charge every 200 points.\nPress A → AI auto-places current piece!\n\nReady to play?",
+      visual: "agent",
+    },
+  ];
+
   return (
     <div ref={containerRef} tabIndex={0} className="outline-none" style={{ cursor: "default" }}>
       <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", height: `${(ROWS * CELL + 80) * scale}px` }}>
@@ -738,6 +774,102 @@ export default function ToolTetris({ locale = "en" as Locale }: Props) {
         <h1 className="text-2xl font-bold mb-4" style={{ color: "rgb(var(--color-accent-purple))" }}>
           {t(locale, "games.ts.title")}
         </h1>
+
+        {/* Tutorial */}
+        {gameState === "tutorial" && (
+          <div className="flex flex-col items-center justify-center" style={{ minHeight: `${ROWS * CELL}px` }}>
+            <div className="max-w-sm w-full">
+              {/* Progress dots */}
+              <div className="flex justify-center gap-1.5 mb-6">
+                {tutorialSteps.map((_, i) => (
+                  <span key={i} className={`w-2 h-2 rounded-full ${i === tutorialStep ? "bg-accent-purple" : i < tutorialStep ? "bg-accent-emerald" : "bg-bg-border"}`} />
+                ))}
+              </div>
+
+              {/* Card */}
+              <div className="rounded-xl border border-bg-border bg-bg-card p-6">
+                <h3 className="text-lg font-bold text-text mb-4">
+                  {tutorialSteps[tutorialStep].title}
+                </h3>
+
+                {/* Mini visual for each step */}
+                <div className="mb-4 rounded-lg bg-bg border border-bg-border p-3 flex justify-center">
+                  {tutorialSteps[tutorialStep].visual === "controls" && (
+                    <div className="grid grid-cols-3 gap-1 text-center text-xs font-mono">
+                      <div /><div className="px-2 py-1 bg-bg-card border border-bg-border rounded">↑</div><div />
+                      <div className="px-2 py-1 bg-bg-card border border-bg-border rounded">←</div>
+                      <div className="px-2 py-1 bg-bg-card border border-bg-border rounded">↓</div>
+                      <div className="px-2 py-1 bg-bg-card border border-bg-border rounded">→</div>
+                      <div className="col-span-3 mt-1 px-2 py-1 bg-bg-card border border-bg-border rounded">SPACE</div>
+                    </div>
+                  )}
+                  {tutorialSteps[tutorialStep].visual === "blue" && (
+                    <div className="flex gap-1">
+                      {Array(10).fill(null).map((_, i) => (
+                        <div key={i} className="w-5 h-5 rounded-sm" style={{ backgroundColor: "rgb(var(--color-accent-cyan) / 0.6)" }} />
+                      ))}
+                    </div>
+                  )}
+                  {tutorialSteps[tutorialStep].visual === "orange" && (
+                    <div className="flex gap-1">
+                      {Array(10).fill(null).map((_, i) => (
+                        <div key={i} className="w-5 h-5 rounded-sm" style={{ backgroundColor: i === 4 || i === 7 ? "rgb(var(--color-accent-amber) / 0.6)" : "rgb(var(--color-accent-cyan) / 0.6)" }} />
+                      ))}
+                    </div>
+                  )}
+                  {tutorialSteps[tutorialStep].visual === "danger" && (
+                    <div className="text-4xl animate-pulse">💥</div>
+                  )}
+                  {tutorialSteps[tutorialStep].visual === "star" && (
+                    <div className="flex items-center gap-3 text-2xl">
+                      <span>⭐</span><span className="text-sm text-text-secondary">→</span><span>🎲</span>
+                    </div>
+                  )}
+                  {tutorialSteps[tutorialStep].visual === "agent" && (
+                    <div className="text-4xl">🤖</div>
+                  )}
+                </div>
+
+                <p className="text-sm text-text-secondary whitespace-pre-line leading-relaxed">
+                  {tutorialSteps[tutorialStep].desc}
+                </p>
+              </div>
+
+              {/* Navigation */}
+              <div className="flex justify-between mt-4">
+                <button
+                  onClick={() => setTutorialStep(s => Math.max(0, s - 1))}
+                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${tutorialStep > 0 ? "text-text-secondary hover:text-text" : "opacity-0 pointer-events-none"}`}
+                >
+                  ← {isZh ? "上一步" : "Back"}
+                </button>
+                {tutorialStep < tutorialSteps.length - 1 ? (
+                  <button
+                    onClick={() => setTutorialStep(s => s + 1)}
+                    className="px-4 py-2 rounded-lg text-sm bg-accent-purple text-white hover:bg-accent-purple/80 transition-colors"
+                  >
+                    {isZh ? "下一步" : "Next"} →
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setGameState("start")}
+                    className="px-6 py-2 rounded-lg text-sm bg-accent-emerald text-white font-bold hover:bg-accent-emerald/80 transition-colors"
+                  >
+                    🎮 {isZh ? "开始游戏！" : "Start Game!"}
+                  </button>
+                )}
+              </div>
+
+              {/* Skip link */}
+              <button
+                onClick={() => setGameState("start")}
+                className="block mx-auto mt-4 text-xs text-text-secondary/50 hover:text-text-secondary transition-colors"
+              >
+                {isZh ? "跳过引导" : "Skip tutorial"}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Start / Game Over overlay */}
         {gameState === "start" && (
