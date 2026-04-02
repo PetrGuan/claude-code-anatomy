@@ -245,7 +245,8 @@ export default function PixelRPG({ locale = "en" as Locale }: Props) {
             doFlash("green");
             // Explain what this tool does
             const toolPickupKey = `games.pg.tool${name}`;
-            setNarrative(t(locale, toolPickupKey));
+            const msg = t(locale, toolPickupKey);
+            setNarrative(msg !== toolPickupKey ? msg : `Picked up ${name}. Which lane?`);
             break;
           }
         }
