@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { t } from "../../i18n/translations";
 import type { Locale } from "../../i18n/locales";
-import { getTraceSteps, type TraceStep, type ClickableRef } from "../../data/traceSteps";
+import { getTraceSteps, type TraceStep, type ClickableRef, type ChainId } from "../../data/traceSteps";
 
 interface HighlightedLine {
   tokens: { content: string; color?: string }[];
@@ -10,10 +10,11 @@ interface HighlightedLine {
 
 interface Props {
   locale?: Locale;
+  chain?: ChainId;
 }
 
-export default function CodeTracer({ locale = "en" as Locale }: Props) {
-  const steps = useMemo(() => getTraceSteps(locale), [locale]);
+export default function CodeTracer({ locale = "en" as Locale, chain = "query-pipeline" }: Props) {
+  const steps = useMemo(() => getTraceSteps(locale, chain), [locale, chain]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [history, setHistory] = useState<number[]>([0]);
 

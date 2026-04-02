@@ -15,6 +15,7 @@ import { deepDiveSnippets } from "../data/deepDiveCode";
 import { toolCategories, categoryName, toolDesc } from "../data/tools";
 import { snippets, snippetTitle, snippetAnnotations } from "../data/codeSnippets";
 import CodeBlock from "../components/common/CodeBlock.astro";
+import CodeTracer from "../components/interactive/CodeTracer.tsx";
 
 interface Props {
   locale: Locale;
@@ -105,15 +106,7 @@ const executionEdges = [
 
     <div class="mt-24">
       <SectionHeading id="code" title={t(locale, "toolSystem.codeTitle")} subtitle={t(locale, "toolSystem.codeSubtitle")} />
-      <CodeBlock code={snippets.toolOrchestration.code} title={snippetTitle(snippets.toolOrchestration, locale)} />
-      <div class="mt-4 space-y-2">
-        {Object.entries(snippetAnnotations(snippets.toolOrchestration, locale) ?? {}).map(([line, note]) => (
-          <div class="flex items-start gap-3 text-sm">
-            <span class="flex-shrink-0 text-xs font-mono text-accent-emerald bg-accent-emerald/10 px-2 py-0.5 rounded">L{line}</span>
-            <span class="text-text-secondary">{note}</span>
-          </div>
-        ))}
-      </div>
+      <CodeTracer client:visible locale={locale} chain="tool-system" />
     </div>
 
     <DeepDiveSection client:visible locale={locale} items={[

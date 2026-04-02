@@ -629,6 +629,28 @@ const translations = {
       en: "After tool execution, results are appended to the conversation history and submitMessage() calls itself recursively. This loop continues — Claude sees the tool results, may request more tools, until it returns stop_reason: 'end_turn' and the conversation turn is complete.",
       zh: "工具执行后，结果被追加到对话历史中，submitMessage() 递归调用自身。这个循环持续进行 — Claude 看到工具结果，可能请求更多工具，直到返回 stop_reason: 'end_turn'，对话轮次完成。"
     },
+    // Tool System chain
+    tsStep1Title: { en: "Tool Registration", zh: "工具注册" },
+    tsStep1Annotation: { en: "All tools are registered in a single array. Feature flags like feature('X') are evaluated at bundle time — disabled tools are stripped from production. Runtime checks (process.env) gate internal-only tools.", zh: "所有工具在单个数组中注册。feature('X') 等特性开关在打包时求值 — 禁用的工具从生产包中剥离。运行时检查（process.env）控制仅限内部的工具。" },
+    tsStep2Title: { en: "Batch Partitioning", zh: "批处理分区" },
+    tsStep2Annotation: { en: "Tool calls from a single API response are partitioned into batches. Consecutive concurrency-safe calls are grouped together. A non-safe call starts a new batch. This greedy algorithm maximizes parallelism while preserving order.", zh: "单个 API 响应中的工具调用被分区为批次。连续的并发安全调用被分组在一起。非安全调用开始新批次。这种贪心算法在保持顺序的同时最大化并行性。" },
+    tsStep3Title: { en: "Safety Check", zh: "安全检查" },
+    tsStep3Annotation: { en: "Each tool declares isConcurrencySafe() and isReadOnly(). Read-only tools like Glob, Grep, Read are concurrency-safe. Write tools like Edit, Write, Bash are not. The check is wrapped in try/catch — if it throws, the tool is treated as unsafe.", zh: "每个工具声明 isConcurrencySafe() 和 isReadOnly()。只读工具如 Glob、Grep、Read 是并发安全的。写工具如 Edit、Write、Bash 不是。检查包装在 try/catch 中 — 如果抛出异常，工具被视为不安全。" },
+    tsStep4Title: { en: "Concurrent / Serial Execution", zh: "并发/串行执行" },
+    tsStep4Annotation: { en: "Safe batches run via Promise.all — all tools in the batch execute simultaneously. Non-safe batches run in a for loop — one tool at a time, each awaited before the next starts. Results are yielded as an async generator.", zh: "安全批次通过 Promise.all 运行 — 批次中的所有工具同时执行。非安全批次在 for 循环中运行 — 一次一个工具，每个等待完成后才开始下一个。结果作为 async generator yield。" },
+    tsStep5Title: { en: "Result Collection", zh: "结果收集" },
+    tsStep5Annotation: { en: "Each tool returns a ToolResult which is yielded back to the query pipeline. The result includes the tool output, any error information, and context modifications. The query loop appends these as tool_result messages for Claude's next turn.", zh: "每个工具返回 ToolResult，被 yield 回查询管线。结果包括工具输出、错误信息和上下文修改。查询循环将它们作为 tool_result 消息追加，供 Claude 下一轮使用。" },
+    // Permission Security chain
+    psStep1Title: { en: "Permission Entry", zh: "权限入口" },
+    psStep1Annotation: { en: "Every tool call passes through hasPermissionsToUseTool(). It wraps the inner check with denial tracking — if a tool is allowed, consecutive denial counters reset. If denied in 'dontAsk' mode, 'ask' decisions are converted to 'deny' silently.", zh: "每个工具调用都经过 hasPermissionsToUseTool()。它用拒绝跟踪包装内部检查 — 如果工具被允许，连续拒绝计数器重置。在 'dontAsk' 模式下被拒绝时，'ask' 决策被静默转换为 'deny'。" },
+    psStep2Title: { en: "Mode Routing", zh: "模式路由" },
+    psStep2Annotation: { en: "The permission mode determines the path: 'bypassPermissions' allows everything immediately. 'plan' restricts to read-only. 'auto' routes to the ML classifier. 'default' checks rules first, then asks the user. Each mode has distinct security guarantees.", zh: "权限模式决定路径：'bypassPermissions' 立即允许一切。'plan' 限制为只读。'auto' 路由到 ML 分类器。'default' 先检查规则，然后询问用户。每种模式有不同的安全保障。" },
+    psStep3Title: { en: "ML Classifier", zh: "ML 分类器" },
+    psStep3Annotation: { en: "The classifier analyzes commands using trained patterns. It returns a confidence level (high/medium/low) and a decision. High-confidence decisions are acted on immediately. In the open-source build, this is stubbed out — the feature is internal to Anthropic.", zh: "分类器使用训练模式分析命令。返回置信度（高/中/低）和决策。高置信度决策立即执行。在开源构建中，这是一个存根 — 该功能是 Anthropic 内部的。" },
+    psStep4Title: { en: "Rule Matching", zh: "规则匹配" },
+    psStep4Annotation: { en: "User-defined allow/deny rules are checked using wildcard pattern matching. 'git *' matches 'git', 'git status', 'git commit -m fix'. Escaped wildcards (\\*) match literal asterisks. Rules come from settings, project config, and CLI flags.", zh: "用户定义的允许/拒绝规则通过通配符模式匹配检查。'git *' 匹配 'git'、'git status'、'git commit -m fix'。转义的通配符（\\*）匹配字面星号。规则来自设置、项目配置和 CLI 参数。" },
+    psStep5Title: { en: "User Dialog", zh: "用户对话框" },
+    psStep5Annotation: { en: "If no rule matches and the classifier is uncertain, the REPL shows a confirmation dialog. The user sees the exact command and can allow once, always allow this pattern, or deny. Their choice can be saved as a new rule for future sessions.", zh: "如果没有规则匹配且分类器不确定，REPL 显示确认对话框。用户看到确切的命令，可以允许一次、总是允许此模式或拒绝。他们的选择可以保存为新规则供未来会话使用。" },
   },
   glossary: {
     title: { en: "Glossary", zh: "术语表" },
