@@ -42,6 +42,7 @@ const lightHtml = await codeToHtml(code, { lang, theme: "github-light-default" }
       try {
         await navigator.clipboard.writeText(code);
       } catch {
+        // Fallback for non-HTTPS (same logic as CopyButton.tsx — can't share because this is an Astro inline script, not React)
         const textarea = document.createElement('textarea');
         textarea.value = code;
         textarea.style.position = 'fixed';
