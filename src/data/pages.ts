@@ -29,6 +29,7 @@ export const contentPages: PageDef[] = [
   // Reference
   { path: "/glossary", navKey: "nav.glossary", descKey: "glossary.subtitle", color: "#8888a0", group: "reference" },
   { path: "/easter-eggs", navKey: "nav.easterEggs", descKey: "easterEggs.subtitle", color: "#f59e0b", group: "reference" },
+  { path: "/buddy-showcase", navKey: "nav.buddyShowcase", descKey: "easterEggs.buddyTitle", color: "#f59e0b", group: "reference" },
   // Games
   { path: "/games", navKey: "nav.games", descKey: "games.hubSubtitle", color: "#f59e0b", group: "games" },
 ];

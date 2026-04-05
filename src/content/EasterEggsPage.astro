@@ -54,6 +54,13 @@ const sidebarItems = items.map(item => ({
                   {t(locale, item.descKey).split("\n\n").map((p, i) => (
                     <p>{p}</p>
                   ))}
+                  {item.id === "buddy" && (
+                    <p class="mt-2">
+                      <a href={locale === "zh" ? "/zh/buddy-showcase" : "/buddy-showcase"} class="text-accent-purple hover:underline font-medium">
+                        {locale === "zh" ? "→ 查看全部 18 种物种" : "→ See all 18 species"}
+                      </a>
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

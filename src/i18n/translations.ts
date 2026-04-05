@@ -16,6 +16,7 @@ const translations = {
     glossary: { en: "Glossary", zh: "术语表" },
     easterEggs: { en: "Easter Eggs", zh: "彩蛋" },
     games: { en: "Games", zh: "小游戏" },
+    buddyShowcase: { en: "Buddy Showcase", zh: "Buddy 图鉴" },
   },
   common: {
     plainLabel: { en: "Simple", zh: "通俗版" },

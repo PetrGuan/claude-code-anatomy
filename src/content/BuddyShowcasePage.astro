@@ -1,0 +1,31 @@
+---
+import type { Locale } from "../i18n/locales";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import BuddyShowcase from "../components/games/BuddyShowcase.tsx";
+
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+---
+
+<BaseLayout title={locale === "zh" ? "Buddy 图鉴" : "Buddy Showcase"} locale={locale}>
+  <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-12 text-center">
+      <p class="text-5xl mb-4">🐾</p>
+      <h1 class="text-4xl font-bold">{locale === "zh" ? "Buddy 图鉴" : "Buddy Showcase"}</h1>
+      <p class="mt-4 text-lg text-text-secondary">
+        {locale === "zh"
+          ? "Claude Code 的 18 种虚拟伙伴。每只都有独特的外观、眼睛和帽子。基于你的 User ID 随机生成。"
+          : "All 18 virtual companion species in Claude Code. Each has unique looks, eyes, and hats. Generated from your User ID."}
+      </p>
+      <div class="flex flex-wrap justify-center gap-4 mt-4 text-xs text-text-secondary">
+        <span><span style="color: #8888a0">★</span> Common 60%</span>
+        <span><span style="color: #10b981">★★</span> Uncommon 25%</span>
+        <span><span style="color: #6c63ff">★★★</span> Rare 10%</span>
+        <span><span style="color: #a78bfa">★★★★</span> Epic 4%</span>
+        <span><span style="color: #f59e0b">★★★★★</span> Legendary 1%</span>
+      </div>
+    </div>
+
+    <BuddyShowcase client:load locale={locale} />
+  </div>
+</BaseLayout>
