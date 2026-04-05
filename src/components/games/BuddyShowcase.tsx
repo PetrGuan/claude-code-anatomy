@@ -378,36 +378,35 @@ export default function BuddyShowcase({ locale = "en" }: Props) {
             </div>
 
             {/* Navigation */}
-            <div className="flex items-center justify-between mt-4">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const keys = Object.keys(SPECIES_DATA);
-                  const idx = keys.indexOf(name);
-                  setSelectedSpecies(keys[(idx - 1 + keys.length) % keys.length]);
-                }}
-                className="text-sm text-text-secondary hover:text-accent-purple transition-colors"
-              >
-                ← {isZh ? "上一个" : "Previous"}
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); setSelectedSpecies(null); }}
-                className="text-xs text-text-secondary/50 hover:text-text-secondary transition-colors"
-              >
-                ✕
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const keys = Object.keys(SPECIES_DATA);
-                  const idx = keys.indexOf(name);
-                  setSelectedSpecies(keys[(idx + 1) % keys.length]);
-                }}
-                className="text-sm text-text-secondary hover:text-accent-purple transition-colors"
-              >
-                {isZh ? "下一个" : "Next"} →
-              </button>
-            </div>
+            {(() => {
+              const keys = Object.keys(SPECIES_DATA);
+              const idx = keys.indexOf(name);
+              return (
+                <div className="flex items-center justify-between mt-4">
+                  <button
+                    aria-label={isZh ? "上一个 Buddy" : "Previous buddy"}
+                    onClick={(e) => { e.stopPropagation(); setSelectedSpecies(keys[(idx - 1 + keys.length) % keys.length]); }}
+                    className="text-sm text-text-secondary hover:text-accent-purple transition-colors"
+                  >
+                    ← {isZh ? "上一个" : "Previous"}
+                  </button>
+                  <button
+                    aria-label={isZh ? "关闭" : "Close"}
+                    onClick={(e) => { e.stopPropagation(); setSelectedSpecies(null); }}
+                    className="text-xs text-text-secondary/50 hover:text-text-secondary transition-colors"
+                  >
+                    ✕
+                  </button>
+                  <button
+                    aria-label={isZh ? "下一个 Buddy" : "Next buddy"}
+                    onClick={(e) => { e.stopPropagation(); setSelectedSpecies(keys[(idx + 1) % keys.length]); }}
+                    className="text-sm text-text-secondary hover:text-accent-purple transition-colors"
+                  >
+                    {isZh ? "下一个" : "Next"} →
+                  </button>
+                </div>
+              );
+            })()}
           </div>
         );
       })()}
