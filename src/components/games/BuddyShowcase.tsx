@@ -377,13 +377,37 @@ export default function BuddyShowcase({ locale = "en" }: Props) {
               </div>
             </div>
 
-            {/* Close button */}
-            <button
-              onClick={(e) => { e.stopPropagation(); setSelectedSpecies(null); }}
-              className="mt-4 text-xs text-text-secondary hover:text-accent-purple transition-colors"
-            >
-              {isZh ? "← 返回图鉴" : "← Back to showcase"}
-            </button>
+            {/* Navigation */}
+            <div className="flex items-center justify-between mt-4">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const keys = Object.keys(SPECIES_DATA);
+                  const idx = keys.indexOf(name);
+                  setSelectedSpecies(keys[(idx - 1 + keys.length) % keys.length]);
+                }}
+                className="text-sm text-text-secondary hover:text-accent-purple transition-colors"
+              >
+                ← {isZh ? "上一个" : "Previous"}
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setSelectedSpecies(null); }}
+                className="text-xs text-text-secondary/50 hover:text-text-secondary transition-colors"
+              >
+                ✕
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const keys = Object.keys(SPECIES_DATA);
+                  const idx = keys.indexOf(name);
+                  setSelectedSpecies(keys[(idx + 1) % keys.length]);
+                }}
+                className="text-sm text-text-secondary hover:text-accent-purple transition-colors"
+              >
+                {isZh ? "下一个" : "Next"} →
+              </button>
+            </div>
           </div>
         );
       })()}
