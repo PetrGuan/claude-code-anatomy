@@ -257,7 +257,10 @@ export default function BuddyShowcase({ locale = "en" }: Props) {
               className={`rounded-xl border bg-bg-card p-4 cursor-pointer transition-colors ${
                 selectedSpecies === name ? 'border-accent-purple' : 'border-bg-border hover:border-accent-purple/50'
               }`}
+              role="button"
+              tabIndex={0}
               onClick={() => setSelectedSpecies(selectedSpecies === name ? null : name)}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedSpecies(selectedSpecies === name ? null : name); } }}
             >
               {/* Sprite */}
               <pre
