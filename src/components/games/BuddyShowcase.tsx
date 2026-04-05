@@ -54,6 +54,13 @@ const SAMPLE_STATS: Record<string, Record<string, number>> = {
 };
 
 // All 18 species with their 3 frames of ASCII art (copied from sprites.ts)
+const SPECIES_CN: Record<string, string> = {
+  duck: "鸭子", goose: "鹅", blob: "果冻", cat: "猫", dragon: "龙",
+  octopus: "章鱼", owl: "猫头鹰", penguin: "企鹅", turtle: "乌龟", snail: "蜗牛",
+  ghost: "幽灵", axolotl: "美西螈", capybara: "水豚", cactus: "仙人掌",
+  robot: "机器人", rabbit: "兔子", mushroom: "蘑菇", chonk: "胖墩",
+};
+
 const SPECIES_DATA: Record<string, { frames: string[][]; rarity: string }> = {
   duck: {
     frames: [
@@ -272,7 +279,7 @@ export default function BuddyShowcase({ locale = "en" }: Props) {
 
               {/* Name + rarity */}
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-bold capitalize">{name}</span>
+                <span className="text-sm font-bold capitalize">{isZh ? SPECIES_CN[name] || name : name}</span>
                 <span className="text-xs font-mono" style={{ color: RARITY_COLORS[rarity] }}>
                   {RARITY_STARS[rarity]} {rarity}
                 </span>
@@ -331,7 +338,7 @@ export default function BuddyShowcase({ locale = "en" }: Props) {
               <span style={{ color: RARITY_COLORS[rarity] }}>
                 {RARITY_STARS[rarity]} {rarity.toUpperCase()}
               </span>
-              <span className="text-text-secondary uppercase">{name}</span>
+              <span className="text-text-secondary uppercase">{isZh ? SPECIES_CN[name] || name : name}</span>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-6">
