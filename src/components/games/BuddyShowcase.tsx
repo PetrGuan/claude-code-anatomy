@@ -54,6 +54,10 @@ const SAMPLE_STATS: Record<string, Record<string, number>> = {
 };
 
 // All 18 species with their 3 frames of ASCII art (copied from sprites.ts)
+const STAT_CN: Record<string, string> = {
+  DEBUGGING: "调试", PATIENCE: "耐心", CHAOS: "混乱", WISDOM: "智慧", SNARK: "毒舌",
+};
+
 const SPECIES_CN: Record<string, string> = {
   duck: "鸭子", goose: "鹅", blob: "果冻", cat: "猫", dragon: "龙",
   octopus: "章鱼", owl: "猫头鹰", penguin: "企鹅", turtle: "乌龟", snail: "蜗牛",
@@ -360,7 +364,7 @@ export default function BuddyShowcase({ locale = "en" }: Props) {
                 <div className="space-y-1.5">
                   {Object.entries(stats).map(([stat, value]) => (
                     <div key={stat} className="flex items-center gap-2 text-xs">
-                      <span className="w-20 text-text-secondary">{stat}</span>
+                      <span className="w-20 text-text-secondary">{isZh ? (STAT_CN[stat] || stat) : stat}</span>
                       <div className="flex-1 h-3 bg-bg rounded overflow-hidden">
                         <div
                           className="h-full rounded"
