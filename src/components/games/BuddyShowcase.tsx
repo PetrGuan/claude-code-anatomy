@@ -268,12 +268,13 @@ export default function BuddyShowcase({ locale = "en" }: Props) {
               </pre>
 
               {/* Name + rarity */}
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-bold capitalize">{name}</span>
                 <span className="text-xs font-mono" style={{ color: RARITY_COLORS[rarity] }}>
                   {RARITY_STARS[rarity]} {rarity}
                 </span>
               </div>
+              <p className="text-[10px] text-accent-purple mb-2">{isZh ? "▶ 点击查看详情" : "▶ Click for details"}</p>
 
               {/* Eye selector */}
               <div className="flex items-center gap-1 mb-1" onClick={e => e.stopPropagation()}>
